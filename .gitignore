@@ -1,0 +1,28 @@
+.bloop/
+.metals/
+.bsp/
+.vscode/
+project/metals.sbt
+project/project/
+target/
+node_modules/
+
+**/yarn.lock
+
+## igone the demo (generated code)
+docs-build/**
+
+## igone(generated files)
+.*.swn
+.*.swo
+.*.swp
+.~*
+*.bak
+*.log
+*.pid
+*.semanticdb
+*.tmp
+~*
+
+#lixo
+lixo
