@@ -11,7 +11,6 @@ class DIDSubjectSuite extends FunSuite {
     val ret = DIDSubject(str)
     assert(ret.isInstanceOf[DIDSubject])
     assert(ret.toDID.isInstanceOf[DID])
-
   }
 
   test("DIDSubject as DID") {
@@ -30,7 +29,7 @@ class DIDSubjectSuite extends FunSuite {
     }
   }
 
-  test("DIDSubject serialize parse") {
+  test("DIDSubject serialize & parse") {
     val ret = DIDSubject(str).toJson
     assertEquals(ret, s"\"$str\"")
   }

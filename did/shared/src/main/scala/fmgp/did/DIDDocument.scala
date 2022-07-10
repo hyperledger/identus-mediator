@@ -26,6 +26,11 @@ trait DIDDocument extends DID {
   def didSubject = id.toDID
 
   val (namespace, specificId) = (id.namespace, id.specificId) // DID.getNamespaceAndSpecificId(id)
+
+  def getAuthentications = authentication.toSeq.flatMap {
+    case v: VerificationMethod                   => Seq(v)
+    case seq: Seq[VerificationMethod] @unchecked => seq
+  }
 }
 
 object DIDDocument {

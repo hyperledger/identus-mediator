@@ -1,6 +1,6 @@
 package fmgp.did
 
-object Examples {
+object DIDExamples {
 
   /*EXAMPLE1: A simple DID document - https://www.w3.org/TR/did-core/#a-simple-example*/
   val EX1 = """

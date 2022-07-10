@@ -28,7 +28,8 @@ lazy val docs = project // new documentation project
 /** Versions */
 lazy val V = new {
 
-  val munit = "1.0.0-M4" // "0.7.29"
+  // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
+  val munit = "1.0.0-M6" // "0.7.29"
 
   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
   val scalajsDom = "2.0.0" // scalajsDom 2.0.0 need to update sbt-converter to 37?
@@ -86,7 +87,11 @@ lazy val NPM = new {
 
   val ipfsClient = Seq("multiformats" -> "9.6.4")
 
-  //val prism = Seq("@input-output-hk/atala-prism-sdk-test" -> "0.0.11")
+  // val nodeJose = Seq("node-jose" -> "2.1.1", "@types/node-jose" -> "1.1.10")
+  // val elliptic = Seq("elliptic" -> "6.5.4", "@types/elliptic" -> "6.4.14")
+  val jose = Seq("jose" -> "1.18.2") // , "ts-jose" -> "4.8.3")
+
+  // val prism = Seq("@input-output-hk/atala-prism-sdk-test" -> "0.0.11")
 
 }
 
@@ -127,7 +132,7 @@ lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = Seq(
   libraryDependencies += D.munit.value,
 )
 lazy val setupTestConfigJS: Seq[sbt.Def.SettingsDefinition] = Seq(
-  //Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  // Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
 )
 
 lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = settingsFlags ++ Seq(
@@ -195,12 +200,24 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     version := "0.1-SNAPSHOT",
     libraryDependencies += D.zioJson.value,
   )
-  .jvmSettings(
-    // Add JVM-specific settings here
+  .jvmSettings( // Add JVM-specific settings here
+    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.71", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.71", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
+    libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.23", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
+
+    // Needed for nimbus-jose-jwt with Ed25519Signer
+    // BUT have vulnerabilities in the dependencies: CVE-2022-25647
+    libraryDependencies += "com.google.crypto.tink" % "tink" % "1.6.1", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
+    // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
+    libraryDependencies += "com.google.code.gson" % "gson" % "2.9.0",
+    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.2"
   )
-  .jsSettings(
-    // Add JS-specific settings here
-    // scalaJSUseMainModuleInitializer := true,
+  // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
+  .jsConfigure(scalaJSBundlerConfigure)
+  .jsSettings( // Add JS-specific settings here
+    Compile / npmDependencies ++= NPM.jose, // NPM.elliptic, // NPM.nodeJose
+    // 2Test / scalaJSUseMainModuleInitializer := true, Test / scalaJSUseTestModuleInitializer := false, Test / mainClass := Some("fmgp.crypto.MainTestJS")
+    Test / parallelExecution := false
   )
 
 lazy val webapp = project
@@ -228,7 +245,7 @@ lazy val webapp = project
     //   "stream-browserify",
     //   "test",
     //   "ms"
-    // ), 
+    // ),
   )
   .settings(
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,

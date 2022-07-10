@@ -1,6 +1,8 @@
 package fmgp.did.comm
 
+import zio.json._
 import fmgp.did._
+import fmgp.did.comm.PlaintextMessage.{UTCEpoch, JSON_RFC7159}
 
 /** https://identity.foundation/didcomm-messaging/spec/#message-headers */
 trait PlaintextMessage {
@@ -22,16 +24,35 @@ trait PlaintextMessage {
   /** Thread identifier */
   def thid: NotRequired[String]
 
-  type UTCEpoch = Long
   def created_time: NotRequired[UTCEpoch]
   def expires_time: NotRequired[UTCEpoch]
-
-  type JSON_RFC7159 = String
 
   /** application-level data inside a JSON */
   def body: Required[JSON_RFC7159]
 
-  def attachments: NotRequired[Seq[Attachment]]
+  // FIXME def attachments: NotRequired[Seq[Attachment]]
+}
+
+object PlaintextMessage {
+  type UTCEpoch = Long
+  type JSON_RFC7159 = Map[String, String]
+}
+
+case class PlaintextMessageClass(
+    id: Required[String],
+    `type`: Required[String],
+    to: NotRequired[Set[DIDURLSyntax]],
+    from: NotRequired[DIDURLSyntax],
+    thid: NotRequired[String],
+    created_time: NotRequired[UTCEpoch],
+    expires_time: NotRequired[UTCEpoch],
+    body: Required[JSON_RFC7159],
+    // FIXME attachments: NotRequired[Seq[Attachment]]
+) extends PlaintextMessage
+
+object PlaintextMessageClass {
+  given decoder: JsonDecoder[PlaintextMessageClass] = DeriveJsonDecoder.gen[PlaintextMessageClass]
+  given encoder: JsonEncoder[PlaintextMessageClass] = DeriveJsonEncoder.gen[PlaintextMessageClass]
 }
 
 trait Attachment {

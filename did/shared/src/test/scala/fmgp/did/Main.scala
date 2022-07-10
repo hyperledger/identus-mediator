@@ -1,7 +1,6 @@
 package fmgp.did
 
 import zio.json._
-import fmgp.did.Examples._
 
 // case class GenericDID(
 //     `@context`: SetU[String] = "https://w3id.org/did/v1",

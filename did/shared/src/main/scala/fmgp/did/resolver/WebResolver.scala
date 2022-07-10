@@ -4,7 +4,7 @@ package fmgp.did.resolver
 // https://w3c-ccg.github.io/did-method-web/
 // DEMO -> https://dev.uniresolver.io/
 
-object WEB {
+object WebResolver {
   val ex1 =
     "did:web:did.actor:alice" ->
       "https://did.actor/alice/did.json"
