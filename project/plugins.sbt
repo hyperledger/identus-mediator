@@ -38,7 +38,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 
 // CI
 addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.1") // sbt> dependencyUpdates
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.3") // sbt> dependencyUpdates
 
 // PUBLISH
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.10")
