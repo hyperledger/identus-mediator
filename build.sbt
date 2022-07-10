@@ -37,7 +37,7 @@ lazy val V = new {
 
   // https://mvnrepository.com/artifact/dev.zio/zio
   val zio = "2.0.0"
-  val zioJson = "0.3.0-RC8"
+  val zioJson = "0.3.0-RC10"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
   val scalaJavaTime = "2.3.0"
