@@ -34,7 +34,7 @@ resolvers += MavenRepository("sonatype-s01-snapshots", "https://s01.oss.sonatype
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta38")
 
 // Utils Buildinfo
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 
 // CI
 addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
