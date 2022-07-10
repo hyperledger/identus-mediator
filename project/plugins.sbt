@@ -22,7 +22,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
 
 // GRPC
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.5")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
 libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.7"
 //https://mvnrepository.com/artifact/com.thesamet.scalapb.grpcweb/scalapb-grpcweb
 libraryDependencies += "com.thesamet.scalapb.grpcweb" %% "scalapb-grpcweb-code-gen" % "0.6.4"
