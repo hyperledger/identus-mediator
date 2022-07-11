@@ -40,12 +40,11 @@ object DIDCommHome {
     )
   )
 
-
   val aliceDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(aliceDID))
   val bobDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(bobDID))
   val inicialTextVar = Var(initial = "<Some text>")
-  def messagem = inicialTextVar.signal.map(e => s"--$e--" )
-  def readMessagem = messagem.map(e => s"### ${e} ###" )
+  def messagem = inicialTextVar.signal.map(e => s"--$e--")
+  def readMessagem = messagem.map(e => s"### ${e} ###")
 
   val rootElement = div(
     code("DIDcomm Page"),
