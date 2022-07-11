@@ -5,8 +5,8 @@ on:
     branches-ignore:
       - "gh-pages"
   push:
-    branches-ignore:
-      - "gh-pages"
+    branches:
+      - "master"
 
 jobs:
   Run-Tests:
