@@ -89,7 +89,7 @@ lazy val NPM = new {
 
   // val nodeJose = Seq("node-jose" -> "2.1.1", "@types/node-jose" -> "1.1.10")
   // val elliptic = Seq("elliptic" -> "6.5.4", "@types/elliptic" -> "6.4.14")
-  val jose = Seq("jose" -> "1.18.2") // , "ts-jose" -> "4.8.3")
+  val jose = Seq("jose" -> "4.8.3") // , "ts-jose" -> "4.8.3")
 
   // val prism = Seq("@input-output-hk/atala-prism-sdk-test" -> "0.0.11")
 

@@ -7,6 +7,8 @@ import zio.json.ast.JsonCursor
 enum JWAAlgorithm:
   case ES256K extends JWAAlgorithm
   case ES256 extends JWAAlgorithm
+  case ES384 extends JWAAlgorithm // TODO check https://identity.foundation/didcomm-messaging/spec/#algorithms
+  case ES512 extends JWAAlgorithm // TODO check https://identity.foundation/didcomm-messaging/spec/#algorithms
   case EdDSA extends JWAAlgorithm
 
 enum KTY:
@@ -69,16 +71,16 @@ object Curve {
   implicit val encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
 }
 
-// /**  https://tools.ietf.org/id/draft-ietf-jose-json-web-key-00.html */
-// sealed trait JWKObj {
-//   def kid: Option[String]
-//   def kty: String
-//   def alg = kty
-// }
+/** https://tools.ietf.org/id/draft-ietf-jose-json-web-key-00.html */
+sealed trait JWKObj {
+  def kid: Option[String]
+  def kty: KTY
+  def alg: JWAAlgorithm
+}
 
 @jsonDiscriminator("kty")
 // sealed trait OKP_EC_Key {
-sealed abstract class OKP_EC_Key {
+sealed abstract class OKP_EC_Key extends JWKObj {
   def kty: KTY // EC.type = KTY.EC
   def crv: Curve
   def kid: Option[String]
@@ -103,6 +105,15 @@ sealed abstract class OKP_EC_Key {
     case Curve.`P-256`   => JWAAlgorithm.ES256 // (deprecated?)
     case Curve.`P-384`   => JWAAlgorithm.ES256 // (deprecated?) // TODO CHECK ES256
     case Curve.`P-521`   => JWAAlgorithm.ES256 // (deprecated?) // TODO CHECK ES256
+    case Curve.X25519    => JWAAlgorithm.EdDSA
+    case Curve.Ed25519   => JWAAlgorithm.EdDSA
+  }
+
+  def alg = crv match {
+    case Curve.secp256k1 => JWAAlgorithm.ES256K //  ES256K
+    case Curve.`P-256`   => JWAAlgorithm.ES256 // ES256
+    case Curve.`P-384`   => JWAAlgorithm.ES384 // ES384
+    case Curve.`P-521`   => JWAAlgorithm.ES512 // ES512
     case Curve.X25519    => JWAAlgorithm.EdDSA
     case Curve.Ed25519   => JWAAlgorithm.EdDSA
   }
