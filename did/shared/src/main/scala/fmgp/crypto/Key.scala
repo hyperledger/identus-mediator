@@ -134,22 +134,20 @@ sealed trait PrivateKey extends OKP_EC_Key {
   def d: String
 }
 
-case class OKPPublicKey(kty: KTY.OKP.type, crv: Curve, x: String, kid: Option[String] = None)
-    extends OKPKey
-    with PublicKey
-case class OKPPrivateKey(kty: KTY.OKP.type, crv: Curve, d: String, x: String, kid: Option[String] = None)
+case class OKPPublicKey(kty: KTY.OKP.type, crv: Curve, x: String, kid: Option[String]) extends OKPKey with PublicKey
+case class OKPPrivateKey(kty: KTY.OKP.type, crv: Curve, d: String, x: String, kid: Option[String])
     extends OKPKey
     with PrivateKey {
-  def toPublicKey = OKPPublicKey(kty = kty, crv = crv, x = x)
+  def toPublicKey = OKPPublicKey(kty = kty, crv = crv, x = x, kid = kid)
 }
 
-case class ECPublicKey(kty: KTY.EC.type, crv: Curve, x: String, y: String, kid: Option[String] = None)
+case class ECPublicKey(kty: KTY.EC.type, crv: Curve, x: String, y: String, kid: Option[String])
     extends ECKey
     with PublicKey
-case class ECPrivateKey(kty: KTY.EC.type, crv: Curve, d: String, x: String, y: String, kid: Option[String] = None)
+case class ECPrivateKey(kty: KTY.EC.type, crv: Curve, d: String, x: String, y: String, kid: Option[String])
     extends ECKey
     with PrivateKey {
-  def toPublicKey = ECPublicKey(kty = kty, crv = crv, x = x, y = y)
+  def toPublicKey = ECPublicKey(kty = kty, crv = crv, x = x, y = y, kid = kid)
 }
 
 object PublicKey {
@@ -159,8 +157,12 @@ object PublicKey {
       .get(JsonCursor.field("kty"))
       .flatMap(ast => KTY.decoder.fromJsonAST(ast))
       .flatMap {
-        case KTY.EC  => ECPublicKey.decoder.fromJsonAST(originalAst).map(e => e: PublicKey)
-        case KTY.OKP => OKPPublicKey.decoder.fromJsonAST(originalAst).map(e => e: PublicKey)
+        case KTY.EC =>
+          // ECPublicKey.decoder.fromJsonAST(originalAst) // FIXME REPORT BUG ? see didJVM/testOnly *.KeySuite (parse Key with no kid)
+          ECPublicKey.decoder.decodeJson(originalAst.toJson)
+        case KTY.OKP =>
+          // OKPPublicKey.decoder.fromJsonAST(originalAst) // FIXME REPORT BUG ? see didJVM/testOnly *.KeySuite (parse Key with no kid)
+          OKPPublicKey.decoder.decodeJson(originalAst.toJson)
       }
   }
   implicit val encoder: JsonEncoder[PublicKey] = DeriveJsonEncoder.gen[PublicKey]
@@ -172,8 +174,12 @@ object PrivateKey {
       .get(JsonCursor.field("kty"))
       .flatMap { ast => KTY.decoder.fromJsonAST(ast) }
       .flatMap {
-        case KTY.EC  => ECPrivateKey.decoder.fromJsonAST(originalAst)
-        case KTY.OKP => OKPPrivateKey.decoder.fromJsonAST(originalAst)
+        case KTY.EC =>
+          // ECPrivateKey.decoder.fromJsonAST(originalAst) // FIXME REPORT BUG ?
+          ECPrivateKey.decoder.decodeJson(originalAst.toJson)
+        case KTY.OKP =>
+          // OKPPrivateKey.decoder.fromJsonAST(originalAst) // FIXME REPORT BUG ?
+          OKPPrivateKey.decoder.decodeJson(originalAst.toJson)
       }
   }
   implicit val encoder: JsonEncoder[PrivateKey] = DeriveJsonEncoder.gen[PrivateKey]

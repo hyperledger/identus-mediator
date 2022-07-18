@@ -52,7 +52,21 @@ class KeySuite extends FunSuite {
         assertEquals(obj.x, "aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk")
         assertEquals(obj.y, "JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
       case Right(obj: OKPPublicKey) => fail("senderKeySecp256k1 is not a OKP key")
+    }
+  }
 
+  test("parse PublicKey with no kid") {
+    val ret =
+      """{"kty":"OKP","crv":"X25519","x":"GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0"}""".fromJson[PublicKey]
+
+    ret match {
+      case Left(error)              => fail(error)
+      case Right(obj: OKPPublicKey) =>
+        // assertEquals(obj.kid, None)
+        assertEquals(obj.kty, KTY.OKP)
+        assertEquals(obj.crv, Curve.X25519)
+        assertEquals(obj.x, "GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0")
+      case Right(obj: ECPublicKey) => fail("senderKeySecp256k1 is not a EC key")
     }
   }
 
