@@ -7,6 +7,14 @@ type ServiceEndpoint = Set[URI]
 /** DIDDocument
   *
   * https://w3c.github.io/did-core/#did-document-properties
+  *
+  * <https://github.com/w3c/?q=did&type=all&language=&sort>=
+  *
+  *   - authentication -> challenge-response protocol
+  *   - assertionMethod -> Issuer key (for purposes of issuing a Verifiable Credential)
+  *   - keyAgreement -> tablishing a secure communication channel with the recipient
+  *   - capabilityInvocation -> Master key (for authorization to update the DID Document.)
+  *   - capabilityDelegation -> ...
   */
 trait DIDDocument extends DID {
   def id: Required[DIDSubject] // = s"$scheme:$namespace:$specificId"

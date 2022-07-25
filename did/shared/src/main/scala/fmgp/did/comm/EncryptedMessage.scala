@@ -60,11 +60,6 @@ object EncryptedMessageGeneric {
   given encoder: JsonEncoder[EncryptedMessageGeneric] = DeriveJsonEncoder.gen[EncryptedMessageGeneric]
 }
 
-type Base64URL = String //TODO
-type AuthenticationTag = Base64URL //TODO
-type InitializationVector = Base64URL //TODO
-
-type Base64URLHeaders = Base64URL //TODO
 trait HeadersJson {
   def epk: Required[OKP_EC_Key]
   def skid: String

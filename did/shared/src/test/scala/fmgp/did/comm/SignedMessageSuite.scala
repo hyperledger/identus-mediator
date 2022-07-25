@@ -1,7 +1,7 @@
-package fmgp.crypto
+package fmgp.did.comm
 
 import fmgp.did.DIDDocument
-import fmgp.did.comm.DIDCommExamples
+import fmgp.crypto._
 import munit._
 import zio.json._
 import scala.util.Failure
@@ -10,7 +10,18 @@ import scala.util.Try
 import scala.util.control.NonFatal
 import concurrent.ExecutionContext.Implicits.global
 
-class JWMSuite extends FunSuite {
+class SignedMessageSuite extends FunSuite {
+
+  // ### parse ###
+
+  test("parse SignedMessage") {
+    val str = SignedMessageExample.exampleSignatureEdDSA_json.fromJson[SignedMessage] match {
+      case Left(error) => fail(error)
+      case Right(obj)  => assertEquals(obj, SignedMessageExample.exampleSignatureEdDSA_obj)
+    }
+  }
+
+  // ### sign ###
 
   test("sign and verify plaintextMessage using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
@@ -23,7 +34,7 @@ class JWMSuite extends FunSuite {
   test("verify plaintextMessage example using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
     key
-      .verify(JWMExample.exampleSignatureES256K_obj)
+      .verify(SignedMessageExample.exampleSignatureES256K_obj)
       .map(e => assert(e))
   }
 
@@ -39,7 +50,7 @@ class JWMSuite extends FunSuite {
   test("verify plaintextMessage example using ECKey P-256") {
     val key: ECPrivateKey = JWKExamples.senderKeyP256.fromJson[ECPrivateKey].toOption.get
     key
-      .verify(JWMExample.exampleSignatureES256_obj)
+      .verify(SignedMessageExample.exampleSignatureES256_obj)
       .map(e => assert(e))
   }
 
@@ -55,15 +66,17 @@ class JWMSuite extends FunSuite {
   test("verify plaintextMessage example using ECKey Ed25519") {
     val key = JWKExamples.senderKeyEd25519.fromJson[PrivateKey].toOption.get
     key
-      .verify(JWMExample.exampleSignatureEdDSA_obj)
+      .verify(SignedMessageExample.exampleSignatureEdDSA_obj)
       .map(e => assert(e))
   }
 
-  // FAIL
+  // ### FAIL ###
+
   test("fail verify plaintextMessage using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
     key
-      .verify(JWMExample.exampleSignatureEdDSA_failSignature_obj)
+      .verify(SignedMessageExample.exampleSignatureEdDSA_failSignature_obj)
       .map(e => assert(!e))
   }
+
 }

@@ -27,6 +27,10 @@ object EncryptedMessageExamples {
 
   /** This example uses ECDH-ES key wrapping algorithm using key with X25519 elliptic curve and XC20P for content
     * encryption of the message.
+    *
+    * {"epk":{"kty":"OKP","crv":"X25519","x":"JHjsmIRZAaB0zRG_wNXLV2rPggF00hdHbW5rj8g0I24"},
+    * "apv":"NcsuAnrRfPK69A-rkZ0L9XWUG4jMvNC3Zg74BPz53PA", "typ":"application/didcomm-encrypted+json", "enc":"XC20P",
+    * "alg":"ECDH-ES+A256KW"}
     */
   def encryptedMessage_ECDHES_X25519_XC20P = """{
    "ciphertext":"KWS7gJU7TbyJlcT9dPkCw-ohNigGaHSukR9MUqFM0THbCTCNkY-g5tahBFyszlKIKXs7qOtqzYyWbPou2q77XlAeYs93IhF6NvaIjyNqYklvj-OtJt9W2Pj5CLOMdsR0C30wchGoXd6wEQZY4ttbzpxYznqPmJ0b9KW6ZP-l4_DSRYe9B-1oSWMNmqMPwluKbtguC-riy356Xbu2C9ShfWmpmjz1HyJWQhZfczuwkWWlE63g26FMskIZZd_jGpEhPFHKUXCFwbuiw_Iy3R0BIzmXXdK_w7PZMMPbaxssl2UeJmLQgCAP8j8TukxV96EKa6rGgULvlo7qibjJqsS5j03bnbxkuxwbfyu3OxwgVzFWlyHbUH6p",
@@ -57,6 +61,11 @@ object EncryptedMessageExamples {
 
   /** This example uses ECDH-ES key wrapping algorithm using key with NIST defined P-384 elliptic curve and
     * A256CBC-HS512 for content encryption of the message.
+    *
+    * {"epk":{"kty":"EC","crv":"P-384","x":"161agGeahGemHgnjHmQ_B_SONyBVg8VLdhTgV5W54VbabyllissnZ6W779IoUqKr",
+    * "y":"cCeqeFgobo_cR-Y4TsZBZX8u3BkiyNs2b-vdqOqOLyCnVgO2jo7nsA_IC3ant9OX"},
+    * "apv":"LJA9Eoks5tamUFVBalMwBhJ6DkDcJ8HK4SlXZWqDqno", "typ":"application/didcomm-encrypted+json",
+    * "enc":"A256CBC-HS512", "alg":"ECDH-ES+A256KW" }
     */
   def encryptedMessage_ECDHES_P384_A256CBCHS512 = """{
    "ciphertext":"HPnc9w7jK0T73Spifq_dcVJnONbT9MZ9oorDJFEBJAfmwYRqvs1rKue-udrNLTTH0qjjbeuji01xPRF5JiWyy-gSMX4LHdLhPxHxjjQCTkThY0kapofU85EjLPlI4ytbHiGcrPIezqCun4iDkmb50pwiLvL7XY1Ht6zPUUdhiV6qWoPP4qeY_8pfH74Q5u7K4TQ0uU3KP8CVZQuafrkOBbqbqpJV-lWpWIKxil44f1IT_GeIpkWvmkYxTa1MxpYBgOYa5_AUxYBumcIFP-b6g7GQUbN-1SOoP76EzxZU_louspzQ2HdEH1TzXw2LKclN8GdxD7kB0H6lZbZLT3ScDzSVSbvO1w1fXHXOeOzywuAcismmoEXQGbWZm7wJJJ2r",
@@ -81,6 +90,12 @@ object EncryptedMessageExamples {
 
   /** This example uses ECDH-ES key wrapping algorithm using key with NIST defined P-521 elliptic curve and A256GCM for
     * content encryption of the message.
+    *
+    * {"epk":{ "kty":"EC","crv":"P-521",
+    * "x":"AEkksOZmmhfFXuOt0s2mWEbUrmT79w5HTpRoS-6Y5zdbY9OB9odGohCbmOxjjceaYE9fsZ_tZ6giLaA5ADRpkXNU",
+    * "y":"ACibg-vD2aGTJGo9fEIzCWWOhRUINlX7CXFI2jx9JT6fO2_0fwK36Y7-4sTe4iEURhygSXP9oSTW3NGYMuC1iOCp" },
+    * "apv":"GOeo76ym6NCg9WWMEYfW0eVDT5668zEhl2uAIW-E-HE", "typ":"application/didcomm-encrypted+json",
+    * "enc":"A256GCM","alg":"ECDH-ES+A256KW" }
     */
   def encryptedMessage_ECDHES_P521_A256GCM = """{
    "ciphertext":"mxnFl4s8FRsIJIBVcRLv4gj4ru5R0H3BdvyBWwXV3ILhtl_moqzx9COINGomP4ueuApuY5xdMDvRHm2mLo6N-763wjNSjAibNrqVZC-EG24jjYk7RPZ26fEW4z87LHuLTicYCD4yHqilRbRgbOCT0Db5221Kec0HDZTXLzBqVwC2UMyDF4QT6Uz3fE4f_6BXTwjD-sEgM67wWTiWbDJ3Q6WyaOL3W4ukYANDuAR05-SXVehnd3WR0FOg1hVcNRao5ekyWZw4Z2ekEB1JRof3Lh6uq46K0KXpe9Pc64UzAxEID93SoJ0EaV_Sei8CXw2aJFmZUuCf8YISWKUz6QZxRvFKUfYeflldUm9U2tY96RicWgUhuXgv",
@@ -105,6 +120,11 @@ object EncryptedMessageExamples {
 
   /** This example uses ECDH-1PU key wrapping algorithm using key with X25519 elliptic curve and A256CBC-HS512 for
     * content encryption of the message.
+    *
+    * {"epk":{"kty":"OKP","crv":"X25519","x":"GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0"},
+    * "apv":"NcsuAnrRfPK69A-rkZ0L9XWUG4jMvNC3Zg74BPz53PA", "skid":"did:example:alice#key-x25519-1",
+    * "apu":"ZGlkOmV4YW1wbGU6YWxpY2Uja2V5LXgyNTUxOS0x", "typ":"application/didcomm-encrypted+json",
+    * "enc":"A256CBC-HS512","alg":"ECDH-1PU+A256KW"}
     */
   def encryptedMessage_ECDH1PU_X25519_A256CBCHS512 = """{
    "ciphertext":"MJezmxJ8DzUB01rMjiW6JViSaUhsZBhMvYtezkhmwts1qXWtDB63i4-FHZP6cJSyCI7eU-gqH8lBXO_UVuviWIqnIUrTRLaumanZ4q1dNKAnxNL-dHmb3coOqSvy3ZZn6W17lsVudjw7hUUpMbeMbQ5W8GokK9ZCGaaWnqAzd1ZcuGXDuemWeA8BerQsfQw_IQm-aUKancldedHSGrOjVWgozVL97MH966j3i9CJc3k9jS9xDuE0owoWVZa7SxTmhl1PDetmzLnYIIIt-peJtNYGdpd-FcYxIFycQNRUoFEr77h4GBTLbC-vqbQHJC1vW4O2LEKhnhOAVlGyDYkNbA4DSL-LMwKxenQXRARsKSIMn7z-ZIqTE-VCNj9vbtgR",
@@ -136,6 +156,11 @@ object EncryptedMessageExamples {
   /** In this example, the message is first signed with EdDSA digital signature and then encrypted with ECDH-1PU key
     * wrapping algorithm using key with NIST defined P-521 elliptic curve and A256CBC-HS512 for content encryption of
     * the message.
+    *
+    * {"epk":{"kty":"EC","crv":"P-256","x":"NlrwPvtIIneciyEka4s2-4s8OjTbtFEAXfL-vglyzqo","y":"hb2vdXNsK5BCe7-XZCG_-64GmTO_k5IMXPZCM1taTBg"},
+    * "apv":"z-LqpvVXDb_sGYn3mjQLpuu2CQLewYuZoTWOIXPH3FM", "skid":"did:example:alice#key-p256-1",
+    * "apu":"ZGlkOmV4YW1wbGU6YWxpY2Uja2V5LXAyNTYtMQ", "typ":"application/didcomm-encrypted+json", "enc":"A256CBC-HS512",
+    * "alg":"ECDH-1PU+A256KW"}
     */
   def encryptedMessage_EdDSA_ECDH1PU_P521_A256CBCHS512 = """{
    "ciphertext":"WCufCs2lMZfkxQ0JCK92lPtLFgwWk_FtRWOMj52bQISa94nEbIYqHDUohIbvLMgbSjRcJVusZO04UthDuOpSSTcV5GBi3O0cMrjyI_PZnTb1yikLXpXma1bT10D2r5TPtzRMxXF3nFsr9y0JKV1TsMtn70Df2fERx2bAGxcflmd-A2sMlSTT8b7QqPtn17Yb-pA8gr4i0Bqb2WfDzwnbfewbukpRmPA2hsEs9oLKypbniAafSpoiQjfb19oDfsYaWWXqsdjTYMflqH__DqSmW52M-SUp6or0xU0ujbHmOkRkcdh9PsR5YsPuIWAqYa2hfjz_KIrGTxvCos0DMiZ4Lh_lPIYQqBufSdFH5AGChoekFbQ1vcyIyYMFugzOHOgZ2TwEzv94GCgokBHQR4_qaU_f4Mva64KPwqOYdm5f4KX16afTJa-IV7ar7__2L-A-LyxmC5KIHeGOedV9kzZBLC7TuzRAuE3vY7pkhLB1jPE6XpTeKXldljaeOSEVcbFUQtsHOSPz9JXuhqZ1fdAx8qV7hUnSAd_YMMDR3S6SXtem8ak2m98WPvKIxhCbcto7W2qoNYMT7MPvvid-QzUvTdKtyovCvLzhyYJzMjZxmn9-EnGhZ5ITPL_xFfLyKxhSSUVz3kSwK9xuOj3KpJnrrD7xrp5FKzEaJVIHWrUW90V_9QVLjriThZ36fA3ipvs8ZJ8QSTnGAmuIQ6Z2u_r4KsjL_mGAgn47qyqRm-OSLEUE4_2qB0Q9Z7EBKakCH8VPt09hTMDR62aYZYwtmpNs9ISu0VPvFjh8UmKbFcQsVrz90-x-r-Q1fTX9JaIFcDy7aqKcI-ai3tVF_HDR60Jaiw",

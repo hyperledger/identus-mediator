@@ -1,7 +1,7 @@
 package fmgp.crypto
 
 import fmgp.did.DIDDocument
-import fmgp.did.comm.DIDCommExamples
+import fmgp.did.comm._
 import munit._
 import zio.json._
 
@@ -25,7 +25,7 @@ class JWMSuiteJS extends FunSuite {
       Future.sequence(
         Seq(
           key.verify(jwsObject).map(e => assert(e)),
-          key.verify(JWMExample.exampleSignatureES256K_obj).map(e => assert(e))
+          key.verify(SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
         )
       )
     }

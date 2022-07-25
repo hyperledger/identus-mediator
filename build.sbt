@@ -210,14 +210,15 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "com.google.crypto.tink" % "tink" % "1.6.1", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
     // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
     libraryDependencies += "com.google.code.gson" % "gson" % "2.9.0",
-    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.2"
+    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.2",
   )
   // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
   .jsConfigure(scalaJSBundlerConfigure)
   .jsSettings( // Add JS-specific settings here
     Compile / npmDependencies ++= NPM.jose, // NPM.elliptic, // NPM.nodeJose
     // 2Test / scalaJSUseMainModuleInitializer := true, Test / scalaJSUseTestModuleInitializer := false, Test / mainClass := Some("fmgp.crypto.MainTestJS")
-    Test / parallelExecution := false
+    Test / parallelExecution := false,
+    Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
 
 lazy val webapp = project
@@ -232,20 +233,6 @@ lazy val webapp = project
     Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient ++
       List("ms" -> "2.1.1"),
     stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
-    //   "@js-joda/core",
-    //   "bip32",
-    //   "bip39",
-    //   "buffer",
-    //   "dukat",
-    //   "elliptic",
-    //   "grpc-web",
-    //   "hash.js",
-    //   "protobufjs",
-    //   "stream",
-    //   "stream-browserify",
-    //   "test",
-    //   "ms"
-    // ),
   )
   .settings(
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
@@ -254,5 +241,3 @@ lazy val webapp = project
     },
   )
   .settings(noPublishSettings)
-
-//FIXME export NODE_OPTIONS=--openssl-legacy-provider

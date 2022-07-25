@@ -3,7 +3,7 @@ package fmgp.crypto
 import munit._
 import zio.json._
 import fmgp.did.DIDDocument
-import fmgp.did.comm.DIDCommExamples
+import fmgp.did.comm._
 
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.Curve
@@ -26,7 +26,7 @@ class JWMSuiteJVM extends FunSuite {
 
     val ecPublicJWK: ECKey = ecJWK.toPublicJWK()
     assert(ecPublicJWK.verify(jwsObject, JWAAlgorithm.ES256K))
-    assert(ecPublicJWK.verify(JWMExample.exampleSignatureES256K_obj, JWAAlgorithm.ES256K))
+    assert(ecPublicJWK.verify(SignedMessageExample.exampleSignatureES256K_obj, JWAAlgorithm.ES256K))
   }
 
   // TODO REMOVE

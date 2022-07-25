@@ -1,20 +1,26 @@
 package fmgp
 
+import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
+import com.nimbusds.jose.crypto.ECDH1PUDecrypter
+import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
+import com.nimbusds.jose.crypto.ECDHDecrypter
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.crypto.Ed25519Verifier
+import com.nimbusds.jose.crypto.X25519Decrypter
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
-import fmgp.did.comm.PlaintextMessageClass
+import fmgp.did.comm.EncryptedMessageGeneric
+import fmgp.did.comm._
 import zio.json._
 
 import scala.concurrent.Future
@@ -46,7 +52,7 @@ package object crypto {
   }
 
   extension (ecKey: JWKECKey) {
-    def verify(jwm: JWM, alg: JWAAlgorithm): Boolean = {
+    def verify(jwm: SignedMessage, alg: JWAAlgorithm): Boolean = {
       val _key = ecKey.toPublicJWK
       val verifier = new ECDSAVerifier(_key.toPublicJWK);
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
@@ -57,7 +63,7 @@ package object crypto {
       )
     }
 
-    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): JWM = { // TODO use PlaintextMessage
+    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
       require(ecKey.isPrivate(), "EC JWK must include the private key (d)")
 
       val signer: JWSSigner = new ECDSASigner(ecKey) // Create the EC signer
@@ -70,7 +76,7 @@ package object crypto {
         case Array(protectedValue, payload, signature) =>
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
-          JWM(
+          SignedMessage(
             payload = payload,
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
@@ -79,7 +85,7 @@ package object crypto {
   }
 
   extension (okpKey: OctetKeyPair) {
-    def verify(jwm: JWM, alg: JWAAlgorithm): Boolean = {
+    def verify(jwm: SignedMessage, alg: JWAAlgorithm): Boolean = {
       val _key = okpKey.toPublicJWK
       val verifier = new Ed25519Verifier(_key.toPublicJWK);
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
@@ -90,7 +96,7 @@ package object crypto {
       )
     }
 
-    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): JWM = { // TODO use PlaintextMessage
+    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
       require(okpKey.isPrivate(), "EC JWK must include the private key (d)")
 
       val signer: JWSSigner = new Ed25519Signer(okpKey) // Create the OKP signer
@@ -104,7 +110,7 @@ package object crypto {
         case Array(protectedValue, payload, signature) =>
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
-          JWM(
+          SignedMessage(
             payload = payload,
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
@@ -144,7 +150,7 @@ package object crypto {
   }
 
   extension (key: PrivateKey) {
-    def verify(jwm: JWM): Future[Boolean] = Future.successful(
+    def verify(jwm: SignedMessage): Future[Boolean] = Future.successful(
       key.toJWK match {
         case ecKey: JWKECKey      => ecKey.verify(jwm, key.jwaAlgorithmtoSign)
         case okpKey: OctetKeyPair => okpKey.verify(jwm, key.jwaAlgorithmtoSign)
@@ -154,12 +160,94 @@ package object crypto {
   }
 
   extension (key: OKP_EC_Key) {
-    def sign(plaintext: PlaintextMessageClass): Future[JWM] = Future.successful( // TODO use PlaintextMessageClass
-      key.toJWK match {
-        case ecKey: JWKECKey      => ecKey.sign(plaintext, key.jwaAlgorithmtoSign)
-        case okpKey: OctetKeyPair => okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
-      }
-    )
+    def sign(plaintext: PlaintextMessageClass): Future[SignedMessage] =
+      Future.successful( // TODO use PlaintextMessageClass
+        key.toJWK match {
+          case ecKey: JWKECKey      => ecKey.sign(plaintext, key.jwaAlgorithmtoSign)
+          case okpKey: OctetKeyPair => okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
+        }
+      )
+  }
+
+  // ###############
+  // ### encrypt ###
+  // ###############
+  // TODO
+
+  def encrypt(recipientKey: PublicKey) = ???
+
+  // def encrypterX25519(okpKey: OctetKeyPair) = {
+  //   val b = X25519Encrypter(okpKey.toPublicJWK())
+  //   val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES, EncryptionMethod.XC20P).build()
+  //   val ret = b.encrypt(header, "Ola".getBytes())
+  //   println(ret.getHeader())
+  //   // {"epk":{"kty":"OKP","crv":"X25519","x":"x8TEg7KcK6Jf83rFErWxuRvJB430yph5TZUVSXGYTxs"},"enc":"XC20P","alg":"ECDH-ES+A256KW"}
+  //   println(ret.getAuthenticationTag()) // 6-lZupz9d4XpdTacUXIKTw
+  //   println(ret.getCipherText()) // bPJa
+  //   println(ret.getInitializationVector()) // zT35y5_5D6PjT6u4Lj9fE-AHua7fWy--
+  //   println(ret.getEncryptedKey()) // XvOoC3EiWesOkBlijDWeLQgDTFvmw2crt9RnLmK3JORp5Ob0rbyRsQ
+  // }
+
+  // ###############
+  // ### decrypt ###
+  // ###############
+
+  def decrypt(
+      key: PrivateKey,
+      encryptedKey: String,
+      msg: EncryptedMessageGeneric
+  ): Future[String] = Future.successful {
+    val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`))
+    key.toJWK match {
+      case ecKey: JWKECKey =>
+        val ret = ECDHDecrypter(ecKey).decrypt(
+          header,
+          Base64URL(encryptedKey),
+          Base64URL(msg.iv),
+          Base64URL(msg.ciphertext),
+          Base64URL(msg.tag)
+        )
+        String(ret)
+      case okpKey: OctetKeyPair => // okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
+        val ret = X25519Decrypter(okpKey) decrypt (
+          header,
+          Base64URL(encryptedKey),
+          Base64URL(msg.iv),
+          Base64URL(msg.ciphertext),
+          Base64URL(msg.tag)
+        )
+        String(ret)
+    }
+  }
+
+  def decryptAndVerify(
+      keyDecrypt: PrivateKey,
+      keyToVerify: PublicKey,
+      encryptedKey: String,
+      msg: EncryptedMessageGeneric
+  ): Future[String] = Future.successful {
+    val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`))
+    (keyDecrypt.toJWK, keyToVerify.toJWK) match {
+      case (ecKey: JWKECKey, ecKeyToVerify: JWKECKey) =>
+        val ret = ECDH1PUDecrypter(ecKey.toECPrivateKey(), ecKeyToVerify.toECPublicKey()).decrypt( // FIXME
+          header,
+          Base64URL(encryptedKey),
+          Base64URL(msg.iv),
+          Base64URL(msg.ciphertext),
+          Base64URL(msg.tag)
+        )
+        String(ret)
+      case (okpKey: OctetKeyPair, okpKeyToVerify: OctetKeyPair) => // okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
+        val ret = ECDH1PUX25519Decrypter(okpKey, okpKeyToVerify) decrypt (
+          header,
+          Base64URL(encryptedKey),
+          Base64URL(msg.iv),
+          Base64URL(msg.ciphertext),
+          Base64URL(msg.tag)
+        )
+        String(ret)
+      case _ => ??? // FIXME REMOVE
+    }
   }
 
 }
