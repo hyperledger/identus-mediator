@@ -246,7 +246,7 @@ package object crypto {
           Base64URL(msg.tag)
         )
         String(ret)
-      case _ => ??? // FIXME REMOVE
+      case _ => throw new AssertionError("The Keys must be of the same type!") // FIXME Make function type safe!
     }
   }
 

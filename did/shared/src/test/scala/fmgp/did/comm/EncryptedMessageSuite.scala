@@ -60,7 +60,7 @@ class EncryptedMessageSuite extends FunSuite {
       case (Right(ks), Right(messages)) =>
         assertEquals(ks.keys.size, 9)
 
-        Future.sequence(messages.recipients.dropRight(2).map { recipient => // FIXME REMOVE dropRight(2)
+        Future.sequence(messages.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
           decrypt(key.get, recipient.encrypted_key, messages).map {
@@ -179,7 +179,52 @@ class EncryptedMessageSuite extends FunSuite {
     }
   }
 
-  // TODO encryptedMessage_EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P
+  test("decrypt encryptedMessage_EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P".tag(fmgp.JsUnsupported)) {
+    (
+      DIDCommExamples.recipientSecrets.fromJson[KeyStore],
+      EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P
+        .fromJson[EncryptedMessageGeneric]
+    ) match {
+      case (Right(ks), Right(messages)) =>
+        assertEquals(ks.keys.size, 9)
+        Future
+          .sequence(messages.recipients.toSeq.map { recipient =>
+            val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+            assert(key.isDefined)
+            decrypt(key.get, recipient.encrypted_key, messages).map {
+              _.fromJson[EncryptedMessageGeneric] match {
+                case Left(error) => fail(error)
+                case Right(obj)  =>
+                  // {"epk":{"kty":"EC","crv":"P-521","x":"ASvgMsQUnY_bj9aYhpm-pS4YU6pQ2BQh3quiBKQJkoIQpIkTsMu-E2EsZyoNHwWj4fhyyOkoL_4v-P3joigCIYAl","y":"AbJmO50e2ccsdvhewqhVLY9tZckh7PHKqoi0y6leNMOTzhfh9aCTOXl7Vk1WzNDsZ1sFWmDwNtrDRfmH142SWxyv"},
+                  //  "apv":"GOeo76ym6NCg9WWMEYfW0eVDT5668zEhl2uAIW-E-HE"
+                  //  "skid":"did:example:alice#key-p521-1",
+                  //  "apu":"ZGlkOmV4YW1wbGU6YWxpY2Uja2V5LXA1MjEtMQ",
+                  //  "typ":"application/didcomm-encrypted+json",
+                  //  "enc":"A256CBC-HS512",
+                  //  "alg":"ECDH-1PU+A256KW"}
+                  Future.sequence(obj.recipients.toSeq.map { recipient2 =>
+                    val key2 = ks.keys.find(e => e.kid.contains(recipient2.header.kid.value))
+                    val signbyKey2 = JWKExamples.senderKeyP521.fromJson[ECPublicKey].toOption.get
+                    decryptAndVerify(key2.get, signbyKey2, recipient2.encrypted_key, obj)
+                  })
+              }
+            }.flatten
+          })
+          .map(_.flatten)
+          .map(_.map { str =>
+            str.fromJson[SignedMessage] match {
+              case Left(error) => fail(error)
+              case Right(obj) =>
+                val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
+                key.verify(obj).map(e => assert(e))
+                assertEquals(obj, SignedMessageExample.exampleSignatureEdDSA_obj)
+            }
+          })
+
+      case data => fail(data.toString)
+    }
+
+  }
 
   // TODO
   // test("Encrypt") {
