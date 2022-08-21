@@ -46,6 +46,7 @@ import scala.util.Try
 import scala.util.chaining._
 
 import concurrent.ExecutionContext.Implicits.global
+import fmgp.did.VerificationMethodReferenced
 
 /** See https://www.npmjs.com/package/jose */
 package object crypto {
@@ -164,7 +165,17 @@ package object crypto {
   // ###############
   // TODO
 
-  def encrypt(recipientKey: PublicKey) = ???
+  def encrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric = ???
+
+  def encrypt(
+      senderKidKey: (VerificationMethodReferenced, PrivateKey),
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric = ???
+
   // {
   //   recipientKey.toKeyLike
   //     .map(_._1)

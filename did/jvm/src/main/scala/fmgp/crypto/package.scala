@@ -6,19 +6,35 @@ import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
-import com.nimbusds.jose.crypto.ECDH1PUDecrypter
-import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
+import com.nimbusds.jose.crypto.ECDHEncrypterMulti
 import com.nimbusds.jose.crypto.ECDHDecrypter
+import com.nimbusds.jose.crypto.X25519Decrypter
+import com.nimbusds.jose.crypto.X25519EncrypterMulti
+
+import com.nimbusds.jose.crypto.ECDH1PUDecrypter
+import com.nimbusds.jose.crypto.ECDH1PUEncrypterMulti
+import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
+import com.nimbusds.jose.crypto.ECDH1PUX25519EncrypterMulti
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.crypto.Ed25519Verifier
-import com.nimbusds.jose.crypto.X25519Decrypter
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
+import com.nimbusds.jose.crypto.ECDHEncrypter
+import com.nimbusds.jose.crypto.X25519Encrypter
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.crypto.ECDH1PUEncrypter
+import com.nimbusds.jose.crypto.ECDH1PUX25519Encrypter
+import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jose.JOSEObjectType
+import com.nimbusds.jose.JWEEncrypter
+
+import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm._
 import zio.json._
@@ -28,8 +44,13 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 import scala.util.chaining._
+import scala.collection.JavaConverters._
+import com.nimbusds.jose.UnprotectedHeader
+import com.nimbusds.jose.util.Pair
 
 package object crypto {
+
+  type Base64URLString = String
 
   extension (alg: JWAAlgorithm) {
     def toJWSAlgorithm = alg match {
@@ -121,31 +142,41 @@ package object crypto {
   extension (key: OKP_EC_Key) {
     def toJWK: JWKECKey | OctetKeyPair = {
       key match {
-        case ec: ECKey =>
-          val builder = ec.getCurve match {
-            case c: Curve.`P-256`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-            case c: Curve.`P-384`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-            case c: Curve.`P-521`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-            case c: Curve.secp256k1.type => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-          }
-          key.kid.foreach(builder.keyID)
-          key match { // for private key
-            case _: PublicKey  => // ok (just the public key)
-            case k: PrivateKey => builder.d(Base64URL(k.d))
-          }
-          builder.build()
-        case okp: OKPKey =>
-          val builder = okp.getCurve match {
-            case c: Curve.Ed25519.type => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
-            case c: Curve.X25519.type  => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
-          }
-          key.kid.foreach(builder.keyID)
-          key match { // for private key
-            case _: PublicKey  => // ok (just the public key)
-            case k: PrivateKey => builder.d(Base64URL(k.d))
-          }
-          builder.build()
+        case ec: ECKey   => ec.toJWK
+        case okp: OKPKey => okp.toJWK
       }
+    }
+  }
+
+  extension (ec: ECKey) {
+    def toJWK: JWKECKey = {
+
+      val builder = ec.getCurve match {
+        case c: Curve.`P-256`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
+        case c: Curve.`P-384`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
+        case c: Curve.`P-521`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
+        case c: Curve.secp256k1.type => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
+      }
+      ec.kid.foreach(builder.keyID)
+      ec match { // for private key
+        case _: PublicKey  => // ok (just the public key)
+        case k: PrivateKey => builder.d(Base64URL(k.d))
+      }
+      builder.build()
+    }
+  }
+  extension (okp: OKPKey) {
+    def toJWK: OctetKeyPair = {
+      val builder = okp.getCurve match {
+        case c: Curve.Ed25519.type => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
+        case c: Curve.X25519.type  => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
+      }
+      okp.kid.foreach(builder.keyID)
+      okp match { // for private key
+        case _: PublicKey  => // ok (just the public key)
+        case k: PrivateKey => builder.d(Base64URL(k.d))
+      }
+      builder.build()
     }
   }
 
@@ -172,21 +203,188 @@ package object crypto {
   // ###############
   // ### encrypt ###
   // ###############
-  // TODO
+  // TODO https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms
+  // REMOVE https://bitbucket.org/connect2id/nimbus-jose-jwt/branch/release-9.16?dest=release-9.16-preview.1
 
-  def encrypt(recipientKey: PublicKey) = ???
+  def encrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric = anoncrypt(recipientKidsKeys, data: Array[Byte])
 
-  // def encrypterX25519(okpKey: OctetKeyPair) = {
-  //   val b = X25519Encrypter(okpKey.toPublicJWK())
-  //   val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES, EncryptionMethod.XC20P).build()
-  //   val ret = b.encrypt(header, "Ola".getBytes())
-  //   println(ret.getHeader())
-  //   // {"epk":{"kty":"OKP","crv":"X25519","x":"x8TEg7KcK6Jf83rFErWxuRvJB430yph5TZUVSXGYTxs"},"enc":"XC20P","alg":"ECDH-ES+A256KW"}
-  //   println(ret.getAuthenticationTag()) // 6-lZupz9d4XpdTacUXIKTw
-  //   println(ret.getCipherText()) // bPJa
-  //   println(ret.getInitializationVector()) // zT35y5_5D6PjT6u4Lj9fE-AHua7fWy--
-  //   println(ret.getEncryptedKey()) // XvOoC3EiWesOkBlijDWeLQgDTFvmw2crt9RnLmK3JORp5Ob0rbyRsQ
-  // }
+  def encrypt(
+      senderKidKey: (VerificationMethodReferenced, PrivateKey),
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric = authcrypt(senderKidKey, recipientKidsKeys, data)
+
+  /** anoncrypt - Guarantees confidentiality and integrity without revealing the identity of the sender.
+    */
+  def anoncrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric =
+    recipientKidsKeys
+      .foldRight(
+        (Seq.empty[(VerificationMethodReferenced, JWKECKey)], Seq.empty[(VerificationMethodReferenced, OctetKeyPair)])
+      ) { (e, acu) =>
+        e._2.toJWK match
+          case ecKey: JWKECKey      => (acu._1 :+ (e._1, ecKey), acu._2)
+          case okpKey: OctetKeyPair => (acu._1, acu._2 :+ (e._1, okpKey))
+      }
+      .pipe(e => (e._1.sortBy(_._1.value), e._2.sortBy(_._1.value))) // order recipients by name
+      .pipe {
+        case (Seq(), Seq())    => ???
+        case (ecKeys, Seq())   => anoncryptEC(ecKeys, data)
+        case (Seq(), okpKeys)  => anoncryptOKP(okpKeys, data)
+        case (ecKeys, okpKeys) => ???
+      }
+
+  /** authcrypt - Guarantees confidentiality and integrity. Also proves the identity of the sender – but in a way that
+    * only the recipient can verify. This is the default wrapping choice, and SHOULD be used unless a different goal is
+    * clearly identified. By design, this combination and all other combinations that use encryption in their outermost
+    * layer share an identical IANA media type, because only the recipient should care about the difference.
+    */
+  def authcrypt(
+      senderKidKey: (VerificationMethodReferenced, PrivateKey),
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
+      data: Array[Byte]
+  ): EncryptedMessageGeneric =
+    (senderKidKey._2).toJWK match {
+      case (ecSenderKey: JWKECKey) =>
+        val recipientKeys = recipientKidsKeys.map {
+          case (vmr, key: ECPublicKey)  => (vmr, key.toJWK)
+          case (vmr, key: OKPPublicKey) => ??? // FIXME
+        }
+        authcryptEC((senderKidKey._1, ecSenderKey), recipientKeys, data)
+      case okpSenderKey: OctetKeyPair =>
+        val recipientKeys = recipientKidsKeys.map {
+          case (vmr, key: ECPublicKey)  => ??? // FIXME
+          case (vmr, key: OKPPublicKey) => (vmr, key.toJWK)
+        }
+        authcryptOKP((senderKidKey._1, okpSenderKey), recipientKeys, data)
+    }
+
+  // ###############
+  // ### Methods ###
+  // ###############
+
+  def anoncryptEC( // anoncryptECDH
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
+      clearText: Array[Byte]
+  ) = {
+    val aux = ecRecipientsKeys.map(e =>
+      Pair.of(
+        UnprotectedHeader.Builder().keyID(e._1.value).build(),
+        e._2
+      )
+    )
+    val encrypter = ECDHEncrypterMulti(aux.asJava)
+
+    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512) // XC20P)
+      .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
+      .agreementPartyVInfo(Utils.calculateAPV(ecRecipientsKeys.map(_._1)))
+      .build()
+    val parts = encrypter.encrypt(header, clearText)
+    val recipients = parts.getRecipients.asScala.toSeq.map { e =>
+      Recipient(e.getEncryptedKey().toString(), RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID())))
+    }
+
+    EncryptedMessageGeneric(
+      ciphertext = parts.getCipherText().toString, // : Base64URL,
+      `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
+      recipients = recipients, // auxRecipient.toSeq,
+      tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
+      iv = parts.getInitializationVector().toString // : InitializationVector
+    )
+  }
+
+  def anoncryptOKP( // anoncryptECDH_X25519
+      okpRecipientKeys: Seq[(VerificationMethodReferenced, OctetKeyPair)],
+      clearText: Array[Byte]
+  ): EncryptedMessageGeneric = {
+    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512)
+      .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
+      .agreementPartyVInfo(Utils.calculateAPV(okpRecipientKeys.map(_._1)))
+      .build()
+    MyX25519Encrypter(okpRecipientKeys, header).encrypt(clearText)
+  }
+
+  def authcryptEC( // encrypterECDH1PU
+      senderKidKey: (VerificationMethodReferenced, JWKECKey),
+      recipientKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
+      clearText: Array[Byte]
+  ): EncryptedMessageGeneric = {
+    val aux = recipientKeys.map(e =>
+      Pair.of(
+        UnprotectedHeader.Builder().keyID(e._1.value).build(),
+        e._2
+      )
+    )
+    val encrypter = ECDH1PUEncrypterMulti(senderKidKey._2, aux.asJava)
+
+    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
+      .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
+      .senderKeyID(senderKidKey._1.value)
+      .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
+      .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
+      .build()
+
+    val parts = encrypter.encrypt(header, clearText)
+    val recipients = parts.getRecipients.asScala.toSeq
+      .map { e =>
+        Recipient(
+          e.getEncryptedKey().toString(),
+          RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID()))
+        )
+      }
+
+    EncryptedMessageGeneric(
+      ciphertext = parts.getCipherText().toString, // : Base64URL,
+      `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
+      recipients = recipients, // auxRecipient.toSeq,
+      tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
+      iv = parts.getInitializationVector().toString // : InitializationVector
+    )
+
+  }
+
+  def authcryptOKP( // encrypterECDH1PU_X25519
+      senderKidKey: (VerificationMethodReferenced, OctetKeyPair),
+      recipientKeys: Seq[(VerificationMethodReferenced, OctetKeyPair)],
+      clearText: Array[Byte]
+  ): EncryptedMessageGeneric = {
+    val aux = recipientKeys.map(e =>
+      Pair.of(
+        UnprotectedHeader.Builder().keyID(e._1.value).build(),
+        e._2
+      )
+    )
+
+    val encrypter = ECDH1PUX25519EncrypterMulti(senderKidKey._2, aux.asJava)
+
+    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
+      .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
+      .senderKeyID(senderKidKey._1.value)
+      .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
+      .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
+      .build()
+    val parts = encrypter.encrypt(header, clearText)
+    val recipients = parts.getRecipients.asScala.toSeq
+      .map { e =>
+        Recipient(
+          e.getEncryptedKey().toString(),
+          RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID()))
+        )
+      }
+
+    EncryptedMessageGeneric(
+      ciphertext = parts.getCipherText().toString, // : Base64URL,
+      `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
+      recipients = recipients, // auxRecipient.toSeq,
+      tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
+      iv = parts.getInitializationVector().toString // : InitializationVector
+    )
+  }
 
   // ###############
   // ### decrypt ###
@@ -209,7 +407,7 @@ package object crypto {
         )
         String(ret)
       case okpKey: OctetKeyPair => // okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
-        val ret = X25519Decrypter(okpKey) decrypt (
+        val ret = X25519Decrypter(okpKey).decrypt(
           header,
           Base64URL(encryptedKey),
           Base64URL(msg.iv),

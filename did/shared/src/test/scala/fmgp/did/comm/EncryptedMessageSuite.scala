@@ -7,6 +7,9 @@ import fmgp.crypto._
 
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import fmgp.did.VerificationMethodReferenced
+import java.util.Base64
+import zio.json.ast.JsonCursor
 
 class EncryptedMessageSuite extends FunSuite {
 
@@ -57,13 +60,13 @@ class EncryptedMessageSuite extends FunSuite {
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_ECDHES_X25519_XC20P.fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
-        Future.sequence(messages.recipients.map { recipient =>
+        Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, messages).map {
+          decrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -79,13 +82,13 @@ class EncryptedMessageSuite extends FunSuite {
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_ECDHES_P384_A256CBCHS512.fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
-        Future.sequence(messages.recipients.map { recipient =>
+        Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, messages).map {
+          decrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -101,13 +104,13 @@ class EncryptedMessageSuite extends FunSuite {
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_ECDHES_P521_A256GCM.fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
-        Future.sequence(messages.recipients.map { recipient =>
+        Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, messages).map {
+          decrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -123,7 +126,7 @@ class EncryptedMessageSuite extends FunSuite {
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512.fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
         val signbyKey = JWKExamples.senderKeyX25519
@@ -131,10 +134,10 @@ class EncryptedMessageSuite extends FunSuite {
           .toOption
           .get
 
-        Future.sequence(messages.recipients.map { recipient =>
+        Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, messages).map {
+          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj) =>
@@ -151,17 +154,17 @@ class EncryptedMessageSuite extends FunSuite {
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_P521_A256CBCHS512.fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
         ECPublicKey.decoder.decodeJson(JWKExamples.senderKeyP256_2)
         val signbyKey =
           JWKExamples.senderKeyP256_2.fromJson[ECPublicKey].toOption.get
 
-        Future.sequence(messages.recipients.map { recipient =>
+        Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, messages).map {
+          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, message).map {
             // {"payload":"eyJpZCI6IjEyMzQ1Njc4OTAiLCJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXBsYWluK2pzb24iLCJ0eXBlIjoiaHR0cDovL2V4YW1wbGUuY29tL3Byb3RvY29scy9sZXRzX2RvX2x1bmNoLzEuMC9wcm9wb3NhbCIsImZyb20iOiJkaWQ6ZXhhbXBsZTphbGljZSIsInRvIjpbImRpZDpleGFtcGxlOmJvYiJdLCJjcmVhdGVkX3RpbWUiOjE1MTYyNjkwMjIsImV4cGlyZXNfdGltZSI6MTUxNjM4NTkzMSwiYm9keSI6eyJtZXNzYWdlc3BlY2lmaWNhdHRyaWJ1dGUiOiJhbmQgaXRzIHZhbHVlIn19",
             //  "signatures":[
             //    {"protected":"eyJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXNpZ25lZCtqc29uIiwiYWxnIjoiRWREU0EifQ",
@@ -185,13 +188,13 @@ class EncryptedMessageSuite extends FunSuite {
       EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P
         .fromJson[EncryptedMessageGeneric]
     ) match {
-      case (Right(ks), Right(messages)) =>
+      case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
         Future
-          .sequence(messages.recipients.toSeq.map { recipient =>
+          .sequence(message.recipients.toSeq.map { recipient =>
             val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
             assert(key.isDefined)
-            decrypt(key.get, recipient.encrypted_key, messages).map {
+            decrypt(key.get, recipient.encrypted_key, message).map {
               _.fromJson[EncryptedMessageGeneric] match {
                 case Left(error) => fail(error)
                 case Right(obj)  =>
@@ -226,9 +229,203 @@ class EncryptedMessageSuite extends FunSuite {
 
   }
 
-  // TODO
-  // test("Encrypt") {
-  //   encrypt(JWKExamples.senderKeyP521.fromJson[PublicKey].toOption.get)
-  // }
+  // ###############
+  // ### encrypt ###
+  // ###############
+
+  val example2encrypt = PlaintextMessageClass(
+    "987654321",
+    "https://app.fmgp/protocols/chat/1.0/message",
+    Some(Set("did:example:bob")),
+    Some("did:example:alice"),
+    None,
+    Some(1516269022),
+    Some(1516385931),
+    Map("text" -> "Hey Bob")
+  )
+
+  test("encrypt with ECDHES_X25519_A256CBCHS512".tag(fmgp.JsUnsupported)) { // FIXME ECDHES_X25519_XC20P
+    DIDCommExamples.recipientSecrets.fromJson[KeyStore] match {
+      case (Right(ks)) =>
+        assertEquals(ks.keys.size, 9)
+        val data = example2encrypt.toJson.getBytes
+
+        val kidKeys = Seq(
+          "did:example:bob#key-x25519-1",
+          "did:example:bob#key-x25519-2",
+          "did:example:bob#key-x25519-3",
+        ).map { kid =>
+          val key = ks.keys.find(e => e.kid.contains(kid)).get
+          (VerificationMethodReferenced(kid), key.toPublicKey)
+        }
+
+        val message = encrypt(kidKeys, data)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+        assert(message.recipients.size == 3)
+
+        Future
+          .sequence(message.recipients.map { recipient =>
+            val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+            assert(key.isDefined)
+
+            decrypt(key.get, recipient.encrypted_key, message).map {
+              _.fromJson[PlaintextMessageClass] match {
+                case Left(error) => fail(error)
+                case Right(obj) =>
+                  assertEquals(obj, example2encrypt)
+              }
+            }
+          })
+      case data => fail(data.toString)
+    }
+  }
+
+  test("encrypt with ECDHES_P384_A256CBCHS512".tag(fmgp.JsUnsupported)) {
+    DIDCommExamples.recipientSecrets.fromJson[KeyStore] match {
+      case Right(ks) =>
+        assertEquals(ks.keys.size, 9)
+        val data = example2encrypt.toJson.getBytes
+
+        val kidKeys = Seq(
+          "did:example:bob#key-p384-1",
+          "did:example:bob#key-p384-2",
+        ).map { kid =>
+          val key = ks.keys.find(e => e.kid.contains(kid)).get
+          (VerificationMethodReferenced(kid), key.toPublicKey)
+        }
+
+        val message = encrypt(kidKeys, data)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+        assert(message.recipients.size == 2)
+
+        Future.sequence(message.recipients.map { recipient =>
+          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+          assert(key.isDefined)
+          decrypt(key.get, recipient.encrypted_key, message).map {
+            _.fromJson[PlaintextMessageClass] match {
+              case Left(error) => fail(error)
+              case Right(obj)  => assertEquals(obj, example2encrypt)
+            }
+          }
+        })
+      case data => fail(data.toString)
+    }
+  }
+
+  test("encrypt with ECDHES_P521_A256CBCHS512".tag(fmgp.JsUnsupported)) { // FIXME ECDHES_P521_A256GCM
+    DIDCommExamples.recipientSecrets.fromJson[KeyStore] match {
+      case Right(ks) =>
+        assertEquals(ks.keys.size, 9)
+        val data = example2encrypt.toJson.getBytes
+
+        val kidKeys = Seq(
+          "did:example:bob#key-p521-1",
+          "did:example:bob#key-p521-2",
+        ).map { kid =>
+          val key = ks.keys.find(e => e.kid.contains(kid)).get
+          (VerificationMethodReferenced(kid), key.toPublicKey)
+        }
+
+        val message = encrypt(kidKeys, data)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+        assert(message.recipients.size == 2)
+
+        Future.sequence(message.recipients.map { recipient =>
+          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+          assert(key.isDefined)
+          decrypt(key.get, recipient.encrypted_key, message).map {
+            _.fromJson[PlaintextMessageClass] match {
+              case Left(error) => fail(error)
+              case Right(obj)  => assertEquals(obj, example2encrypt)
+            }
+          }
+        })
+      case data => fail(data.toString)
+    }
+  }
+
+  test("encrypt with ECDH1PU_X25519_A256CBCHS512".tag(fmgp.JsUnsupported)) {
+    (
+      DIDCommExamples.recipientSecrets.fromJson[KeyStore],
+      JWKExamples.senderKeyX25519.fromJson[OKPPrivateKey]
+    ) match {
+      case (Right(ks), Right(senderKey)) =>
+        assertEquals(ks.keys.size, 9)
+        val data = example2encrypt.toJson.getBytes
+
+        val message = encrypt(
+          (VerificationMethodReferenced("did:example:alice#key-x25519-1"), senderKey),
+          Seq(
+            "did:example:bob#key-x25519-1",
+            "did:example:bob#key-x25519-2",
+            "did:example:bob#key-x25519-3",
+          ).map(kid => (VerificationMethodReferenced(kid), ks.keys.find(e => e.kid.contains(kid)).get.toPublicKey)),
+          data
+        )
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isRight)
+        assert(message.recipients.size == 3)
+
+        Future.sequence(message.recipients.map { recipient =>
+          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+          assert(key.isDefined)
+
+          decryptAndVerify(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
+            _.fromJson[PlaintextMessageClass] match {
+              case Left(error) => fail(error)
+              case Right(obj)  => assertEquals(obj, example2encrypt)
+            }
+          }
+        })
+      case data => fail(data.toString)
+    }
+  }
+
+  test("encrypt with EdDSA_ECDH1PU_P521_A256CBCHS512".tag(fmgp.JsUnsupported)) {
+    (
+      DIDCommExamples.recipientSecrets.fromJson[KeyStore],
+      JWKExamples.senderKeyP256_2.fromJson[ECPrivateKey]
+    ) match {
+      case (Right(ks), Right(senderKey)) =>
+        assertEquals(ks.keys.size, 9)
+        val data = example2encrypt.toJson.getBytes
+
+        val message = encrypt(
+          (VerificationMethodReferenced("did:example:alice#key-p256-1"), senderKey),
+          Seq(
+            "did:example:bob#key-p256-1",
+            "did:example:bob#key-p256-2",
+          ).map(kid => (VerificationMethodReferenced(kid), ks.keys.find(e => e.kid.contains(kid)).get.toPublicKey)),
+          data
+        )
+
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isRight)
+        assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isRight)
+        assert(message.recipients.size == 2)
+
+        Future.sequence(message.recipients.map { recipient =>
+          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+          assert(key.isDefined)
+
+          decryptAndVerify(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
+            _.fromJson[PlaintextMessageClass] match {
+              case Left(error) => fail(error)
+              case Right(obj)  => assertEquals(obj, example2encrypt)
+            }
+          }
+        })
+      case data => fail(data.toString)
+    }
+  }
+
+  // TODO  encrypt with EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P
 
 }

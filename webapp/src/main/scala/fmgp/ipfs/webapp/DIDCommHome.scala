@@ -43,8 +43,8 @@ object DIDCommHome {
   val aliceDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(aliceDID))
   val bobDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(bobDID))
   val inicialTextVar = Var(initial = "<Some text>")
-  def messagem = inicialTextVar.signal.map(e => s"--$e--")
-  def readMessagem = messagem.map(e => s"### ${e} ###")
+  def message = inicialTextVar.signal.map(e => s"--$e--")
+  def readMessage = message.map(e => s"### ${e} ###")
 
   val rootElement = div(
     code("DIDcomm Page"),
@@ -52,7 +52,7 @@ object DIDCommHome {
     pre(code(child.text <-- aliceDIDVar.signal.map(_.map(e => e.toJsonPretty).getOrElse("--")))),
     p("To Bob:"),
     pre(code(child.text <-- bobDIDVar.signal.map(_.map(e => e.toJsonPretty).getOrElse("--")))),
-    p("Messagem text:"),
+    p("Message text:"),
     input(
       placeholder("Words"),
       `type`.:=("textbox"),
@@ -61,10 +61,10 @@ object DIDCommHome {
       inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> inicialTextVar }
     ),
     p("Comm type: TODO"),
-    p("Messagem after: TODO"),
-    pre(code(child.text <-- messagem)),
-    p("Bob read messagem: TODO"),
-    pre(code(child.text <-- readMessagem)),
+    p("Message after: TODO"),
+    pre(code(child.text <-- message)),
+    p("Bob read message: TODO"),
+    pre(code(child.text <-- readMessage)),
   )
   def apply(): HtmlElement = rootElement
 }
