@@ -208,7 +208,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
 
     // Needed for nimbus-jose-jwt with Ed25519Signer
     // BUT have vulnerabilities in the dependencies: CVE-2022-25647
-    libraryDependencies += "com.google.crypto.tink" % "tink" % "1.6.1", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
+    libraryDependencies += "com.google.crypto.tink" % "tink" % "1.7.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
     // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
     libraryDependencies += "com.google.code.gson" % "gson" % "2.9.1",
     libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.4",
