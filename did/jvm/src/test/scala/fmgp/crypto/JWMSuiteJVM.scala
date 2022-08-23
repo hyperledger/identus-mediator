@@ -1,13 +1,15 @@
 package fmgp.crypto
 
-import munit._
-import zio.json._
-import fmgp.did.DIDDocument
-import fmgp.did.comm._
-
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.util.Base64URL
+
+import munit._
+import zio.json._
+
+import fmgp.did.DIDDocument
+import fmgp.did.comm._
+import fmgp.crypto.UtilsJVM._
 
 class JWMSuiteJVM extends FunSuite {
 

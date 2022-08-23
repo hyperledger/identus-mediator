@@ -1,15 +1,18 @@
 package fmgp.did.comm
 
 import munit._
-import zio.json._
+
 import fmgp.did.DIDDocument
+import fmgp.did.VerificationMethodReferenced
 import fmgp.crypto._
+import fmgp.crypto.RawOperations._
 
 import concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import fmgp.did.VerificationMethodReferenced
 import java.util.Base64
+
 import zio.json.ast.JsonCursor
+import zio.json._
 
 class EncryptedMessageSuite extends FunSuite {
 
@@ -66,7 +69,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, message).map {
+          anonDecrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -88,7 +91,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, message).map {
+          anonDecrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -110,7 +113,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, message).map {
+          anonDecrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, expeted)
@@ -137,7 +140,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, message).map {
+          authDecrypt(key.get, signbyKey, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj) =>
@@ -164,7 +167,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decryptAndVerify(key.get, signbyKey, recipient.encrypted_key, message).map {
+          authDecrypt(key.get, signbyKey, recipient.encrypted_key, message).map {
             // {"payload":"eyJpZCI6IjEyMzQ1Njc4OTAiLCJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXBsYWluK2pzb24iLCJ0eXBlIjoiaHR0cDovL2V4YW1wbGUuY29tL3Byb3RvY29scy9sZXRzX2RvX2x1bmNoLzEuMC9wcm9wb3NhbCIsImZyb20iOiJkaWQ6ZXhhbXBsZTphbGljZSIsInRvIjpbImRpZDpleGFtcGxlOmJvYiJdLCJjcmVhdGVkX3RpbWUiOjE1MTYyNjkwMjIsImV4cGlyZXNfdGltZSI6MTUxNjM4NTkzMSwiYm9keSI6eyJtZXNzYWdlc3BlY2lmaWNhdHRyaWJ1dGUiOiJhbmQgaXRzIHZhbHVlIn19",
             //  "signatures":[
             //    {"protected":"eyJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXNpZ25lZCtqc29uIiwiYWxnIjoiRWREU0EifQ",
@@ -194,7 +197,7 @@ class EncryptedMessageSuite extends FunSuite {
           .sequence(message.recipients.toSeq.map { recipient =>
             val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
             assert(key.isDefined)
-            decrypt(key.get, recipient.encrypted_key, message).map {
+            anonDecrypt(key.get, recipient.encrypted_key, message).map {
               _.fromJson[EncryptedMessageGeneric] match {
                 case Left(error) => fail(error)
                 case Right(obj)  =>
@@ -208,7 +211,7 @@ class EncryptedMessageSuite extends FunSuite {
                   Future.sequence(obj.recipients.toSeq.map { recipient2 =>
                     val key2 = ks.keys.find(e => e.kid.contains(recipient2.header.kid.value))
                     val signbyKey2 = JWKExamples.senderKeyP521.fromJson[ECPublicKey].toOption.get
-                    decryptAndVerify(key2.get, signbyKey2, recipient2.encrypted_key, obj)
+                    authDecrypt(key2.get, signbyKey2, recipient2.encrypted_key, obj)
                   })
               }
             }.flatten
@@ -219,7 +222,7 @@ class EncryptedMessageSuite extends FunSuite {
               case Left(error) => fail(error)
               case Right(obj) =>
                 val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
-                key.verify(obj).map(e => assert(e))
+                verify(key, obj).map(e => assert(e))
                 assertEquals(obj, SignedMessageExample.exampleSignatureEdDSA_obj)
             }
           })
@@ -270,7 +273,7 @@ class EncryptedMessageSuite extends FunSuite {
             val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
             assert(key.isDefined)
 
-            decrypt(key.get, recipient.encrypted_key, message).map {
+            anonDecrypt(key.get, recipient.encrypted_key, message).map {
               _.fromJson[PlaintextMessageClass] match {
                 case Left(error) => fail(error)
                 case Right(obj) =>
@@ -305,7 +308,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, message).map {
+          anonDecrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, example2encrypt)
@@ -339,7 +342,7 @@ class EncryptedMessageSuite extends FunSuite {
         Future.sequence(message.recipients.map { recipient =>
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
-          decrypt(key.get, recipient.encrypted_key, message).map {
+          anonDecrypt(key.get, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, example2encrypt)
@@ -377,7 +380,7 @@ class EncryptedMessageSuite extends FunSuite {
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
 
-          decryptAndVerify(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
+          authDecrypt(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, example2encrypt)
@@ -415,7 +418,7 @@ class EncryptedMessageSuite extends FunSuite {
           val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
           assert(key.isDefined)
 
-          decryptAndVerify(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
+          authDecrypt(key.get, senderKey.toPublicKey, recipient.encrypted_key, message).map {
             _.fromJson[PlaintextMessageClass] match {
               case Left(error) => fail(error)
               case Right(obj)  => assertEquals(obj, example2encrypt)

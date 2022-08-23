@@ -2,6 +2,8 @@ package fmgp.did.comm
 
 import fmgp.did.DIDDocument
 import fmgp.crypto._
+
+import fmgp.crypto.RawOperations._
 import munit._
 import zio.json._
 import scala.util.Failure
@@ -25,48 +27,43 @@ class SignedMessageSuite extends FunSuite {
 
   test("sign and verify plaintextMessage using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
-    key
-      .sign(DIDCommExamples.plaintextMessageObj)
-      .flatMap(jwsObject => key.verify(jwsObject))
+    sign(key, DIDCommExamples.plaintextMessageObj)
+      .flatMap(jwsObject => verify(key, jwsObject))
       .map(e => assert(e))
   }
 
   test("verify plaintextMessage example using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
-    key
-      .verify(SignedMessageExample.exampleSignatureES256K_obj)
+    verify(key, SignedMessageExample.exampleSignatureES256K_obj)
       .map(e => assert(e))
   }
 
   test("sign and verify plaintextMessage using ECKey P-256") {
     val key: ECPrivateKey = JWKExamples.senderKeyP256.fromJson[ECPrivateKey].toOption.get
-    key
-      .sign(DIDCommExamples.plaintextMessageObj)
-      .flatMap(jwsObject => key.verify(jwsObject))
+    sign(key, DIDCommExamples.plaintextMessageObj)
+      .flatMap(jwsObject => verify(key, jwsObject))
       .map(e => assert(e))
 
   }
 
   test("verify plaintextMessage example using ECKey P-256") {
     val key: ECPrivateKey = JWKExamples.senderKeyP256.fromJson[ECPrivateKey].toOption.get
-    key
-      .verify(SignedMessageExample.exampleSignatureES256_obj)
+    verify(key, SignedMessageExample.exampleSignatureES256_obj)
       .map(e => assert(e))
   }
 
   // https://github.com/scalameta/munit/issues/554
   test("sign and verify plaintextMessage using ECKey Ed25519") {
     val key = JWKExamples.senderKeyEd25519.fromJson[PrivateKey].toOption.get
-    key
-      .sign(DIDCommExamples.plaintextMessageObj)
-      .flatMap(jwsObject => key.verify(jwsObject))
+
+    sign(key, DIDCommExamples.plaintextMessageObj)
+      .flatMap(jwsObject => verify(key, jwsObject))
       .map(e => assert(e))
   }
 
   test("verify plaintextMessage example using ECKey Ed25519") {
     val key = JWKExamples.senderKeyEd25519.fromJson[PrivateKey].toOption.get
-    key
-      .verify(SignedMessageExample.exampleSignatureEdDSA_obj)
+    verify(key, SignedMessageExample.exampleSignatureEdDSA_obj)
       .map(e => assert(e))
   }
 
@@ -74,8 +71,7 @@ class SignedMessageSuite extends FunSuite {
 
   test("fail verify plaintextMessage using ECKey secp256k1") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
-    key
-      .verify(SignedMessageExample.exampleSignatureEdDSA_failSignature_obj)
+    verify(key, SignedMessageExample.exampleSignatureEdDSA_failSignature_obj)
       .map(e => assert(!e))
   }
 

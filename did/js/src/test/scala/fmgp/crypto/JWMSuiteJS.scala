@@ -2,6 +2,7 @@ package fmgp.crypto
 
 import fmgp.did.DIDDocument
 import fmgp.did.comm._
+import fmgp.crypto.RawOperations._
 import munit._
 import zio.json._
 
@@ -21,11 +22,11 @@ class JWMSuiteJS extends FunSuite {
 
   test("sign and verify an example") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
-    key.sign(DIDCommExamples.plaintextMessageObj).flatMap { jwsObject =>
+    sign(key, DIDCommExamples.plaintextMessageObj).flatMap { jwsObject =>
       Future.sequence(
         Seq(
-          key.verify(jwsObject).map(e => assert(e)),
-          key.verify(SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
+          verify(key, jwsObject).map(e => assert(e)),
+          verify(key, SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
         )
       )
     }
