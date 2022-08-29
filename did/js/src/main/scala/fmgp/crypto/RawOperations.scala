@@ -7,9 +7,6 @@ import typings.jose.typesMod.GeneralJWE
 import typings.jose.typesMod.DecryptOptions
 import typings.jose.mod.generalDecrypt
 
-import zio.json._
-
-import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import scala.scalajs.js.JSON
@@ -20,15 +17,20 @@ import scala.util.Try
 import scala.util.chaining._
 import concurrent.ExecutionContext.Implicits.global
 
+import zio._
+import zio.json._
+
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.crypto.UtilsJS._
+import fmgp.crypto.error._
 
 object RawOperations extends CryptoOperations {
 
-  override def sign(key: PrivateKey, plaintext: PlaintextMessageClass): Future[SignedMessage] = key.sign(plaintext)
+  override def sign(key: PrivateKey, plaintext: PlaintextMessageClass): IO[CryptoFailed, SignedMessage] =
+    key.sign(plaintext)
 
-  override def verify(key: OKP_EC_Key, jwm: SignedMessage): Future[Boolean] = key.verify(jwm)
+  override def verify(key: OKP_EC_Key, jwm: SignedMessage): IO[CryptoFailed, Boolean] = key.verify(jwm)
 
   // ###############
   // ### encrypt ###
@@ -61,25 +63,35 @@ object RawOperations extends CryptoOperations {
   override def anonEncrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): EncryptedMessageGeneric = ??? // FIXME
+  ): UIO[EncryptedMessageGeneric] = ZIO.die(NotImplementedError()) // FIXME
 
   override def authEncrypt(
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): EncryptedMessageGeneric = ??? // FIXME
+  ): UIO[EncryptedMessageGeneric] = ZIO.die(NotImplementedError()) // FIXME
 
   // ###############
   // ### decrypt ###
   // ###############
 
-  /** See https://github.com/panva/jose/blob/HEAD/docs/functions/jwe_general_decrypt.generalDecrypt.md#readme
-    */
-  override def anonDecrypt(
+  def anonDecrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessageGeneric
+  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
+
+  def authDecrypt(
+      senderKey: PublicKey,
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessageGeneric
+  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
+
+  /** See https://github.com/panva/jose/blob/HEAD/docs/functions/jwe_general_decrypt.generalDecrypt.md#readme */
+  override def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): Future[String] = {
+  ): IO[CryptoFailed, String] = {
     val aux = msg.recipients
       .find(_.encrypted_key == encryptedKey)
       .map { r =>
@@ -143,21 +155,22 @@ object RawOperations extends CryptoOperations {
       )
 
     key.toKeyLike.flatMap { (thisKey, alg) =>
-      generalDecrypt(jweJS, thisKey, decryptOptions).toFuture
-        .recover {
+      ZIO
+        .fromPromiseJS(generalDecrypt(jweJS, thisKey, decryptOptions))
+        .mapError {
           case eee @ scala.scalajs.js.JavaScriptException(ex) => // if (ex.isInstanceOf[JWEDecryptionFailed]) =>
             println("$" * 100 + " " + ex.asInstanceOf[JWEDecryptionFailed].stack)
-            throw eee
+            DecryptionFailed
         }
         .map { ret => String(ret.plaintext.toArray.map(e => e.toByte)) }
     }
   }
 
-  override def authDecrypt(
-      keyDecrypt: PrivateKey,
-      keyToVerify: PublicKey,
+  def authDecryptOne(
+      recipientKey: PrivateKey,
+      senderKey: PublicKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): Future[String] = ??? // FIXME
+  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
 
 }

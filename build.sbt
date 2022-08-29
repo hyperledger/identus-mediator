@@ -38,6 +38,7 @@ lazy val V = new {
   // https://mvnrepository.com/artifact/dev.zio/zio
   val zio = "2.0.2"
   val zioJson = "0.3.0-RC11"
+  val zioMunitTest = "0.1.1"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
   val scalaJavaTime = "2.3.0"
@@ -59,6 +60,10 @@ lazy val D = new {
   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
+  // val zioTest = Def.setting("dev.zio" %%% "zio-test" % V.zio % Test)
+  // val zioTestSBT = Def.setting("dev.zio" %%% "zio-test-sbt" % V.zio % Test)
+  // val zioTestMagnolia = Def.setting("dev.zio" %%% "zio-test-magnolia" % V.zio % Test)
+  val zioMunitTest = Def.setting("com.github.poslegm" %%% "munit-zio" % V.zioMunitTest % Test)
 
   // Needed for ZIO
   val scalaJavaT = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
@@ -81,7 +86,8 @@ lazy val NPM = new {
   // https://www.npmjs.com/package/@types/d3
   // val d3NpmDependencies = Seq("d3", "@types/d3").map(_ -> "7.1.0")
 
-  val mermaid = Seq("mermaid" -> "8.14.0", "@types/mermaid" -> "8.2.8")
+  // val mermaid = Seq("mermaid" -> "8.14.0", "@types/mermaid" -> "8.2.8")
+  val mermaid = Seq("mermaid" -> "9.1.6", "@types/mermaid" -> "8.2.9")
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
 
@@ -89,10 +95,7 @@ lazy val NPM = new {
 
   // val nodeJose = Seq("node-jose" -> "2.1.1", "@types/node-jose" -> "1.1.10")
   // val elliptic = Seq("elliptic" -> "6.5.4", "@types/elliptic" -> "6.4.14")
-  val jose = Seq("jose" -> "4.8.3") // , "ts-jose" -> "4.8.3")
-
-  // val prism = Seq("@input-output-hk/atala-prism-sdk-test" -> "0.0.11")
-
+  val jose = Seq("jose" -> "4.8.3")
 }
 
 lazy val noPublishSettings = skip / publish := true
@@ -117,22 +120,17 @@ lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = Seq(
     "-unchecked", // warn about unchecked type parameters
     "-feature", // warn about misused language features
     "-Xfatal-warnings",
-    // "-Yexplicit-nulls",
-    // TODO "-Ysafe-init",
+    // TODO "-Yexplicit-nulls",
+    // TODO  "-Ysafe-init",
     "-language:implicitConversions",
     "-language:reflectiveCalls",
-    // "-Xsource:3", //https://scalacenter.github.io/scala-3-migration-guide/docs/tooling/migration-tools.html
-    // "-Ytasty-reader",
     "-Xprint-diff-del", // "-Xprint-diff",
     "-Xprint-inline",
-  ) // ++ Seq("-rewrite", "-indent", "-source", "future-migration") //++ Seq("-source", "future")
+  )
 )
 
 lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = Seq(
   libraryDependencies += D.munit.value,
-)
-lazy val setupTestConfigJS: Seq[sbt.Def.SettingsDefinition] = Seq(
-  // Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
 )
 
 lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = settingsFlags ++ Seq(
@@ -143,17 +141,17 @@ lazy val scalaJSBundlerConfigure: Project => Project =
   _.settings(commonSettings: _*)
     .enablePlugins(ScalaJSPlugin)
     .enablePlugins(ScalaJSBundlerPlugin)
-    .settings((setupTestConfig ++ setupTestConfigJS): _*)
+    .settings((setupTestConfig): _*)
     .settings(
-      /* disabled because it somehow triggers many warnings */
-      scalaJSLinkerConfig ~= (_.withSourceMap(false).withModuleKind(ModuleKind.CommonJSModule)),
       scalaJSLinkerConfig ~= {
-        _.withJSHeader(
-          """/* FMGP IPFS Example tool
+        _.withSourceMap(false) // disabled because it somehow triggers many warnings
+          .withModuleKind(ModuleKind.CommonJSModule)
+          .withJSHeader(
+            """/* FMGP IPFS Example tool
             | * https://github.com/FabioPinheiro/did
             | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
             | */""".stripMargin.trim() + "\n"
-        )
+          )
       }
     )
     // .settings( //TODO https://scalacenter.github.io/scalajs-bundler/reference.html#jsdom
@@ -194,11 +192,15 @@ lazy val root = project
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
-  .settings((setupTestConfig ++ setupTestConfigJS): _*)
+  .settings((setupTestConfig): _*)
   .settings(
     name := "did",
     version := "0.1-SNAPSHOT",
     libraryDependencies += D.zioJson.value,
+    // libraryDependencies += D.zioTest.value,
+    // libraryDependencies += D.zioTestSBT.value,
+    libraryDependencies += D.zioMunitTest.value,
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.71.1", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on

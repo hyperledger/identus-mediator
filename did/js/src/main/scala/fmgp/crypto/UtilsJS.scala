@@ -9,13 +9,14 @@ import typings.jose.typesMod.KeyLike
 import typings.jose.typesMod.CompactJWSHeaderParameters
 
 import fmgp.did.comm._
+import fmgp.crypto.error._
 
+import zio._
 import zio.json._
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import scala.util.chaining._
-import scala.concurrent.Future
 import concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.JavaScriptException
 
@@ -91,31 +92,39 @@ object UtilsJS {
     }
 
     // TODO make private
-    def toKeyLike: Future[(KeyLike, String)] = {
+    def toKeyLike: IO[UnknownError.type, (KeyLike, String)] = {
       val aux = key.toJWK
-      importJWK(aux).toFuture.map(k => (k.asInstanceOf[KeyLike], aux.alg.get))
+      ZIO
+        .fromPromiseJS(importJWK(aux))
+        .map(k => (k.asInstanceOf[KeyLike], aux.alg.get))
+        .orElseFail(UnknownError)
     }
 
-    def verify(jwm: SignedMessage): Future[Boolean] =
+    def verify(jwm: SignedMessage): IO[CryptoFailed, Boolean] =
       key.toKeyLike.flatMap(thisKey =>
-        jwtVerify(jwm.base64, thisKey._1).toFuture
+        ZIO
+          .fromPromiseJS(jwtVerify(jwm.base64, thisKey._1)) // .toFuture
           .map(_ => true)
-          .recover { case JavaScriptException(ex: scala.scalajs.js.TypeError) => false }
+          .catchAll { case JavaScriptException(ex: scala.scalajs.js.TypeError) => ZIO.succeed(false) }
       )
   }
 
   extension (key: PrivateKey) {
-    def sign(plaintext: PlaintextMessageClass): Future[SignedMessage] = { // TODO use PlaintextMessage
+    def sign(plaintext: PlaintextMessageClass): IO[CryptoFailed, SignedMessage] = { // TODO use PlaintextMessage
       val data = js.typedarray.Uint8Array.from(plaintext.toJson.map(_.toShort).toJSIterable)
+
       key.toKeyLike
         .flatMap { (thisKey, alg) =>
-          GeneralSign(data) // We can also use CompactSign
-            .tap(
-              _.addSignature(thisKey.asInstanceOf[KeyLike])
-                .setProtectedHeader(CompactJWSHeaderParameters(alg))
+          ZIO
+            .fromPromiseJS(
+              GeneralSign(data) // We can also use CompactSign
+                .tap(
+                  _.addSignature(thisKey.asInstanceOf[KeyLike])
+                    .setProtectedHeader(CompactJWSHeaderParameters(alg))
+                )
+                .sign()
             )
-            .sign()
-            .toFuture
+            // .toFuture
             .map(generalJWS =>
               // TODO REMOVE old .split('.') match { case Array(protectedValue, payload, signature) =>
               SignedMessage(
@@ -124,6 +133,7 @@ object UtilsJS {
                   .map(v => JWMSignatureObj(`protected` = v.`protected`.get, signature = v.signature))
               )
             )
+            .orElseFail(UnknownError)
 
         }
 

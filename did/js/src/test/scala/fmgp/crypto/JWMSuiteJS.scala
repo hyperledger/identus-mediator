@@ -4,31 +4,24 @@ import fmgp.did.DIDDocument
 import fmgp.did.comm._
 import fmgp.crypto.RawOperations._
 import munit._
+import zio._
 import zio.json._
 
-import scala.concurrent.Await
-import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.scalajs.js.JavaScriptException
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import concurrent.ExecutionContext.Implicits.global
-
-class JWMSuiteJS extends FunSuite {
+class JWMSuiteJS extends ZSuite {
 
   import scala.scalajs.js
 
-  test("sign and verify an example") {
+  testZ("sign and verify an example") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
     sign(key, DIDCommExamples.plaintextMessageObj).flatMap { jwsObject =>
-      Future.sequence(
-        Seq(
-          verify(key, jwsObject).map(e => assert(e)),
-          verify(key, SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
-        )
-      )
+      verify(key, jwsObject).map(e => assert(e))
+        <&> verify(key, SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
     }
   }
 

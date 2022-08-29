@@ -32,7 +32,6 @@ import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
 
 import zio.json._
-import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try

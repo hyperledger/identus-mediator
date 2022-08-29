@@ -5,6 +5,7 @@ import fmgp.did._
 import fmgp.crypto.OKP_EC_Key
 import java.util.Base64
 import zio.json.ast.Json
+import zio.json.ast.JsonCursor
 
 /** DIDComm messaging
   *
@@ -65,6 +66,9 @@ case class EncryptedMessageGeneric(
     iv: InitializationVector
 ) extends EncryptedMessage {
   def headersAsJson = String(Base64.getDecoder().decode(`protected`)).fromJson[Json]
+  def skid = headersAsJson
+    .flatMap(_.get(JsonCursor.field("skid")))
+    .flatMap(_.as[String])
   // def headers: HeadersJson = protectedAsString.fromJson[HeadersJson] //TODO
 }
 
