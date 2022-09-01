@@ -2,6 +2,16 @@ package fmgp.did.comm
 
 object SignedMessageExample {
 
+  def allSignedMessage_json = Seq(
+    exampleSignatureEdDSA_json,
+    // exampleSignatureEdDSA_obj,
+    exampleSignatureES256_json,
+    // exampleSignatureES256_obj,
+    exampleSignatureES256K_json,
+    // exampleSignatureES256K_obj,
+    // exampleSignatureEdDSA_failSignature_obj,
+  )
+
   val exampleSignatureEdDSA_json = """{
    "payload":"eyJpZCI6IjEyMzQ1Njc4OTAiLCJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXBsYWluK2pzb24iLCJ0eXBlIjoiaHR0cDovL2V4YW1wbGUuY29tL3Byb3RvY29scy9sZXRzX2RvX2x1bmNoLzEuMC9wcm9wb3NhbCIsImZyb20iOiJkaWQ6ZXhhbXBsZTphbGljZSIsInRvIjpbImRpZDpleGFtcGxlOmJvYiJdLCJjcmVhdGVkX3RpbWUiOjE1MTYyNjkwMjIsImV4cGlyZXNfdGltZSI6MTUxNjM4NTkzMSwiYm9keSI6eyJtZXNzYWdlc3BlY2lmaWNhdHRyaWJ1dGUiOiJhbmQgaXRzIHZhbHVlIn19",
    "signatures":[

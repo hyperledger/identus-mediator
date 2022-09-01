@@ -10,6 +10,23 @@ import zio.json.ast.JsonCursor
 /** DID Comm Message */
 sealed trait Message
 
+object Message {
+  given decoder: JsonDecoder[Message] =
+    PlaintextMessageClass.decoder.map(e => e: Message) <>
+      SignedMessage.decoder.map(e => e: Message) <>
+      EncryptedMessageGeneric.decoder.map(e => e: Message)
+
+  given encoder: JsonEncoder[Message] = new JsonEncoder[Message] {
+    override def unsafeEncode(b: Message, indent: Option[Int], out: zio.json.internal.Write): Unit = {
+      b match {
+        case obj: PlaintextMessage => PlaintextMessage.encoder.unsafeEncode(obj, indent, out)
+        case obj: SignedMessage    => SignedMessage.encoder.unsafeEncode(obj, indent, out)
+        case obj: EncryptedMessage => EncryptedMessage.encoder.unsafeEncode(obj, indent, out)
+      }
+    }
+  }
+}
+
 // ############################
 // ##### PlaintextMessage #####
 // ############################
@@ -41,6 +58,15 @@ trait PlaintextMessage extends Message {
   def body: Required[JSON_RFC7159]
 
   // FIXME def attachments: NotRequired[Seq[Attachment]]
+}
+
+object PlaintextMessage {
+  given decoder: JsonDecoder[PlaintextMessage] =
+    PlaintextMessageClass.decoder.map(e => e: PlaintextMessage)
+
+  given encoder: JsonEncoder[PlaintextMessage] = PlaintextMessageClass.encoder.contramap(
+    _ match { case msg: PlaintextMessageClass => msg }
+  )
 }
 
 trait Attachment {
@@ -185,6 +211,15 @@ trait EncryptedMessage extends Message {
   def recipients: Seq[Recipient]
   def tag: AuthenticationTag
   def iv: InitializationVector
+}
+
+object EncryptedMessage {
+  given decoder: JsonDecoder[EncryptedMessage] =
+    EncryptedMessageGeneric.decoder.map(e => e: EncryptedMessage)
+
+  given encoder: JsonEncoder[EncryptedMessage] = EncryptedMessageGeneric.encoder.contramap(
+    _ match { case msg: EncryptedMessageGeneric => msg }
+  )
 }
 
 extension (c: EncryptedMessage) {
