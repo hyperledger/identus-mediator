@@ -33,11 +33,9 @@ trait DID {
   def specificId: String
 }
 object DID {
-  def getNamespaceAndSpecificId(id: DIDSyntax) = id.split(":", 3) match {
-    case Array("did", ns, sId) => (ns, sId)
-    case _                     => throw new java.lang.AssertionError(s"Fail to parse id: '$id'")
-  }
+  given Conversion[DID, DIDSubject] = did => DIDSubject(did.scheme + ":" + did.namespace + ":" + did.specificId)
 }
+
 type DIDSyntax = String //FIXME
 type DIDURLSyntax = String //FIXME
 /** RFC3986 - https://www.rfc-editor.org/rfc/rfc3986 */

@@ -1,6 +1,7 @@
 package fmgp.did
 
 import zio.json._
+import scala.util.chaining._
 
 /** DIDService
   *
@@ -32,7 +33,8 @@ final case class DIDServiceClass(
     `type`: Required[SetU[String]],
     serviceEndpoint: Required[SetU[URI]], // FIXME or MAP ???
 ) extends DIDService {
-  val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
+  // val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
+  val (namespace, specificId) = DIDSubject(id).pipe(did => (did.namespace, did.specificId))
 }
 object DIDServiceClass {
   import SetU.{given}

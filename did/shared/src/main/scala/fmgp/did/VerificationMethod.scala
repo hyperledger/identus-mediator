@@ -38,7 +38,7 @@ object VerificationMethodReferenced {
 
 trait VerificationMethodEmbedded extends VerificationMethod {
   def id: Required[DIDURLSyntax]
-  def controller: Required[DIDSyntax]
+  def controller: Required[DIDSubject]
   def `type`: Required[String]
 
   def publicKeyJwk: NotRequired[JSONWebKeyMap]
@@ -62,7 +62,7 @@ object VerificationMethodEmbedded {
 
 final case class VerificationMethodClass(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
-    controller: Required[DIDSyntax], // "did:example:123456789abcdefghi",
+    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
     publicKeyJwk: NotRequired[JSONWebKeyMap] = None,
     publicKeyMultibase: NotRequired[MULTIBASE] = None // "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
