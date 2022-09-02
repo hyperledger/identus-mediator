@@ -4,7 +4,12 @@ package fmgp.crypto
 // object CryptoFail {
 package error {
 
-  sealed trait CryptoFailed extends Exception with Product with Serializable
+  sealed trait DidFail extends Exception with Product with Serializable
+
+  case class FailToParse(error: String) extends DidFail
+
+  // Error Crypto
+  sealed trait CryptoFailed extends DidFail
 
   case object UnknownError extends CryptoFailed
 
@@ -16,7 +21,7 @@ package error {
   case object MissingDecryptionKey extends CryptoFailed
   case object SignatureVerificationFailed extends CryptoFailed
 
-  // Warn
+  // Warn Crypto
   sealed trait CryptoWarn extends Product with Serializable // Exception with
   case class MissDecryptionKey(kid: String) extends CryptoWarn
   case class UncatchWarning[E <: CryptoWarn](warn: E) extends CryptoFailed

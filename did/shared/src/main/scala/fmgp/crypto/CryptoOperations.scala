@@ -65,25 +65,25 @@ trait CryptoOperations {
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] // FIXME PlaintextMessage
+  ): IO[DidFail, Message]
 
   def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] // FIXME PlaintextMessage
+  ): IO[DidFail, Message]
 
   def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] // FIXME PlaintextMessage
+  ): IO[DidFail, Message]
 
   def authDecryptOne(
       recipientKey: PrivateKey,
       senderKey: PublicKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] // FIXME PlaintextMessage
+  ): IO[DidFail, Message]
 
 }

@@ -24,6 +24,7 @@ import com.nimbusds.jose.crypto.X25519DecrypterMulti
 import com.nimbusds.jose.crypto.ECDHDecrypterMulti
 
 import zio._
+import zio.json._
 
 import fmgp.crypto.UtilsJVM._
 import fmgp.crypto.error._
@@ -232,7 +233,7 @@ object RawOperations extends CryptoOperations {
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = {
+  ): IO[DidFail, Message] = {
     val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`))
     val kids = msg.recipients.map(_.header.kid.value)
     val aaa = recipientKidsKeys.filterNot(e => kids.contains(e._1))
@@ -253,17 +254,15 @@ object RawOperations extends CryptoOperations {
           )
         )
 
-        ZIO.succeed(
-          ECDHDecrypterMulti(pairs.toList.asJava)
-            .decrypt(
-              header,
-              jweRecipient.toList.asJava,
-              Base64URL(msg.iv),
-              Base64URL(msg.ciphertext),
-              Base64URL(msg.tag)
-            )
-            .pipe(e => String(e))
-        )
+        val ret = ECDHDecrypterMulti(pairs.toList.asJava)
+          .decrypt(
+            header,
+            jweRecipient.toList.asJava,
+            Base64URL(msg.iv),
+            Base64URL(msg.ciphertext),
+            Base64URL(msg.tag)
+          )
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
 
       case okpKey: OKPKey =>
         val pairs = recipientKidsKeys.map { case (vmr, key: OKPKey) => // FIXME check all keys
@@ -280,17 +279,15 @@ object RawOperations extends CryptoOperations {
           )
         )
 
-        ZIO.succeed(
-          X25519DecrypterMulti(pairs.toList.asJava)
-            .decrypt(
-              header,
-              jweRecipient.toList.asJava,
-              Base64URL(msg.iv),
-              Base64URL(msg.ciphertext),
-              Base64URL(msg.tag)
-            )
-            .pipe(e => String(e))
-        )
+        val ret = X25519DecrypterMulti(pairs.toList.asJava)
+          .decrypt(
+            header,
+            jweRecipient.toList.asJava,
+            Base64URL(msg.iv),
+            Base64URL(msg.ciphertext),
+            Base64URL(msg.tag)
+          )
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
     }
 
   }
@@ -299,7 +296,7 @@ object RawOperations extends CryptoOperations {
       key: PrivateKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = ZIO.succeed {
+  ): IO[DidFail, Message] = {
     val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`))
     key.toJWK match {
       case ecKey: JWKECKey =>
@@ -310,7 +307,7 @@ object RawOperations extends CryptoOperations {
           Base64URL(msg.ciphertext),
           Base64URL(msg.tag)
         )
-        String(ret)
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
       case okpKey: OctetKeyPair => // okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
         val ret = X25519Decrypter(okpKey).decrypt(
           header,
@@ -319,7 +316,7 @@ object RawOperations extends CryptoOperations {
           Base64URL(msg.ciphertext),
           Base64URL(msg.tag)
         )
-        String(ret)
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
     }
   }
 
@@ -328,7 +325,7 @@ object RawOperations extends CryptoOperations {
       senderKey: PublicKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = ZIO.succeed {
+  ): IO[DidFail, Message] = {
     val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`))
     (recipientKey.toJWK, senderKey.toJWK) match {
       case (ecKey: JWKECKey, ecKeyToVerify: JWKECKey) =>
@@ -339,7 +336,8 @@ object RawOperations extends CryptoOperations {
           Base64URL(msg.ciphertext),
           Base64URL(msg.tag)
         )
-        String(ret)
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
+
       case (okpKey: OctetKeyPair, okpKeyToVerify: OctetKeyPair) => // okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
         val ret = ECDH1PUX25519Decrypter(okpKey, okpKeyToVerify).decrypt(
           header,
@@ -348,8 +346,8 @@ object RawOperations extends CryptoOperations {
           Base64URL(msg.ciphertext),
           Base64URL(msg.tag)
         )
-        String(ret)
-      case _ => throw new AssertionError("The Keys must be of the same type!") // FIXME Make function type safe!
+        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
+      case _ => ZIO.fail(WrongKeysTypeCombination)
     }
   }
 
@@ -357,7 +355,7 @@ object RawOperations extends CryptoOperations {
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = {
+  ): IO[DidFail, Message] = {
     val header: JWEHeader = JWEHeader.parse(Base64URL(msg.`protected`)) // TODO REMOVE
 
     val jweRecipient = msg.recipients.map(recipient =>
@@ -406,8 +404,8 @@ object RawOperations extends CryptoOperations {
                 Base64URL(msg.ciphertext),
                 Base64URL(msg.tag)
               )
-              .pipe(e => String(e))
           }
+          .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))
       case okpSenderKey: OctetKeyPair =>
         ZIO
           .foreach(msg.recipients) { recipien =>
@@ -446,9 +444,8 @@ object RawOperations extends CryptoOperations {
                 Base64URL(msg.ciphertext),
                 Base64URL(msg.tag)
               )
-              .pipe(e => String(e))
-
           }
+          .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))
     }
   }
 

@@ -75,23 +75,23 @@ object RawOperations extends CryptoOperations {
   // ### decrypt ###
   // ###############
 
-  def anonDecrypt(
+  override def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
+  ): IO[DidFail, Message] = ZIO.die(NotImplementedError()) // FIXME
 
-  def authDecrypt(
+  override def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
+  ): IO[DidFail, Message] = ZIO.die(NotImplementedError()) // FIXME
 
   /** See https://github.com/panva/jose/blob/HEAD/docs/functions/jwe_general_decrypt.generalDecrypt.md#readme */
   override def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = {
+  ): IO[DidFail, Message] = {
     val aux = msg.recipients
       .find(_.encrypted_key == encryptedKey)
       .map { r =>
@@ -154,16 +154,20 @@ object RawOperations extends CryptoOperations {
         )
       )
 
-    key.toKeyLike.flatMap { (thisKey, alg) =>
-      ZIO
-        .fromPromiseJS(generalDecrypt(jweJS, thisKey, decryptOptions))
-        .mapError {
-          case eee @ scala.scalajs.js.JavaScriptException(ex) => // if (ex.isInstanceOf[JWEDecryptionFailed]) =>
-            println("$" * 100 + " " + ex.asInstanceOf[JWEDecryptionFailed].stack)
-            DecryptionFailed
-        }
-        .map { ret => String(ret.plaintext.toArray.map(e => e.toByte)) }
-    }
+    key.toKeyLike
+      .flatMap { (thisKey, alg) =>
+        ZIO
+          .fromPromiseJS(generalDecrypt(jweJS, thisKey, decryptOptions))
+          .mapError {
+            case eee @ scala.scalajs.js.JavaScriptException(ex) => // if (ex.isInstanceOf[JWEDecryptionFailed]) =>
+              println("$" * 100 + " " + ex.asInstanceOf[JWEDecryptionFailed].stack) // FIXME println
+              DecryptionFailed
+          }
+          .map { ret => String(ret.plaintext.toArray.map(e => e.toByte)) }
+      }
+      .flatMap { str =>
+        ZIO.fromEither(str.fromJson[Message].left.map(FailToParse(_)))
+      }
   }
 
   def authDecryptOne(
@@ -171,6 +175,6 @@ object RawOperations extends CryptoOperations {
       senderKey: PublicKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
-  ): IO[CryptoFailed, String] = ZIO.die(NotImplementedError()) // FIXME
+  ): IO[DidFail, Message] = ZIO.die(NotImplementedError()) // FIXME
 
 }
