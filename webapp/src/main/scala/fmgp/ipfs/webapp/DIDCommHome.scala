@@ -19,7 +19,7 @@ object DIDCommHome {
       Set(
         VerificationMethodClass(
           id = "did:dns:alice#aaaaaaaaaaaaaaaaaaaaaaaaa",
-          controller = "did:dns:alice",
+          controller = DIDSubject("did:dns:alice"),
           `type` = "X25519KeyAgreementKey2019",
           publicKeyMultibase = Some("z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"),
         )
@@ -32,7 +32,7 @@ object DIDCommHome {
       Set(
         VerificationMethodClass(
           id = "did:dns:bob#bbbbbbbbbbbbbbbbbbbbbbbbb",
-          controller = "did:dns:bob",
+          controller = DIDSubject("did:dns:bob"),
           `type` = "X25519KeyAgreementKey2019",
           publicKeyMultibase = Some("z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"),
         )

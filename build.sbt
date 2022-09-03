@@ -195,12 +195,12 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
   .settings((setupTestConfig): _*)
   .settings(
     name := "did",
-    version := "0.1-SNAPSHOT",
+    // version := "0.1-SNAPSHOT",
     libraryDependencies += D.zioJson.value,
     // libraryDependencies += D.zioTest.value,
     // libraryDependencies += D.zioTestSBT.value,
     libraryDependencies += D.zioMunitTest.value,
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+    // testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.71.1", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
@@ -223,6 +223,16 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
+
+lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-resolver-peer"))
+  .settings(
+    name := "did-peer",
+    // version := "0.1-SNAPSHOT",
+    libraryDependencies += D.munit.value,
+    libraryDependencies += D.zioMunitTest.value,
+  )
+  .dependsOn(did)
 
 lazy val webapp = project
   .in(file("webapp"))
