@@ -1,0 +1,15 @@
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:web:raw.githubusercontent.com:FabioPinheiro:scala-did:master:did-resolver-web:example",
+  "verificationMethod": [
+    {
+      "id": "did:web:raw.githubusercontent.com:FabioPinheiro:scala-did:master:did-resolver-web:example#controller",
+      "type": "Secp256k1VerificationKey2018",
+      "controller": "did:web:raw.githubusercontent.com:FabioPinheiro:scala-did:master:did-resolver-web:example",
+      "ethereumAddress": "0xb9c5714089478a327f09197987f16f9e5d936e8a"
+    }
+  ],
+  "authentication": [
+    "did:web:raw.githubusercontent.com:FabioPinheiro:scala-did:master:did-resolver-web:example#controller"
+  ]
+}

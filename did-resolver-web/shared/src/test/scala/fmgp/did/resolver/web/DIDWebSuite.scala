@@ -25,4 +25,12 @@ class DIDWebSuite extends ZSuite {
     assertEquals(did.url, d._2)
   }
 
+  test("url from My DID Web (see did-resolver-web/example/did.json)") {
+    val d = (
+      "did:web:raw.githubusercontent.com:FabioPinheiro:scala-did:master:did-resolver-web:example",
+      "https://raw.githubusercontent.com/FabioPinheiro/scala-did/master/did-resolver-web/example/did.json"
+    )
+    val did = DIDWeb(DIDSubject(d._1))
+    assertEquals(did.url, d._2)
+  }
 }
