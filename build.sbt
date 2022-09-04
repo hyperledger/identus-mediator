@@ -180,13 +180,15 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
     ),
   )
 
-addCommandAlias("testJVM", ";didJVM/test")
-addCommandAlias("testJS", ";didJS/test")
+addCommandAlias("testJVM", ";didJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
+addCommandAlias("testJS", " ;didJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
 addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
   .in(file("."))
   .aggregate(webapp, did.js, did.jvm)
+  .aggregate(didResolverPeer.js, didResolverPeer.jvm)
+  .aggregate(didResolverWeb.js, didResolverWeb.jvm)
   .settings(commonSettings: _*)
   .settings(noPublishSettings)
 
@@ -195,7 +197,6 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
   .settings((setupTestConfig): _*)
   .settings(
     name := "did",
-    // version := "0.1-SNAPSHOT",
     libraryDependencies += D.zioJson.value,
     // libraryDependencies += D.zioTest.value,
     // libraryDependencies += D.zioTestSBT.value,
@@ -228,7 +229,16 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
   .settings(
     name := "did-peer",
-    // version := "0.1-SNAPSHOT",
+    libraryDependencies += D.munit.value,
+    libraryDependencies += D.zioMunitTest.value,
+  )
+  .dependsOn(did)
+
+//https://w3c-ccg.github.io/did-method-web/
+lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-resolver-web"))
+  .settings(
+    name := "did-web",
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )
