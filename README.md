@@ -6,6 +6,56 @@ A Scala/ScalaJS library for DID and DIDcomm
 - DID Comm - <https://identity.foundation/didcomm-messaging/spec/>
 - DID Comm protocols - <https://didcomm.org/search/?page=1>
 
+## Project Structure and Dependencies Graph
+
+```mermaid
+flowchart BT
+
+  did --> zio
+  did --> zio-json
+  did-web ---> zhttp:::JVM
+  zhttp --> zio
+
+  subgraph fmgp
+    %%did-implementation[did-implementation\n]
+
+    subgraph platform specific
+      did-implementation_jvm:::JVM
+      did-implementation_js:::JS
+    end
+
+    did-implementation_jvm:::JVM --> did
+    did-implementation_js:::JS --> did
+    
+    did-peer --> did
+    did-web --> did
+  end
+  
+  
+  did-implementation_jvm:::JVM ---> nimbus-jose-jwt:::JVM --> google-tink:::JVM
+  did-implementation_jvm:::JVM ---> google-tink
+
+  did-implementation_js ---> jose:::JS 
+
+
+  did-implementation-hw:::Others ---> did
+
+
+  classDef JVM fill:#141,stroke:#444,stroke-width:2px;
+  classDef JS fill:#05a,stroke:#444,stroke-width:2px;
+  classDef Others fill:#222,stroke:#444,stroke-width:2px,stroke-dasharray: 5 5;
+
+```
+
+NOTES:
+
+- The things inside the group box (fmgp) are implemented by this library.
+- Green boxes is JVM's platform specific.
+- Blue boxes is JavaScript's platform specific.
+- Other boxes are not platform specific.
+- The `did-implementation-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
+- `did-web` & `did-peer` are implementations of the respective did methods.
+
 ## build and run app (open chrome)
 
 `sbt>` `webapp/fastOptJS::webpack`
