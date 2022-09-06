@@ -24,10 +24,11 @@ class VerificationMethodSuite extends FunSuite {
     val expected = "\"1234\""
     assertEquals(expected, aux.toJson)
 
-    val ret = expected.fromJson[VerificationMethodReferenced]
+    val ret = expected.fromJson[VerificationMethod]
     ret match {
-      case Left(error) => fail(error)
-      case Right(obj)  => assertEquals(obj, aux)
+      case Left(error)                              => fail(error)
+      case Right(obj: VerificationMethodReferenced) => assertEquals(obj, aux)
+      case Right(obj)                               => fail("Expeting a VerificationMethodReferenced")
     }
   }
 
@@ -37,8 +38,9 @@ class VerificationMethodSuite extends FunSuite {
     // println(json.flatMap(_.get(cursor0)))
     val ret = json.flatMap(_.get(cursor0)).flatMap(_.toJson.fromJson[VerificationMethod])
     ret match {
-      case Left(error) => fail(error)
-      case Right(obj)  => assertEquals(obj, DIDExamples.EX13_VerificationMethod_0)
+      case Left(error)                               => fail(error)
+      case Right(obj: VerificationMethodEmbeddedJWK) => assertEquals(obj, DIDExamples.EX13_VerificationMethod_0)
+      case Right(obj)                                => fail("Expeting a VerificationMethodEmbeddedJWK")
     }
   }
 
@@ -47,8 +49,9 @@ class VerificationMethodSuite extends FunSuite {
     val cursor1 = JsonCursor.field("verificationMethod").isArray.element(1)
     val ret = json.flatMap(_.get(cursor1)).flatMap(_.toJson.fromJson[VerificationMethod])
     ret match {
-      case Left(error) => fail(error)
-      case Right(obj)  => assertEquals(obj, DIDExamples.EX13_VerificationMethod_1)
+      case Left(error)                                     => fail(error)
+      case Right(obj: VerificationMethodEmbeddedMultibase) => assertEquals(obj, DIDExamples.EX13_VerificationMethod_1)
+      case Right(obj)                                      => fail("Expeting a VerificationMethodEmbeddedMultibase")
     }
   }
 }

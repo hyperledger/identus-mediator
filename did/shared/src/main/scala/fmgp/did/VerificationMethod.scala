@@ -1,9 +1,9 @@
 package fmgp.did
 
 import zio.json._
-
-/** RFC7517 - https://www.rfc-editor.org/rfc/rfc7517 */
-type JSONWebKeyMap = Map[String, String]
+import fmgp.crypto.PublicKey
+import zio.json.ast.Json
+import zio.json.ast.JsonCursor
 
 /** MULTIBASE encoded public key.- https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03 */
 type MULTIBASE = String // TODO
@@ -17,7 +17,7 @@ sealed trait VerificationMethod
 
 object VerificationMethod {
   given decoder: JsonDecoder[VerificationMethod] =
-    VerificationMethodClass.decoder.map(e => e).orElse(VerificationMethodReferenced.decoder.map(e => e))
+    VerificationMethodEmbedded.decoder.map(e => e).orElse(VerificationMethodReferenced.decoder.map(e => e))
   given encoder: JsonEncoder[VerificationMethod] = {
     VerificationMethodReferenced.encoder
       .orElseEither(VerificationMethodEmbedded.encoder)
@@ -36,39 +36,75 @@ object VerificationMethodReferenced {
     JsonEncoder.string.contramap(e => e.value)
 }
 
-trait VerificationMethodEmbedded extends VerificationMethod {
+sealed trait VerificationMethodEmbedded extends VerificationMethod {
   def id: Required[DIDURLSyntax]
   def controller: Required[DIDSubject]
   def `type`: Required[String]
 
-  def publicKeyJwk: NotRequired[JSONWebKeyMap]
-
-  def publicKeyMultibase: NotRequired[MULTIBASE]
-}
-object VerificationMethodEmbedded {
-  given decoder: JsonDecoder[VerificationMethod] =
-    VerificationMethodClass.decoder.map(e => e)
-  given encoder: JsonEncoder[VerificationMethodEmbedded] =
-    VerificationMethodClass.encoder.contramap(e =>
-      VerificationMethodClass(
-        id = e.id,
-        controller = e.controller,
-        `type` = e.`type`,
-        publicKeyJwk = e.publicKeyJwk,
-        publicKeyMultibase = e.publicKeyMultibase
-      )
-    )
+  // def publicKeyJwk: NotRequired[JSONWebKeyMap]
+  // def publicKeyMultibase: NotRequired[MULTIBASE]
+  /** this is a Either publicKeyJwk or a publicKeyMultibase */
+  def publicKey: Either[MULTIBASE, PublicKey]
 }
 
-final case class VerificationMethodClass(
+/** VerificationMethodEmbeddedJWK
+  *
+  * @param publicKeyJwk
+  *   is a JSON Web Key (JWK) - RFC7517 - https://www.rfc-editor.org/rfc/rfc7517
+  */
+case class VerificationMethodEmbeddedJWK(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
     controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
-    publicKeyJwk: NotRequired[JSONWebKeyMap] = None,
-    publicKeyMultibase: NotRequired[MULTIBASE] = None // "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
-) extends VerificationMethodEmbedded
+    publicKeyJwk: Required[PublicKey]
+) extends VerificationMethodEmbedded {
+  def publicKey = Right(publicKeyJwk)
+}
 
-object VerificationMethodClass {
-  implicit val decoder: JsonDecoder[VerificationMethodClass] = DeriveJsonDecoder.gen[VerificationMethodClass]
-  implicit val encoder: JsonEncoder[VerificationMethodClass] = DeriveJsonEncoder.gen[VerificationMethodClass]
+object VerificationMethodEmbeddedJWK {
+  given decoder: JsonDecoder[VerificationMethodEmbeddedJWK] =
+    DeriveJsonDecoder.gen[VerificationMethodEmbeddedJWK]
+  given encoder: JsonEncoder[VerificationMethodEmbeddedJWK] =
+    DeriveJsonEncoder.gen[VerificationMethodEmbeddedJWK]
+}
+
+/** VerificationMethodEmbeddedMultibase
+  */
+case class VerificationMethodEmbeddedMultibase(
+    id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
+    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
+    `type`: Required[String], // "Ed25519VerificationKey2020",
+    publicKeyMultibase: Required[MULTIBASE]
+) extends VerificationMethodEmbedded {
+  def publicKey = Left(publicKeyMultibase)
+}
+
+object VerificationMethodEmbeddedMultibase {
+  given decoder: JsonDecoder[VerificationMethodEmbeddedMultibase] =
+    DeriveJsonDecoder.gen[VerificationMethodEmbeddedMultibase]
+  given encoder: JsonEncoder[VerificationMethodEmbeddedMultibase] =
+    DeriveJsonEncoder.gen[VerificationMethodEmbeddedMultibase]
+}
+
+object VerificationMethodEmbedded {
+  given decoder: JsonDecoder[VerificationMethod] =
+    Json.Obj.decoder.mapOrFail { originalAst =>
+      if (originalAst.fields.exists(e => e._1 == "publicKeyJwk"))
+        VerificationMethodEmbeddedJWK.decoder.decodeJson(originalAst.toJson)
+      else // publicKeyMultibase
+        VerificationMethodEmbeddedMultibase.decoder.decodeJson(originalAst.toJson)
+    }
+
+  given encoder: JsonEncoder[VerificationMethodEmbedded] = new JsonEncoder[VerificationMethodEmbedded] {
+    override def unsafeEncode(
+        b: VerificationMethodEmbedded,
+        indent: Option[Int],
+        out: zio.json.internal.Write
+    ): Unit = b match {
+      case obj: VerificationMethodEmbeddedJWK =>
+        VerificationMethodEmbeddedJWK.encoder.unsafeEncode(obj, indent, out)
+      case obj: VerificationMethodEmbeddedMultibase =>
+        VerificationMethodEmbeddedMultibase.encoder.unsafeEncode(obj, indent, out)
+    }
+  }
 }

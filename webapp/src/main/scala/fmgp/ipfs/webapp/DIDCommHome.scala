@@ -17,11 +17,11 @@ object DIDCommHome {
     id = DIDSubject("did:dns:alice"),
     keyAgreement = Some(
       Set(
-        VerificationMethodClass(
+        VerificationMethodEmbeddedMultibase(
           id = "did:dns:alice#aaaaaaaaaaaaaaaaaaaaaaaaa",
           controller = DIDSubject("did:dns:alice"),
           `type` = "X25519KeyAgreementKey2019",
-          publicKeyMultibase = Some("z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"),
+          publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
         )
       )
     )
@@ -30,11 +30,11 @@ object DIDCommHome {
     id = DIDSubject("did:dns:bob"),
     keyAgreement = Some(
       Set(
-        VerificationMethodClass(
+        VerificationMethodEmbeddedMultibase(
           id = "did:dns:bob#bbbbbbbbbbbbbbbbbbbbbbbbb",
           controller = DIDSubject("did:dns:bob"),
           `type` = "X25519KeyAgreementKey2019",
-          publicKeyMultibase = Some("z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"),
+          publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
         )
       )
     )

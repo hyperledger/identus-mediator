@@ -1,5 +1,7 @@
 package fmgp.did
 
+import fmgp.crypto._
+
 object DIDExamples {
 
   /*EXAMPLE1: A simple DID document - https://www.w3.org/TR/did-core/#a-simple-example*/
@@ -123,27 +125,23 @@ object DIDExamples {
 }
 """.stripMargin
 
-  val EX13_VerificationMethod_0 = VerificationMethodClass(
+  val EX13_VerificationMethod_0 = VerificationMethodEmbeddedJWK(
     id = "did:example:123#_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A",
     controller = DIDSubject("did:example:123"),
     `type` = "JsonWebKey2020",
-    publicKeyJwk = Some(
-      Map(
-        "crv" -> "Ed25519",
-        "x" -> "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ",
-        "kty" -> "OKP",
-        "kid" -> "_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A"
-      )
-    ),
-    publicKeyMultibase = None,
+    publicKeyJwk = OKPPublicKey(
+      kty = KTY.OKP,
+      crv = Curve.Ed25519,
+      x = "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ",
+      kid = Some("_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A")
+    )
   )
 
-  val EX13_VerificationMethod_1 = VerificationMethodClass(
+  val EX13_VerificationMethod_1 = VerificationMethodEmbeddedMultibase(
     id = "did:example:123456789abcdefghi#keys-1",
     controller = DIDSubject("did:example:pqrstuvwxyz0987654321"),
     `type` = "Ed25519VerificationKey2020",
-    publicKeyJwk = None,
-    publicKeyMultibase = Some("zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"),
+    publicKeyMultibase = "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
   )
 
   /* EXAMPLE 14: Embedding and referencing verification methods - https://w3c.github.io/did-core/#referring-to-verification-methods */
@@ -185,11 +183,11 @@ object DIDExamples {
     keyAgreement = Some(
       Set(
         VerificationMethodReferenced("did:example:123456789abcdefghi#keys-1"),
-        VerificationMethodClass(
+        VerificationMethodEmbeddedMultibase(
           id = "did:example:123#zC9ByQ8aJs8vrNXyDhPHHNNMSHPcaSgNpjjsBYpMMjsTdS",
           controller = DIDSubject("did:example:123"),
           `type` = "X25519KeyAgreementKey2019",
-          publicKeyMultibase = Some("z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"),
+          publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
         )
       )
     )
