@@ -52,4 +52,4 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.1")
 
 // mdoc
-addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.3")
+addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.6")
