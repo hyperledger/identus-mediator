@@ -206,8 +206,8 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     // testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .jvmSettings( // Add JVM-specific settings here
-    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.71.1", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.71.1", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
+    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
     // TODO libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.23", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
     libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
 
