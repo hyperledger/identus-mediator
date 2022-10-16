@@ -2,6 +2,7 @@ package fmgp.did.resolver.peer
 
 import zio._
 import fmgp.did._
+import fmgp.crypto.error.DidMethodNotSupported
 
 /** DID Peer
   *
@@ -40,9 +41,9 @@ object DIDPeer {
 }
 
 object DidPeerResolver extends Resolver {
-  override def didDocument(did: DID): RIO[Error, DIDDocument] = did match {
+  override def didDocument(did: DIDSubject): IO[DidMethodNotSupported, DIDDocument] = (did: DID) match {
     case peer: DIDPeer => didDocument(peer)
-    case _             => ZIO.fail(NotImplementedError())
+    case did           => ZIO.fail(DidMethodNotSupported(did.namespace))
   }
 
   /** see https://identity.foundation/peer-did-method-spec/#generation-method */

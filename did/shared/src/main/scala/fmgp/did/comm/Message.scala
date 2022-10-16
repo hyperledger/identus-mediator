@@ -37,7 +37,7 @@ trait PlaintextMessage extends Message {
   /** MUST be unique to the sender */
   def id: Required[String]
 
-  /** A URI that associates the body of a plaintext message with a published and versioned schema */
+  /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
   def `type`: Required[String]
 
   def to: NotRequired[Set[DIDURLSyntax]]
@@ -161,7 +161,7 @@ object JWMSignatureObj {
   given encoder: JsonEncoder[JWMSignatureObj] = DeriveJsonEncoder.gen[JWMSignatureObj]
 }
 
-case class JWMHeader(kid: String)
+case class JWMHeader(kid: String) //FIXME DIDSuject
 object JWMHeader {
   given decoder: JsonDecoder[JWMHeader] = DeriveJsonDecoder.gen[JWMHeader]
   given encoder: JsonEncoder[JWMHeader] = DeriveJsonEncoder.gen[JWMHeader]

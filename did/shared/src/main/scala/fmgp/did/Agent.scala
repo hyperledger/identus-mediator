@@ -5,10 +5,10 @@ import fmgp.crypto._
 
 /** Agent have is a DID
   *   - has keys
-  *   - has encryption preferences
-  *   - has a resolver
+  *   - can have encryption preferences
+  *   - can have resolver preferences
   */
 trait Agent {
   def id: DID
-  def keys: Seq[OKP_EC_Key]
+  def keys: Seq[PrivateKey]
 }

@@ -1,4 +1,4 @@
-package fmgp.crypto
+package fmgp.crypto //FIXME
 
 // sealed abstract class
 // object CryptoFail {
@@ -7,6 +7,8 @@ package error {
   sealed trait DidFail extends Exception with Product with Serializable
 
   case class FailToParse(error: String) extends DidFail
+
+  case class DidMethodNotSupported(method: String) extends DidFail
 
   // Error Crypto
   sealed trait CryptoFailed extends DidFail
