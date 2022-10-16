@@ -47,7 +47,7 @@ lazy val V = new {
   val logbackClassic = "1.2.10"
   val scalaLogging = "3.9.4"
 
-  val laminar = "0.14.2"
+  val laminar = "0.14.5"
   val waypoint = "0.5.0"
   val upickle = "2.0.0"
   // https://www.npmjs.com/package/material-components-web
