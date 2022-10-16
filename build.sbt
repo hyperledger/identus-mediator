@@ -1,13 +1,36 @@
 inThisBuild(
   Seq(
+    scalaVersion := "3.2.0", // Also update docs/publishWebsite.sh and any ref to scala-3.2.0
+  )
+)
+// publish config
+inThisBuild(
+  Seq(
+    Test / publishArtifact := false,
+    // pomIncludeRepository := (_ => false),
     organization := "app.fmgp",
-    scalaVersion := "3.2.0", // Also update docs/publishWebsite.sh and any ref to scala-3.1.3
+    homepage := Some(url("https://github.com/FabioPinheiro/scala-did")),
+    licenses := Seq(
+      "Apache-2.0" ->
+        url("http://www.apache.org/licenses/LICENSE-2.0")
+        // url ("https://github.com/FabioPinheiro/scala-did" + "/blob/master/LICENSE")
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/FabioPinheiro/scala-did"),
+        "scm:git:git@github.com:FabioPinheiro/scala-did.git"
+      )
+    ),
+    developers := List(
+      Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
+    ),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
   )
 )
 
 lazy val docs = project // new documentation project
   .in(file("docs-build")) // important: it must not be docs/
+  .settings(skip / publish := true)
   .settings(
     mdocJS := Some(webapp),
     // https://scalameta.org/mdoc/docs/js.html#using-scalajs-bundler
@@ -32,7 +55,7 @@ lazy val V = new {
   val munit = "1.0.0-M6" // "0.7.29"
 
   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
-  val scalajsDom = "2.0.0" // scalajsDom 2.0.0 need to update sbt-converter to 37?
+  val scalajsDom = "2.0.0" // 2.3.0
   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
   // https://mvnrepository.com/artifact/dev.zio/zio
@@ -98,20 +121,6 @@ lazy val NPM = new {
   // val nodeJose = Seq("node-jose" -> "2.1.1", "@types/node-jose" -> "1.1.10")
   // val elliptic = Seq("elliptic" -> "6.5.4", "@types/elliptic" -> "6.4.14")
   val jose = Seq("jose" -> "4.8.3")
-}
-
-lazy val noPublishSettings = skip / publish := true
-lazy val publishSettings = {
-  val repo = "https://github.com/FabioPinheiro/fmgp-generative-design"
-  val contact = Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
-  Seq(
-    Test / publishArtifact := false,
-    pomIncludeRepository := (_ => false),
-    homepage := Some(url(repo)),
-    licenses := Seq("MIT License" -> url(repo + "/blob/master/LICENSE")),
-    scmInfo := Some(ScmInfo(url(repo), "scm:git:git@github.com:FabioPinheiro/fmgp-generative-design.git")),
-    developers := List(contact)
-  )
 }
 
 lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = Seq(
@@ -188,11 +197,11 @@ addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
   .in(file("."))
+  .settings(skip / publish := true)
   .aggregate(webapp, did.js, did.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
   .settings(commonSettings: _*)
-  .settings(noPublishSettings)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
@@ -251,6 +260,7 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
 
 lazy val webapp = project
   .in(file("webapp"))
+  .settings(skip / publish := true)
   .settings(name := "fmgp-ipfs-webapp")
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
@@ -268,4 +278,3 @@ lazy val webapp = project
       org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.ipfs.webapp.App", "main")
     },
   )
-  .settings(noPublishSettings)

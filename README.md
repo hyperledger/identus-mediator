@@ -68,15 +68,11 @@ google-chrome-stable --disable-web-security --user-data-dir="/tmp/chrome_tmp" --
 
 ### WIP
 
-- I'm still working on encryption.
-- Will define the out library API at the end.
-  - The API will be asynchronous on both runtime environments (JavaScript; JVM), to be consistent.
-  - Will have a ZIO types
-- Define an interface for the DIDcomm DID resolver.
+- We are still working on API.
 
 ### Limitations in JS
 
-ATM (as far as I know) no library was native JavaScript support for `ECHD-1PU` and `XC20P`.
+ATM no library was native JavaScript support for `ECHD-1PU` and `XC20P`.
 
 [For an encrypted DIDComm message, the JWA of `ECDH-1PU` MUST be used within the structure of a JWE.](https://identity.foundation/didcomm-messaging/spec/#sender-authenticated-encryption)
 
