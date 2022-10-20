@@ -1,6 +1,13 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      make_release:
+        description: "Publish the libraries (make a release)"
+        default: false
+        type: boolean
+        required: false
   pull_request:
     branches-ignore:
       - "gh-pages"
@@ -27,3 +34,12 @@ jobs:
         uses: coursier/cache-action@v6.3
       ### TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m testAll
+
+      - name: Release
+        if: inputs.make_release  == true
+        run: sbt ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          # SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          # SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
