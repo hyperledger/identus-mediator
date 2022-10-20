@@ -31,6 +31,7 @@ inThisBuild(
     sonatypeRepository := "https://maven.pkg.github.com",
     versionScheme := Some("early-semver"),
     fork := true,
+    Test / fork := false, // If true we get a Error: `test / test` tasks in a Scala.js project require `test / fork := false`.
     run / connectInput := true,
   ) ++ scala.util.Properties
     .envOrNone("PACKAGES_GITHUB_TOKEN")
