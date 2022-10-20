@@ -25,7 +25,23 @@ inThisBuild(
       Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
     ),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-  )
+
+    // ### publish Github ###
+    sonatypeCredentialHost := "maven.pkg.github.com/FabioPinheiro/scala-did",
+    sonatypeRepository := "https://maven.pkg.github.com",
+    versionScheme := Some("early-semver"),
+    fork := true,
+    run / connectInput := true,
+  ) ++ scala.util.Properties
+    .envOrNone("PACKAGES_GITHUB_TOKEN")
+    .map(passwd =>
+      credentials += Credentials(
+        "GitHub Package Registry",
+        "maven.pkg.github.com",
+        "FabioPinheiro",
+        passwd
+      )
+    )
 )
 
 lazy val docs = project // new documentation project
@@ -191,13 +207,17 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
     ),
   )
 
+lazy val publishConfigure: Project => Project = _.settings(
+  sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
+)
+
 addCommandAlias("testJVM", ";didJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
 addCommandAlias("testJS", " ;didJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
 addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
   .in(file("."))
-  .settings(skip / publish := true)
+  .settings(publish / skip := true)
   .aggregate(webapp, did.js, did.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
@@ -205,6 +225,7 @@ lazy val root = project
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
+  .configure(publishConfigure)
   .settings((setupTestConfig): _*)
   .settings(
     name := "did",
@@ -238,6 +259,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
+  .configure(publishConfigure)
   .settings(
     name := "did-peer",
     libraryDependencies += D.munit.value,
@@ -248,6 +270,7 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-web"))
+  .configure(publishConfigure)
   .settings(
     name := "did-web",
     libraryDependencies += D.munit.value,
@@ -260,7 +283,7 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
 
 lazy val webapp = project
   .in(file("webapp"))
-  .settings(skip / publish := true)
+  .settings(publish / skip := true)
   .settings(name := "fmgp-ipfs-webapp")
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
