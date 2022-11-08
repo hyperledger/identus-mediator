@@ -1,6 +1,6 @@
 inThisBuild(
   Seq(
-    scalaVersion := "3.2.0", // Also update docs/publishWebsite.sh and any ref to scala-3.2.0
+    scalaVersion := "3.2.1", // Also update docs/publishWebsite.sh and any ref to scala-3.2.0
   )
 )
 // publish config
