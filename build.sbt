@@ -1,6 +1,6 @@
 inThisBuild(
   Seq(
-    scalaVersion := "3.2.0", // Also update docs/publishWebsite.sh and any ref to scala-3.2.0
+    scalaVersion := "3.2.1", // Also update docs/publishWebsite.sh and any ref to scala-3.2.0
   )
 )
 // publish config
@@ -76,7 +76,7 @@ lazy val V = new {
   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
   // https://mvnrepository.com/artifact/dev.zio/zio
-  val zio = "2.0.2"
+  val zio = "2.0.3"
   val zioJson = "0.3.0"
   val zioMunitTest = "0.1.1"
   val zhttp = "2.0.0-RC11"
@@ -212,16 +212,18 @@ lazy val publishConfigure: Project => Project = _.settings(
   sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
 )
 
-addCommandAlias("testJVM", ";didJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
-addCommandAlias("testJS", " ;didJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
+addCommandAlias("testJVM", ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
+addCommandAlias("testJS", " ;didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
 addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(webapp, did.js, did.jvm)
+  .aggregate(did.js, did.jvm)
+  .aggregate(didImp.js, didImp.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
+  .aggregate(webapp)
   .settings(commonSettings: _*)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
@@ -236,6 +238,14 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
     // testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
+
+lazy val didImp = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-imp"))
+  .configure(publishConfigure)
+  .settings((setupTestConfig): _*)
+  .settings(name := "did-imp")
+  .settings(libraryDependencies += D.zioMunitTest.value)
+  .dependsOn(did % "compile;test->test")
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
@@ -246,7 +256,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     // BUT have vulnerabilities in the dependencies: CVE-2022-25647
     libraryDependencies += "com.google.crypto.tink" % "tink" % "1.7.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
     // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
-    libraryDependencies += "com.google.code.gson" % "gson" % "2.9.1",
+    libraryDependencies += "com.google.code.gson" % "gson" % "2.10",
     libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.8",
   )
   // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
@@ -257,6 +267,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
+
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))

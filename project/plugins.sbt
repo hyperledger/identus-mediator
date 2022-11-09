@@ -23,7 +23,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.0")
 // GRPC
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
-libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11"
+libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.12"
 //https://mvnrepository.com/artifact/com.thesamet.scalapb.grpcweb/scalapb-grpcweb
 libraryDependencies += "com.thesamet.scalapb.grpcweb" %% "scalapb-grpcweb-code-gen" % "0.6.4"
 
@@ -42,7 +42,7 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4") // sbt> dependencyUpd
 // PUBLISH
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.11")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.13")
-addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.1.2") //https://github.com/sbt/sbt-pgp#sbt-pgp
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.0") //https://github.com/sbt/sbt-pgp#sbt-pgp
 
 // Revolver use for command 'reStart' (like the command 'run' but run on the backgroun by forking the app from sbt)
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
