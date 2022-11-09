@@ -257,7 +257,7 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "com.google.crypto.tink" % "tink" % "1.7.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
     // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
     libraryDependencies += "com.google.code.gson" % "gson" % "2.10",
-    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.8",
+    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.9",
   )
   // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
   .jsConfigure(scalaJSBundlerConfigure)
@@ -267,7 +267,6 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
-
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
