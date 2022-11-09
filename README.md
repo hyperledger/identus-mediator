@@ -13,32 +13,28 @@ flowchart BT
 
   did --> zio
   did --> zio-json
-  did-web ---> zhttp:::JVM
   zhttp --> zio
 
-  subgraph fmgp
-    %%did-implementation[did-implementation\n]
+  did-resolver-web ---> zhttp:::JVM
+  did-imp-hw:::Others ---> did
 
+  subgraph fmgp
     subgraph platform specific
-      did-implementation_jvm:::JVM
-      did-implementation_js:::JS
+      did-imp_jvm:::JVM
+      did-imp_js:::JS
     end
 
-    did-implementation_jvm:::JVM --> did
-    did-implementation_js:::JS --> did
+    did-imp_jvm:::JVM --> did
+    did-imp_js:::JS --> did
     
-    did-peer --> did
-    did-web --> did
+    did-resolver-peer --> did
+    did-resolver-web --> did
   end
   
-  
-  did-implementation_jvm:::JVM ---> nimbus-jose-jwt:::JVM --> google-tink:::JVM
-  did-implementation_jvm:::JVM ---> google-tink
+  did-imp_jvm:::JVM ---> nimbus-jose-jwt:::JVM --> google-tink:::JVM
+  did-imp_jvm:::JVM ---> google-tink
 
-  did-implementation_js ---> jose:::JS 
-
-
-  did-implementation-hw:::Others ---> did
+  did-imp_js ---> jose:::JS
 
 
   classDef JVM fill:#141,stroke:#444,stroke-width:2px;
@@ -53,8 +49,8 @@ NOTES:
 - Green boxes is JVM's platform specific.
 - Blue boxes is JavaScript's platform specific.
 - Other boxes are not platform specific.
-- The `did-implementation-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
-- `did-web` & `did-peer` are implementations of the respective did methods.
+- The `did-imp-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
+- `did-resolver-web` & `did-resolver-peer` are implementations of the respective did methods.
 
 ## build and run app (open chrome)
 
