@@ -212,16 +212,18 @@ lazy val publishConfigure: Project => Project = _.settings(
   sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
 )
 
-addCommandAlias("testJVM", ";didJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
-addCommandAlias("testJS", " ;didJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
+addCommandAlias("testJVM", ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
+addCommandAlias("testJS", " ;didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
 addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(webapp, did.js, did.jvm)
+  .aggregate(did.js, did.jvm)
+  .aggregate(didImp.js, didImp.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
+  .aggregate(webapp)
   .settings(commonSettings: _*)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
@@ -236,6 +238,14 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
     // testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
+
+lazy val didImp = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-imp"))
+  .configure(publishConfigure)
+  .settings((setupTestConfig): _*)
+  .settings(name := "did-imp")
+  .settings(libraryDependencies += D.zioMunitTest.value)
+  .dependsOn(did % "compile;test->test")
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
@@ -257,6 +267,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
+
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
