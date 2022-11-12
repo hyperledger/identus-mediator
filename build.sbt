@@ -291,7 +291,7 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
   )
   .jvmSettings( // See dependencyTree ->  didResolverPeerJVM/Test/dependencyTree
-    libraryDependencies += "org.didcommx" % "didcomm" % "0.3.1" % Test,
+    libraryDependencies += "org.didcommx" % "didcomm" % "0.3.2" % Test,
     libraryDependencies += "org.didcommx" % "peerdid" % "0.3.0" % Test,
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72" % Test,
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72" % Test,
