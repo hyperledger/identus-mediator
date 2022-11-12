@@ -3,6 +3,7 @@ package fmgp.crypto
 import munit._
 import zio.json._
 import fmgp.did.DIDDocument
+import zio.json.ast.Json
 
 class KeySuite extends FunSuite {
 
@@ -26,7 +27,7 @@ class KeySuite extends FunSuite {
     assertEquals(Curve.secp256k1.toJson.fromJson[Curve], Right(Curve.secp256k1))
   }
 
-  test("parse PrivateKey") {
+  test("parse and stringify PrivateKey") {
     val ret = JWKExamples.senderKeySecp256k1.fromJson[PrivateKey]
     ret match {
       case Left(error) => fail(error)
@@ -37,11 +38,16 @@ class KeySuite extends FunSuite {
         assertEquals(obj.d, "N3Hm1LXA210YVGGsXw_GklMwcLu_bMgnzDese6YQIyA")
         assertEquals(obj.x, "aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk")
         assertEquals(obj.y, "JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
+        assertEquals(obj.toJsonAST, JWKExamples.senderKeySecp256k1.fromJson[Json]) // stringify ECPrivateKey
       case Right(obj: OKPPrivateKey) => fail("senderKeySecp256k1 is not a OKP key")
     }
+    assertEquals(
+      ret.map(_.toJsonAST),
+      JWKExamples.senderKeySecp256k1.fromJson[Json].map(_.toJsonAST)
+    ) // stringify PrivateKey
   }
 
-  test("parse PublicKey") {
+  test("parse and stringify PublicKey") {
     val ret = JWKExamples.senderKeySecp256k1.fromJson[PublicKey]
     ret match {
       case Left(error) => fail(error)
@@ -55,9 +61,9 @@ class KeySuite extends FunSuite {
     }
   }
 
-  test("parse PublicKey with no kid") {
-    val ret =
-      """{"kty":"OKP","crv":"X25519","x":"GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0"}""".fromJson[PublicKey]
+  test("parse and stringify PublicKey with no kid") {
+    val tmp = """{"kty":"OKP","crv":"X25519","x":"GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0"}"""
+    val ret = tmp.fromJson[PublicKey]
 
     ret match {
       case Left(error)              => fail(error)
@@ -66,8 +72,10 @@ class KeySuite extends FunSuite {
         assertEquals(obj.kty, KTY.OKP)
         assertEquals(obj.crv, Curve.X25519)
         assertEquals(obj.x, "GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0")
+        assertEquals(obj.toJson, tmp) // stringify OKPPublicKey
       case Right(obj: ECPublicKey) => fail("senderKeySecp256k1 is not a EC key")
     }
+    assertEquals(ret.toOption.get.toJson, tmp) // stringify PublicKey
   }
 
   test("parse ECKey into ECPrivateKey".ignore) {} // TODO

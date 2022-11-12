@@ -17,18 +17,18 @@ enum KTY:
   case OKP extends KTY // Edwards-curve Octet Key Pair
 
 object KTY {
-  implicit val decoder: JsonDecoder[KTY] = JsonDecoder.string.map(KTY.valueOf)
-  implicit val encoder: JsonEncoder[KTY] = JsonEncoder.string.contramap((e: KTY) => e.toString)
+  given decoder: JsonDecoder[KTY] = JsonDecoder.string.map(KTY.valueOf)
+  given encoder: JsonEncoder[KTY] = JsonEncoder.string.contramap((e: KTY) => e.toString)
 
-  implicit val decoderEC: JsonDecoder[KTY.EC.type] = JsonDecoder.string.mapOrFail(str =>
+  given decoderEC: JsonDecoder[KTY.EC.type] = JsonDecoder.string.mapOrFail(str =>
     if (str == KTY.EC.toString) Right(KTY.EC) else Left(s"'$str' is not a type KTY.EC")
   )
-  implicit val encoderEC: JsonEncoder[KTY.EC.type] = JsonEncoder.string.contramap((e: KTY.EC.type) => e.toString)
+  given encoderEC: JsonEncoder[KTY.EC.type] = JsonEncoder.string.contramap((e: KTY.EC.type) => e.toString)
 
-  implicit val decoderOKP: JsonDecoder[KTY.OKP.type] = JsonDecoder.string.mapOrFail(str =>
+  given decoderOKP: JsonDecoder[KTY.OKP.type] = JsonDecoder.string.mapOrFail(str =>
     if (str == KTY.OKP.toString) Right(KTY.OKP) else Left(s"'$str' is not a type KTY.OKP")
   )
-  implicit val encoderOKP: JsonEncoder[KTY.OKP.type] = JsonEncoder.string.contramap((e: KTY.OKP.type) => e.toString)
+  given encoderOKP: JsonEncoder[KTY.OKP.type] = JsonEncoder.string.contramap((e: KTY.OKP.type) => e.toString)
 
 }
 
@@ -67,8 +67,8 @@ object Curve {
       case c: OKPCurve => c
     }
   }
-  implicit val decoder: JsonDecoder[Curve] = JsonDecoder.string.map(Curve.valueOf)
-  implicit val encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
+  given decoder: JsonDecoder[Curve] = JsonDecoder.string.map(Curve.valueOf)
+  given encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
 }
 
 /** https://tools.ietf.org/id/draft-ietf-jose-json-web-key-00.html */
@@ -152,7 +152,7 @@ case class ECPrivateKey(kty: KTY.EC.type, crv: Curve, d: String, x: String, y: S
 
 object PublicKey {
 
-  implicit val decoder: JsonDecoder[PublicKey] = Json.Obj.decoder.mapOrFail { originalAst =>
+  given decoder: JsonDecoder[PublicKey] = Json.Obj.decoder.mapOrFail { originalAst =>
     originalAst
       .get(JsonCursor.field("kty"))
       .flatMap(ast => KTY.decoder.fromJsonAST(ast))
@@ -165,11 +165,18 @@ object PublicKey {
           OKPPublicKey.decoder.decodeJson(originalAst.toJson)
       }
   }
-  implicit val encoder: JsonEncoder[PublicKey] = DeriveJsonEncoder.gen[PublicKey]
+
+  given encoder: JsonEncoder[PublicKey] = new JsonEncoder[PublicKey] {
+    override def unsafeEncode(b: PublicKey, indent: Option[Int], out: zio.json.internal.Write): Unit = b match {
+      case obj: OKPPublicKey => OKPPublicKey.encoder.unsafeEncode(obj, indent, out)
+      case obj: ECPublicKey  => ECPublicKey.encoder.unsafeEncode(obj, indent, out)
+    }
+  }
+
 }
 
 object PrivateKey {
-  implicit val decoder: JsonDecoder[PrivateKey] = Json.Obj.decoder.mapOrFail { originalAst =>
+  given decoder: JsonDecoder[PrivateKey] = Json.Obj.decoder.mapOrFail { originalAst =>
     originalAst
       .get(JsonCursor.field("kty"))
       .flatMap { ast => KTY.decoder.fromJsonAST(ast) }
@@ -182,23 +189,28 @@ object PrivateKey {
           OKPPrivateKey.decoder.decodeJson(originalAst.toJson)
       }
   }
-  implicit val encoder: JsonEncoder[PrivateKey] = DeriveJsonEncoder.gen[PrivateKey]
+  given encoder: JsonEncoder[PrivateKey] = new JsonEncoder[PrivateKey] {
+    override def unsafeEncode(b: PrivateKey, indent: Option[Int], out: zio.json.internal.Write): Unit = b match {
+      case obj: OKPPrivateKey => OKPPrivateKey.encoder.unsafeEncode(obj, indent, out)
+      case obj: ECPrivateKey  => ECPrivateKey.encoder.unsafeEncode(obj, indent, out)
+    }
+  }
 }
 
 object ECPublicKey {
-  implicit val decoder: JsonDecoder[ECPublicKey] = DeriveJsonDecoder.gen[ECPublicKey]
-  implicit val encoder: JsonEncoder[ECPublicKey] = DeriveJsonEncoder.gen[ECPublicKey]
+  given decoder: JsonDecoder[ECPublicKey] = DeriveJsonDecoder.gen[ECPublicKey]
+  given encoder: JsonEncoder[ECPublicKey] = DeriveJsonEncoder.gen[ECPublicKey]
 }
 object ECPrivateKey {
-  implicit val decoder: JsonDecoder[ECPrivateKey] = DeriveJsonDecoder.gen[ECPrivateKey]
-  implicit val encoder: JsonEncoder[ECPrivateKey] = DeriveJsonEncoder.gen[ECPrivateKey]
+  given decoder: JsonDecoder[ECPrivateKey] = DeriveJsonDecoder.gen[ECPrivateKey]
+  given encoder: JsonEncoder[ECPrivateKey] = DeriveJsonEncoder.gen[ECPrivateKey]
 }
 
 object OKPPublicKey {
-  implicit val decoder: JsonDecoder[OKPPublicKey] = DeriveJsonDecoder.gen[OKPPublicKey]
-  implicit val encoder: JsonEncoder[OKPPublicKey] = DeriveJsonEncoder.gen[OKPPublicKey]
+  given decoder: JsonDecoder[OKPPublicKey] = DeriveJsonDecoder.gen[OKPPublicKey]
+  given encoder: JsonEncoder[OKPPublicKey] = DeriveJsonEncoder.gen[OKPPublicKey]
 }
 object OKPPrivateKey {
-  implicit val decoder: JsonDecoder[OKPPrivateKey] = DeriveJsonDecoder.gen[OKPPrivateKey]
-  implicit val encoder: JsonEncoder[OKPPrivateKey] = DeriveJsonEncoder.gen[OKPPrivateKey]
+  given decoder: JsonDecoder[OKPPrivateKey] = DeriveJsonDecoder.gen[OKPPrivateKey]
+  given encoder: JsonEncoder[OKPPrivateKey] = DeriveJsonEncoder.gen[OKPPrivateKey]
 }
