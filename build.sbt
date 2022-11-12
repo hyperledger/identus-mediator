@@ -212,8 +212,14 @@ lazy val publishConfigure: Project => Project = _.settings(
   sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
 )
 
-addCommandAlias("testJVM", ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test")
-addCommandAlias("testJS", " ;didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test")
+addCommandAlias(
+  "testJVM",
+  ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test; multibaseJVM/test"
+)
+addCommandAlias(
+  "testJS",
+  ";didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test;  multibaseJS/test"
+)
 addCommandAlias("testAll", ";testJVM;testJS")
 
 lazy val root = project
