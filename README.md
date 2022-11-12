@@ -5,6 +5,7 @@ A Scala/ScalaJS library for DID and DIDcomm
 - Decentralized Identifiers (DIDs) v1.0 - W3C Proposed Recommendation 03 August 2021 [LINK GitHub](https://w3c.github.io/did-core/) or [LINK W3C](https://www.w3.org/TR/did-core/)
 - DID Comm - <https://identity.foundation/didcomm-messaging/spec/>
 - DID Comm protocols - <https://didcomm.org/search/?page=1>
+- DID Comm - Wallet and Credential Interaction (WACI) - https://identity.foundation/waci-didcomm/
 
 ## Project Structure and Dependencies Graph
 
@@ -27,6 +28,7 @@ flowchart BT
     did-imp_jvm:::JVM --> did
     did-imp_js:::JS --> did
     
+    did-resolver-peer --> multibase
     did-resolver-peer --> did
     did-resolver-web --> did
   end

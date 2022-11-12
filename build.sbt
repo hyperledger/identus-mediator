@@ -268,6 +268,20 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
 
+/** This is a copy of https://github.com/fluency03/scala-multibase to support crossProject
+  *
+  * "com.github.fluency03" % "scala-multibase_2.12" % "0.0.1"
+  */
+lazy val multibase =
+  crossProject(JSPlatform, JVMPlatform)
+    .in(file("multibase"))
+    .configure(publishConfigure)
+    .settings(
+      name := "multibase",
+      libraryDependencies += D.munit.value,
+      libraryDependencies += D.zioMunitTest.value,
+    )
+
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
   .configure(publishConfigure)
@@ -276,7 +290,14 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )
-  .dependsOn(did)
+  .jvmSettings( // See dependencyTree ->  didResolverPeerJVM/Test/dependencyTree
+    libraryDependencies += "org.didcommx" % "didcomm" % "0.3.1" % Test,
+    libraryDependencies += "org.didcommx" % "peerdid" % "0.3.0" % Test,
+    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72" % Test,
+    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72" % Test,
+    libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1" % Test,
+  )
+  .dependsOn(did, multibase)
 
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
