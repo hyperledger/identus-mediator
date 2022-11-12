@@ -2,7 +2,7 @@ package fmgp.multibase
 
 import munit._
 
-class MultibaseTest extends ZSuite {
+class MultibaseTest extends FunSuite {
 
   test("contains correct code and name mappings for the Base.") {
     Base.Codes.foreach { case (code, base) =>
@@ -18,7 +18,7 @@ class MultibaseTest extends ZSuite {
     val str = "Multibase is awesome! \\o/"
 
     for (base <- Base.Codes.values if base != Base.Base1) {
-      assertEquals(Multibase.decodeToString(Multibase.encodeString(base, str)), str)
+      assertEquals(Multibase.encodeString(base, str).decodeToString, str)
     }
 
     interceptMessage[UnsupportedOperationException]("Base1 is not supported yet!") {
@@ -30,7 +30,7 @@ class MultibaseTest extends ZSuite {
 
     val illegalDate = "abc"
     interceptMessage[IllegalArgumentException]("Cannot get Multibase type from input data: " + illegalDate) {
-      Multibase.decode(illegalDate)
+      Multibase(illegalDate).decode
     }
 
     val strs =
@@ -146,8 +146,8 @@ class MultibaseTest extends ZSuite {
     for (TestCase(name, str, expEncoded) <- testCases) {
       val base = Base.Names(name)
       val encoded = Multibase.encodeString(base, str)
-      assertEquals(encoded, expEncoded)
-      assertEquals(Multibase.decodeToString(expEncoded), str)
+      assertEquals(encoded.value, expEncoded)
+      assertEquals(Multibase(expEncoded).decodeToString, str)
     }
   }
 

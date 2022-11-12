@@ -8,9 +8,9 @@ sealed abstract class Base(
 
   lazy val alphabetPos: Map[Char, Int] = (for (i <- alphabet.indices) yield alphabet(i) -> i).toMap
 
-  def encode(data: Array[Byte]): String = Multibase.encode(this, data)
+  def encode(data: Array[Byte]): Multibase = Multibase.encode(this, data)
 
-  def encodeString(data: String): String = Multibase.encodeString(this, data)
+  def encodeString(data: String): Multibase = Multibase.encodeString(this, data)
 
 }
 
