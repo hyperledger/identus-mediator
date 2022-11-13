@@ -76,6 +76,6 @@ case class DIDDocumentClass(
 
 object DIDDocumentClass {
   import SetU.{given}
-  implicit val decoder: JsonDecoder[DIDDocumentClass] = DeriveJsonDecoder.gen[DIDDocumentClass]
-  implicit val encoder: JsonEncoder[DIDDocumentClass] = DeriveJsonEncoder.gen[DIDDocumentClass]
+  given decoder: JsonDecoder[DIDDocumentClass] = DeriveJsonDecoder.gen[DIDDocumentClass]
+  given encoder: JsonEncoder[DIDDocumentClass] = DeriveJsonEncoder.gen[DIDDocumentClass]
 }

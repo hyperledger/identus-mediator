@@ -63,6 +63,6 @@ object Multibase {
           case Base.Base64URLPad      => Base64Impl.decode(rest, Base.Base64URLPad)
           case _                      => BaseNImpl.decode(base, rest)
         }
-    }
+    }.dropWhile(b => b == 0)
 
 }

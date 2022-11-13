@@ -15,16 +15,25 @@ trait DIDService extends DID {
   def serviceEndpoint: Required[SetU[URI]] // FIXME or MAP ???
 }
 
+trait DIDServiceForDIDPeer extends DIDService {
+  def routingKeys: NotRequired[Set[String]]
+  def accept: NotRequired[Set[String]]
+}
+
 object DIDService {
   given decoder: JsonDecoder[DIDService] =
     DIDServiceClass.decoder.map(e => e)
   given encoder: JsonEncoder[DIDService] =
     DIDServiceClass.encoder.contramap(e =>
-      DIDServiceClass(
-        id = e.id,
-        `type` = e.`type`,
-        serviceEndpoint = e.serviceEndpoint,
-      )
+      e match {
+        case a: DIDServiceClass => a
+        case other: DIDService =>
+          DIDServiceClass(
+            id = e.id,
+            `type` = e.`type`,
+            serviceEndpoint = e.serviceEndpoint,
+          )
+      }
     )
 }
 
@@ -32,7 +41,12 @@ final case class DIDServiceClass(
     id: Required[URI],
     `type`: Required[SetU[String]],
     serviceEndpoint: Required[SetU[URI]], // FIXME or MAP ???
-) extends DIDService {
+
+    // extra for did Peer
+    routingKeys: NotRequired[Set[String]] = None,
+    accept: NotRequired[Set[String]] = None,
+) extends DIDService
+    with DIDServiceForDIDPeer {
   // val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
   val (namespace, specificId) = DIDSubject(id).pipe(did => (did.namespace, did.specificId))
 }
