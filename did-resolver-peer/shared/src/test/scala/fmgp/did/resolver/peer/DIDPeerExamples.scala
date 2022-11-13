@@ -95,9 +95,7 @@ object DIDPeerExamples {
       "type": [ 
         "DIDCommMessaging"
       ],
-      "serviceEndpoint": [
-        "http://localhost:8080/test"
-      ],
+      "serviceEndpoint": "http://localhost:8080/test",
       "accept": [
         "didcomm/v2"
       ]

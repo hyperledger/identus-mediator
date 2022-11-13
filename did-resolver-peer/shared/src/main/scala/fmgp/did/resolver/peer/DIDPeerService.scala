@@ -46,7 +46,7 @@ case class DIDPeerServiceEncoded(
   def routingKeys = r
   def accept = a
 
-  def getDIDService(id: DIDSubject): DIDService = DIDServiceClass(
+  def getDIDService(id: DIDSubject): DIDService = DIDServiceGeneric(
     id = id.string + "#didcommmessaging-0",
     `type` = if (this.t == "dm") "DIDCommMessaging" else this.t,
     serviceEndpoint = this.s,

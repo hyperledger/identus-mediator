@@ -8,14 +8,25 @@ import scala.util.chaining._
   * https://w3c.github.io/did-core/#service-properties
   *
   * https://w3c.github.io/did-core/#services
+  *
+  * @param `type`
+  *   https://www.w3.org/TR/did-spec-registries/#service-types
   */
 trait DIDService extends DID {
   def id: Required[URI]
   def `type`: Required[SetU[String]]
-  def serviceEndpoint: Required[SetU[URI]] // FIXME or MAP ???
+  def serviceEndpoint: Required[SetMapU[URI]]
 }
 
-trait DIDServiceForDIDPeer extends DIDService {
+/** https://www.w3.org/TR/did-spec-registries/#linkeddomains */
+trait DIDServiceDIDLinkedDomains extends DIDService {
+  // override def `type` = "LinkedDomains"
+  // TODO FIX "serviceEndpoint": {"origins": ["https://foo.example.com", "https://identity.foundation"]}
+}
+
+/** https://www.w3.org/TR/did-spec-registries/#didcommmessaging */
+trait DIDServiceDIDCommMessaging extends DIDService {
+  // override def `type` = "DIDCommMessaging"
   def routingKeys: NotRequired[Set[String]]
   def accept: NotRequired[Set[String]]
 }
@@ -24,34 +35,36 @@ object DIDService {
   given decoder: JsonDecoder[DIDService] =
     DIDServiceClass.decoder.map(e => e)
   given encoder: JsonEncoder[DIDService] =
-    DIDServiceClass.encoder.contramap(e =>
-      e match {
-        case a: DIDServiceClass => a
-        case other: DIDService =>
-          DIDServiceClass(
-            id = e.id,
-            `type` = e.`type`,
-            serviceEndpoint = e.serviceEndpoint,
-          )
-      }
-    )
+    DIDServiceClass.encoder.contramap(_ match {
+      case e: DIDServiceGeneric => e
+      case other: DIDService =>
+        DIDServiceGeneric(
+          id = other.id,
+          `type` = other.`type`,
+          serviceEndpoint = other.serviceEndpoint,
+        )
+    })
 }
 
-final case class DIDServiceClass(
+final case class DIDServiceGeneric(
     id: Required[URI],
     `type`: Required[SetU[String]],
-    serviceEndpoint: Required[SetU[URI]], // FIXME or MAP ???
+    serviceEndpoint: Required[SetMapU[URI]], // FIXME or MAP ???
 
-    // extra for did Peer
+    // extra for did
     routingKeys: NotRequired[Set[String]] = None,
     accept: NotRequired[Set[String]] = None,
 ) extends DIDService
-    with DIDServiceForDIDPeer {
+    with DIDServiceDIDCommMessaging
+    with DIDServiceDIDLinkedDomains {
   // val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
   val (namespace, specificId) = DIDSubject(id).pipe(did => (did.namespace, did.specificId))
 }
 object DIDServiceClass {
   import SetU.{given}
-  implicit val decoder: JsonDecoder[DIDServiceClass] = DeriveJsonDecoder.gen[DIDServiceClass]
-  implicit val encoder: JsonEncoder[DIDServiceClass] = DeriveJsonEncoder.gen[DIDServiceClass]
+  import SetMapU.{given}
+  implicit val decoder: JsonDecoder[DIDServiceGeneric] =
+    DeriveJsonDecoder.gen[DIDServiceGeneric]
+  implicit val encoder: JsonEncoder[DIDServiceGeneric] =
+    DeriveJsonEncoder.gen[DIDServiceGeneric]
 }

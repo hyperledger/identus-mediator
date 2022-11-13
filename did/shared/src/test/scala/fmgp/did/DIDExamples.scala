@@ -203,7 +203,7 @@ object DIDExamples {
   }]
 }
 """.stripMargin
-  val EX20_DIDService = DIDServiceClass(
+  val EX20_DIDService = DIDServiceGeneric(
     id = "did:example:123#linked-domain",
     `type` = "LinkedDomains",
     serviceEndpoint = "https://bar.example.com"

@@ -11,7 +11,9 @@ import zio.json._
 type Required[A] = A
 type NotRequired[A] = Option[A]
 type SetU[A] = A | Seq[A]
+type SetMapU[A] = A | Seq[A] | Map[String, A]
 type Authentication = Option[Set[VerificationMethod]]
+
 object SetU {
   given decoder[U](using jsonDecoder: JsonDecoder[U]): JsonDecoder[U | Seq[U]] =
     jsonDecoder
@@ -24,6 +26,24 @@ object SetU {
         case one: U                 => Seq(one)
         case seq: Seq[U] @unchecked => seq
       }
+    }
+}
+
+object SetMapU {
+  given decoder[U](using jsonDecoder: JsonDecoder[U]): JsonDecoder[SetMapU[U]] =
+    jsonDecoder
+      .map(e => e: SetMapU[U])
+      .orElse(JsonDecoder.seq[U].map(e => e: SetMapU[U]))
+      .orElse(JsonDecoder.map[String, U].map(e => e: SetMapU[U]))
+
+  given encoder[U](using jsonEncoder: JsonEncoder[U]): JsonEncoder[SetMapU[U]] =
+    new JsonEncoder[SetMapU[U]] {
+      override def unsafeEncode(b: SetMapU[U], indent: Option[Int], out: zio.json.internal.Write): Unit =
+        b match {
+          case obj: U @unchecked              => jsonEncoder.unsafeEncode(obj, indent, out)
+          case obj: Seq[U] @unchecked         => JsonEncoder.seq.unsafeEncode(obj, indent, out)
+          case obj: Map[String, U] @unchecked => JsonEncoder.map.unsafeEncode(obj, indent, out)
+        }
     }
 }
 
