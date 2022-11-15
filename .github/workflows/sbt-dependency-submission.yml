@@ -14,4 +14,4 @@ jobs:
       - uses: scalacenter/sbt-dependency-submission@v2
         with:
           working-directory: ./
-          modules-ignore: webapp
+          modules-ignore: root fmgp-ipfs-webapp
