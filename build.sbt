@@ -268,6 +268,7 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
   .jsConfigure(scalaJSBundlerConfigure)
   .jsSettings( // Add JS-specific settings here
+    stShortModuleNames := true,
     Compile / npmDependencies ++= NPM.jose, // NPM.elliptic, // NPM.nodeJose
     // 2Test / scalaJSUseMainModuleInitializer := true, Test / scalaJSUseTestModuleInitializer := false, Test / mainClass := Some("fmgp.crypto.MainTestJS")
     Test / parallelExecution := false,
@@ -334,6 +335,7 @@ lazy val webapp = project
     stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
   )
   .settings(
+    stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
       org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.ipfs.webapp.App", "main")
