@@ -69,7 +69,7 @@ lazy val docs = project // new documentation project
 lazy val V = new {
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
-  val munit = "1.0.0-M6" // "0.7.29"
+  val munit = "1.0.0-M7" // "0.7.29"
 
   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
   val scalajsDom = "2.3.0"
