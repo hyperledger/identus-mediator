@@ -79,7 +79,7 @@ lazy val V = new {
   val zio = "2.0.4"
   val zioJson = "0.3.0"
   val zioMunitTest = "0.1.1"
-  val zhttp = "2.0.0-RC11"
+  val zioHttp = "0.0.3"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
   val scalaJavaTime = "2.3.0"
@@ -101,11 +101,11 @@ lazy val D = new {
   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
+  val ziohttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
   // val zioTest = Def.setting("dev.zio" %%% "zio-test" % V.zio % Test)
   // val zioTestSBT = Def.setting("dev.zio" %%% "zio-test-sbt" % V.zio % Test)
   // val zioTestMagnolia = Def.setting("dev.zio" %%% "zio-test-magnolia" % V.zio % Test)
   val zioMunitTest = Def.setting("com.github.poslegm" %%% "munit-zio" % V.zioMunitTest % Test)
-  val zhttp = Def.setting("io.d11" %% "zhttp" % V.zhttp)
 
   // Needed for ZIO
   val scalaJavaT = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
@@ -316,7 +316,7 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
   )
   .jvmSettings(
-    libraryDependencies += D.zhttp.value,
+    libraryDependencies += D.ziohttp.value,
   )
   .dependsOn(did)
 
