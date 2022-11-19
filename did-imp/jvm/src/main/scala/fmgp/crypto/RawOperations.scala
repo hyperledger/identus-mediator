@@ -9,7 +9,6 @@ import com.nimbusds.jose.JWERecipient
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.OctetKeyPair
-import com.nimbusds.jose.crypto.ECDHEncrypterMulti
 import com.nimbusds.jose.util.Pair
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.crypto.ECDH1PUEncrypterMulti
@@ -34,6 +33,7 @@ import fmgp.did.comm._
 
 import scala.util.chaining._
 import scala.collection.JavaConverters._
+import org.bouncycastle.crypto.engines.AESWrapEngine
 
 object RawOperations extends CryptoOperations {
 
@@ -104,32 +104,13 @@ object RawOperations extends CryptoOperations {
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val aux = ecRecipientsKeys.map(e =>
-      Pair.of(
-        UnprotectedHeader.Builder().keyID(e._1.value).build(),
-        e._2
-      )
-    )
-    val encrypter = ECDHEncrypterMulti(aux.asJava)
 
     val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512) // XC20P)
       .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
       .agreementPartyVInfo(Utils.calculateAPV(ecRecipientsKeys.map(_._1)))
       .build()
-    val parts = encrypter.encrypt(header, clearText)
-    val recipients = parts.getRecipients.asScala.toSeq.map { e =>
-      Recipient(e.getEncryptedKey().toString(), RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID())))
-    }
 
-    ZIO.succeed(
-      EncryptedMessageGeneric(
-        ciphertext = parts.getCipherText().toString, // : Base64URL,
-        `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
-        recipients = recipients, // auxRecipient.toSeq,
-        tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
-        iv = parts.getInitializationVector().toString // : InitializationVector
-      )
-    )
+    ZIO.succeed(MyECEncrypter(ecRecipientsKeys, header).encrypt(clearText))
   }
 
   def anoncryptOKP( // anoncryptECDH_X25519
@@ -140,9 +121,7 @@ object RawOperations extends CryptoOperations {
       .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
       .agreementPartyVInfo(Utils.calculateAPV(okpRecipientKeys.map(_._1)))
       .build()
-    ZIO.succeed(
-      MyX25519Encrypter(okpRecipientKeys, header).encrypt(clearText)
-    )
+    ZIO.succeed(MyX25519Encrypter(okpRecipientKeys, header).encrypt(clearText))
   }
 
   def authcryptEC( // encrypterECDH1PU
