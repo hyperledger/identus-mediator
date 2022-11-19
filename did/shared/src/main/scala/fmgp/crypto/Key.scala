@@ -69,6 +69,9 @@ object Curve {
   }
   given decoder: JsonDecoder[Curve] = JsonDecoder.string.map(Curve.valueOf)
   given encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
+
+  val ecCurveSet = Set(Curve.`P-256`, Curve.`P-384`, Curve.`P-521`, Curve.secp256k1)
+  val okpCurveSet = Set(Curve.X25519, Curve.Ed25519)
 }
 
 /** https://tools.ietf.org/id/draft-ietf-jose-json-web-key-00.html */

@@ -64,18 +64,18 @@ object RawOperations extends CryptoOperations {
   ): UIO[EncryptedMessageGeneric] =
     recipientKidsKeys
       .foldRight(
-        (Seq.empty[(VerificationMethodReferenced, JWKECKey)], Seq.empty[(VerificationMethodReferenced, OctetKeyPair)])
+        (Seq.empty[(VerificationMethodReferenced, ECKey)], Seq.empty[(VerificationMethodReferenced, OKPKey)])
       ) { (e, acu) =>
-        e._2.toJWK match
-          case ecKey: JWKECKey      => (acu._1 :+ (e._1, ecKey), acu._2)
-          case okpKey: OctetKeyPair => (acu._1, acu._2 :+ (e._1, okpKey))
+        e._2 match
+          case ecKey: ECKey   => (acu._1 :+ (e._1, ecKey), acu._2)
+          case okpKey: OKPKey => (acu._1, acu._2 :+ (e._1, okpKey))
       }
       .pipe(e => (e._1.sortBy(_._1.value), e._2.sortBy(_._1.value))) // order recipients by name
       .pipe {
-        case (Seq(), Seq())    => ??? // FIXME
+        case (Seq(), Seq())    => ??? // FIXME ERROR
         case (ecKeys, Seq())   => anoncryptEC(ecKeys, data)
         case (Seq(), okpKeys)  => anoncryptOKP(okpKeys, data)
-        case (ecKeys, okpKeys) => ??? // FIXME
+        case (ecKeys, okpKeys) => ??? // FIXME ERROR
       }
 
   override def authEncrypt(
@@ -101,7 +101,7 @@ object RawOperations extends CryptoOperations {
   // ### Methods ###
 
   def anoncryptEC( // anoncryptECDH
-      ecRecipientsKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
 
@@ -109,12 +109,11 @@ object RawOperations extends CryptoOperations {
       .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
       .agreementPartyVInfo(Utils.calculateAPV(ecRecipientsKeys.map(_._1)))
       .build()
-
     ZIO.succeed(MyECEncrypter(ecRecipientsKeys, header).encrypt(clearText))
   }
 
   def anoncryptOKP( // anoncryptECDH_X25519
-      okpRecipientKeys: Seq[(VerificationMethodReferenced, OctetKeyPair)],
+      okpRecipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
     val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512)

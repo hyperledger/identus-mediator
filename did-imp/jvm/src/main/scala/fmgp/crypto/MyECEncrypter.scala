@@ -1,7 +1,6 @@
 package fmgp.crypto
 
 import com.nimbusds.jose.JWEHeader
-
 import com.nimbusds.jose.Payload
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.EncryptionMethod
@@ -18,6 +17,8 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
+import fmgp.crypto.UtilsJVM.toJWKCurve
+import fmgp.crypto.UtilsJVM.toJWK
 
 import zio.json._
 import scala.util.Failure
@@ -30,22 +31,16 @@ import scala.collection.JavaConverters._
 import java.util.Collections
 
 class MyECEncrypter(
-    ecRecipientsKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
+    ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
     header: JWEHeader,
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
     // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
 ) {
 
-  val curve = ecRecipientsKeys.collect(_._2.getCurve()).toSet match {
+  val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
     case theCurve if theCurve.size == 1 =>
-      assert(
-        Seq(
-          JWKCurve.P_256,
-          JWKCurve.P_384,
-          JWKCurve.P_521,
-        ).contains(theCurve.head)
-      ) // FIXME supported curves
-      theCurve.head
+      assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+      theCurve.head.toJWKCurve
     case _ => ??? // FIXME
   }
 
@@ -68,7 +63,7 @@ class MyECEncrypter(
 
     val use_the_defualt_JCA_Provider = null
     val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
-      (vmr, ECDH.deriveSharedSecret(key.toECPublicKey(), ephemeralPrivateKey, use_the_defualt_JCA_Provider))
+      (vmr, ECDH.deriveSharedSecret(key.toJWK.toECPublicKey(), ephemeralPrivateKey, use_the_defualt_JCA_Provider))
     }
 
     myECDHCryptoProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)

@@ -22,6 +22,8 @@ import com.nimbusds.jose.util.Base64URL
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
+import fmgp.crypto.UtilsJVM.toJWKCurve
+import fmgp.crypto.UtilsJVM.toJWK
 
 import zio.json._
 import scala.util.Failure
@@ -34,16 +36,16 @@ import scala.collection.JavaConverters._
 import java.util.Collections
 
 class MyX25519Encrypter(
-    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OctetKeyPair)],
+    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
     header: JWEHeader,
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
     // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
 ) {
 
-  val curve = okpRecipientsKeys.collect(_._2.getCurve()).toSet match {
+  val curve = okpRecipientsKeys.collect(_._2.getCurve).toSet match {
     case theCurve if theCurve.size == 1 =>
-      assert(Seq(JWKCurve.X25519).contains(theCurve.head)) // FIXME supported curves
-      theCurve.head
+      assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+      theCurve.head.toJWKCurve
     case _ => ??? // FIXME ERROR
   }
 
@@ -80,7 +82,7 @@ class MyX25519Encrypter(
       .build()
 
     val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
-      (vmr, ECDH.deriveSharedSecret(key, ephemeralPrivateKey))
+      (vmr, ECDH.deriveSharedSecret(key.toJWK, ephemeralPrivateKey))
     }
 
     myECDHCryptoProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
