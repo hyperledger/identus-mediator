@@ -72,3 +72,50 @@ class MyECDHCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve
   }
 
 }
+
+import com.nimbusds.jose.crypto.impl.ECDH1PU
+import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
+
+class MyECDH1PUCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoProvider(curve) {
+
+  override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
+
+  def encryptAUX(
+      header: JWEHeader,
+      sharedSecrets: Seq[(fmgp.did.VerificationMethodReferenced, javax.crypto.SecretKey)],
+      clearText: Array[Byte]
+  ): EncryptedMessageGeneric = {
+
+    val algMode: ECDH.AlgorithmMode = ECDH1PU.resolveAlgorithmMode(header.getAlgorithm())
+    assert(algMode == ECDH.AlgorithmMode.KW)
+
+    val cek: SecretKey = ContentCryptoProvider.generateCEK(
+      header.getEncryptionMethod,
+      getJCAContext.getSecureRandom
+    )
+
+    sharedSecrets match {
+      case head :: tail =>
+        val headParts: JWECryptoParts = encryptWithZ(header, head._2, clearText, cek)
+
+        val recipients = tail.map { rs =>
+          val sharedKey: SecretKey =
+            ECDH1PU.deriveSharedKey(header, rs._2, headParts.getAuthenticationTag, getConcatKDF)
+          val encryptedKey = Base64URL.encode(AESKW.wrapCEK(cek, sharedKey, getJCAContext.getKeyEncryptionProvider))
+          (rs._1, encryptedKey)
+        }
+
+        val auxRecipient = ((head._1, headParts.getEncryptedKey) +: recipients)
+          .map(e => Recipient(e._2.toString(), RecipientHeader(e._1)))
+
+        EncryptedMessageGeneric(
+          ciphertext = headParts.getCipherText().toString, // : Base64URL,
+          `protected` = Base64URL.encode(headParts.getHeader().toString).toString(), // : Base64URLHeaders,
+          recipients = auxRecipient.toSeq,
+          tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
+          iv = headParts.getInitializationVector().toString // : InitializationVector
+        )
+    }
+  }
+
+}

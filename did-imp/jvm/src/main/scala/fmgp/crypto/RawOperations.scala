@@ -11,13 +11,10 @@ import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.util.Pair
 import com.nimbusds.jose.util.Base64URL
-import com.nimbusds.jose.crypto.ECDH1PUEncrypterMulti
-import com.nimbusds.jose.crypto.ECDH1PUX25519EncrypterMulti
-import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
-import com.nimbusds.jose.crypto.ECDH1PUDecrypterMulti
-import com.nimbusds.jose.crypto.ECDH1PUX25519DecrypterMulti
-import com.nimbusds.jose.crypto.X25519DecrypterMulti
-import com.nimbusds.jose.crypto.ECDHDecrypterMulti
+import com.nimbusds.jose.crypto.ECDH1PUDecrypterMulti //TODO REMOVE
+import com.nimbusds.jose.crypto.ECDH1PUX25519DecrypterMulti //TODO REMOVE
+import com.nimbusds.jose.crypto.X25519DecrypterMulti //TODO REMOVE
+import com.nimbusds.jose.crypto.ECDHDecrypterMulti //TODO REMOVE
 
 import zio._
 import zio.json._
@@ -80,17 +77,17 @@ object RawOperations extends CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
   ): UIO[EncryptedMessageGeneric] =
-    (senderKidKey._2).toJWK match {
-      case (ecSenderKey: JWKECKey) =>
+    (senderKidKey._2) match {
+      case (ecSenderKey: ECKey) =>
         val recipientKeys = recipientKidsKeys.map {
-          case (vmr, key: ECPublicKey)  => (vmr, key.toJWK)
+          case (vmr, key: ECPublicKey)  => (vmr, key)
           case (vmr, key: OKPPublicKey) => ??? // FIXME
         }
         authcryptEC((senderKidKey._1, ecSenderKey), recipientKeys, data)
-      case okpSenderKey: OctetKeyPair =>
+      case okpSenderKey: OKPKey =>
         val recipientKeys = recipientKidsKeys.map {
           case (vmr, key: ECPublicKey)  => ??? // FIXME
-          case (vmr, key: OKPPublicKey) => (vmr, key.toJWK)
+          case (vmr, key: OKPPublicKey) => (vmr, key)
         }
         authcryptOKP((senderKidKey._1, okpSenderKey), recipientKeys, data)
     }
@@ -121,49 +118,22 @@ object RawOperations extends CryptoOperations {
   }
 
   def authcryptEC( // encrypterECDH1PU
-      senderKidKey: (VerificationMethodReferenced, JWKECKey),
-      recipientKeys: Seq[(VerificationMethodReferenced, JWKECKey)],
+      senderKidKey: (VerificationMethodReferenced, ECKey),
+      recipientKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val aux = recipientKeys.map(e =>
-      Pair.of(
-        UnprotectedHeader.Builder().keyID(e._1.value).build(),
-        e._2
-      )
-    )
-    val encrypter = ECDH1PUEncrypterMulti(senderKidKey._2, aux.asJava)
-
     val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
       .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
       .senderKeyID(senderKidKey._1.value)
       .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
       .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
       .build()
-
-    val parts = encrypter.encrypt(header, clearText)
-    val recipients = parts.getRecipients.asScala.toSeq
-      .map { e =>
-        Recipient(
-          e.getEncryptedKey().toString(),
-          RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID()))
-        )
-      }
-
-    ZIO.succeed(
-      EncryptedMessageGeneric(
-        ciphertext = parts.getCipherText().toString, // : Base64URL,
-        `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
-        recipients = recipients, // auxRecipient.toSeq,
-        tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
-        iv = parts.getInitializationVector().toString // : InitializationVector
-      )
-    )
-
+    ZIO.succeed(MyECDH1PUEncrypterMulti(senderKidKey._2, recipientKeys, header).encrypt(clearText))
   }
 
   def authcryptOKP( // encrypterECDH1PU_X25519
-      senderKidKey: (VerificationMethodReferenced, OctetKeyPair),
-      recipientKeys: Seq[(VerificationMethodReferenced, OctetKeyPair)],
+      senderKidKey: (VerificationMethodReferenced, OKPKey),
+      recipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
     val aux = recipientKeys.map(e =>
@@ -173,32 +143,33 @@ object RawOperations extends CryptoOperations {
       )
     )
 
-    val encrypter = ECDH1PUX25519EncrypterMulti(senderKidKey._2, aux.asJava)
-
     val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
       .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
       .senderKeyID(senderKidKey._1.value)
       .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
       .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
       .build()
-    val parts = encrypter.encrypt(header, clearText)
-    val recipients = parts.getRecipients.asScala.toSeq
-      .map { e =>
-        Recipient(
-          e.getEncryptedKey().toString(),
-          RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID()))
-        )
-      }
+    ZIO.succeed(MyX25519EncrypterOKP(senderKidKey._2, recipientKeys, header).encrypt(clearText))
 
-    ZIO.succeed(
-      EncryptedMessageGeneric(
-        ciphertext = parts.getCipherText().toString, // : Base64URL,
-        `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
-        recipients = recipients, // auxRecipient.toSeq,
-        tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
-        iv = parts.getInitializationVector().toString // : InitializationVector
-      )
-    )
+    // val encrypter = MyX25519EncrypterOKP(senderKidKey._2, recipientKeys, header)
+    // val parts = encrypter.encrypt(header, clearText)
+    // val recipients = parts.getRecipients.asScala.toSeq
+    //   .map { e =>
+    //     Recipient(
+    //       e.getEncryptedKey().toString(),
+    //       RecipientHeader(VerificationMethodReferenced(e.getHeader().getKeyID()))
+    //     )
+    //   }
+
+    // ZIO.succeed(
+    //   EncryptedMessageGeneric(
+    //     ciphertext = parts.getCipherText().toString, // : Base64URL,
+    //     `protected` = Base64URL.encode(parts.getHeader().toString).toString(), // : Base64URLHeaders,
+    //     recipients = recipients, // auxRecipient.toSeq,
+    //     tag = parts.getAuthenticationTag().toString, // AuthenticationTag,
+    //     iv = parts.getInitializationVector().toString // : InitializationVector
+    //   )
+    // )
   }
 
   // ###############

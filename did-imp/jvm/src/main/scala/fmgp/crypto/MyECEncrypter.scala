@@ -29,6 +29,9 @@ import scala.collection.convert._
 import scala.collection.JavaConverters._
 
 import java.util.Collections
+import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
+import com.nimbusds.jose.crypto.impl.ECDH1PU
+import javax.crypto.SecretKey
 
 class MyECEncrypter(
     ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
@@ -41,7 +44,7 @@ class MyECEncrypter(
     case theCurve if theCurve.size == 1 =>
       assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
       theCurve.head.toJWKCurve
-    case _ => ??? // FIXME
+    case _ => ??? // FIXME ERROR
   }
 
   val myECDHCryptoProvider = new MyECDHCryptoProvider(curve)
@@ -61,12 +64,54 @@ class MyECEncrypter(
       .ephemeralPublicKey(new JWKECKey.Builder(curve, ephemeralPublicKey).build())
       .build()
 
-    val use_the_defualt_JCA_Provider = null
     val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
+      val use_the_defualt_JCA_Provider = null
       (vmr, ECDH.deriveSharedSecret(key.toJWK.toECPublicKey(), ephemeralPrivateKey, use_the_defualt_JCA_Provider))
     }
 
     myECDHCryptoProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
   }
 
+}
+
+class MyECDH1PUEncrypterMulti(
+    sender: ECKey,
+    ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+    header: JWEHeader,
+) {
+
+  val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
+    case theCurve if theCurve.size == 1 =>
+      assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+      theCurve.head.toJWKCurve
+    case _ => ??? // FIXME ERROR
+  }
+
+  val myProvider = new MyECDH1PUCryptoProvider(curve)
+
+  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
+    // Generate ephemeral EC key pair on the same curve as the consumer's public key
+    val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
+    val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
+    val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
+
+    // Add the ephemeral public EC key to the header
+    val updatedHeader: JWEHeader =
+      new JWEHeader.Builder(header).ephemeralPublicKey(new JWKECKey.Builder(curve, ephemeralPublicKey).build()).build()
+
+    val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
+      val use_the_defualt_JCA_Provider = null
+      (
+        vmr,
+        ECDH1PU.deriveSenderZ(
+          sender.toJWK.toECPrivateKey(),
+          key.toJWK.toECPublicKey(),
+          ephemeralPrivateKey,
+          myProvider.getJCAContext().getKeyEncryptionProvider()
+        )
+      )
+    }
+
+    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  }
 }

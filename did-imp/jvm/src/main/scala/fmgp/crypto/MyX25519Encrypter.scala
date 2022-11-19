@@ -34,6 +34,7 @@ import scala.collection.convert._
 import scala.collection.JavaConverters._
 
 import java.util.Collections
+import com.nimbusds.jose.crypto.impl.ECDH1PU
 
 class MyX25519Encrypter(
     okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
@@ -49,7 +50,7 @@ class MyX25519Encrypter(
     case _ => ??? // FIXME ERROR
   }
 
-  val myECDHCryptoProvider = MyECDHCryptoProvider(curve)
+  val myProvider = MyECDHCryptoProvider(curve)
 
   /** TODO return errors:
     *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
@@ -72,11 +73,6 @@ class MyX25519Encrypter(
         .build();
     val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
 
-    // val header: JWEHeader = new JWEHeader.Builder(alg, enc)
-    //   .ephemeralPublicKey(ephemeralPublicKey) // Add the ephemeral public EC key to the header
-    //   .`type`(JOSEObjectType("application/didcomm-encrypted+json"))
-    //   .agreementPartyVInfo(Utils.calculateAPV(okpRecipientsKeys.map(_._1)))
-    //   .build()
     val updatedHeader: JWEHeader = new JWEHeader.Builder(header)
       .ephemeralPublicKey(ephemeralPublicKey)
       .build()
@@ -85,6 +81,60 @@ class MyX25519Encrypter(
       (vmr, ECDH.deriveSharedSecret(key.toJWK, ephemeralPrivateKey))
     }
 
-    myECDHCryptoProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  }
+}
+
+class MyX25519EncrypterOKP(
+    sender: OKPKey,
+    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+    header: JWEHeader,
+    // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
+    // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
+) {
+
+  val curve = okpRecipientsKeys.collect(_._2.getCurve).toSet match {
+    case theCurve if theCurve.size == 1 =>
+      assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+      theCurve.head.toJWKCurve
+    case _ => ??? // FIXME ERROR
+  }
+
+  val myProvider = MyECDH1PUCryptoProvider(curve)
+
+  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
+    // Generate ephemeral X25519 key pair
+    val ephemeralPrivateKeyBytes: Array[Byte] =
+      com.google.crypto.tink.subtle.X25519.generatePrivateKey()
+    var ephemeralPublicKeyBytes: Array[Byte] =
+      Try(com.google.crypto.tink.subtle.X25519.publicFromPrivate(ephemeralPrivateKeyBytes)).recover {
+        case ex: java.security.InvalidKeyException =>
+          // Should never happen since we just generated this private key
+          throw ex // new JOSEException(eex.getMessage(), ex);
+      }.get
+
+    val ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
+      new OctetKeyPair.Builder(curve, Base64URL.encode(ephemeralPublicKeyBytes))
+        .d(Base64URL.encode(ephemeralPrivateKeyBytes))
+        .build();
+    val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
+
+    val updatedHeader: JWEHeader = new JWEHeader.Builder(header)
+      .ephemeralPublicKey(ephemeralPublicKey)
+      .build()
+
+    val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
+      val use_the_defualt_JCA_Provider = null
+      (
+        vmr,
+        ECDH1PU.deriveSenderZ(
+          sender.toJWK,
+          key.toJWK,
+          ephemeralPrivateKey,
+        )
+      )
+    }
+
+    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
   }
 }
