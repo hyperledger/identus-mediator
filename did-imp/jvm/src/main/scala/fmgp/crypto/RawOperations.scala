@@ -13,9 +13,6 @@ import com.nimbusds.jose.util.Pair
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.crypto.ECDH1PUEncrypterMulti
 import com.nimbusds.jose.crypto.ECDH1PUX25519EncrypterMulti
-import com.nimbusds.jose.crypto.ECDHDecrypter
-import com.nimbusds.jose.crypto.X25519Decrypter
-import com.nimbusds.jose.crypto.ECDH1PUDecrypter
 import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
 import com.nimbusds.jose.crypto.ECDH1PUDecrypterMulti
 import com.nimbusds.jose.crypto.ECDH1PUX25519DecrypterMulti
@@ -270,6 +267,7 @@ object RawOperations extends CryptoOperations {
 
   }
 
+  /*
   override def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
@@ -328,6 +326,7 @@ object RawOperations extends CryptoOperations {
       case _ => ZIO.fail(WrongKeysTypeCombination)
     }
   }
+   */
 
   override def authDecrypt(
       senderKey: PublicKey,

@@ -73,6 +73,7 @@ trait CryptoOperations {
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message]
 
+  /*TODO REMOVE
   def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
@@ -85,5 +86,6 @@ trait CryptoOperations {
       encryptedKey: String,
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message]
+   */
 
 }

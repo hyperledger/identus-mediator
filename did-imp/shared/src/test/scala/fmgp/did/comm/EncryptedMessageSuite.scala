@@ -59,14 +59,15 @@ class EncryptedMessageSuite extends ZSuite {
     (DIDCommExamples.recipientSecrets.fromJson[KeyStore], msg.fromJson[EncryptedMessageGeneric]) match {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
-        ZIO.foreach(message.recipients) { recipient =>
-          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
-          assert(key.isDefined)
-          for {
-            data <- anonDecryptOne(key.get, recipient.encrypted_key, message) // .orDie
-            // obj <- ZIO.fromEither(data.fromJson[PlaintextMessageClass]) // .orDieWith(str => RuntimeException(str))
-          } yield assertEquals(data, expeted)
-        }
+
+        val recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)] =
+          message.recipients.map { recipient =>
+            val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+            assert(key.isDefined)
+            (VerificationMethodReferenced(recipient.header.kid.value), key.get)
+          }
+
+        anonDecrypt(recipientKidsKeys, message).map(msg => assertEquals(msg, expeted))
       case data => ZIO.dieMessage(data.toString)
     }
 
@@ -74,11 +75,11 @@ class EncryptedMessageSuite extends ZSuite {
     test_anonDecrypt(EncryptedMessageExamples.encryptedMessage_ECDHES_X25519_XC20P)
   }
 
-  testZ("decrypt encryptedMessage_ECDHES_P384_A256CBCHS512") {
+  testZ("decrypt encryptedMessage_ECDHES_P384_A256CBCHS512".tag(fmgp.JsUnsupported)) {
     test_anonDecrypt(EncryptedMessageExamples.encryptedMessage_ECDHES_P384_A256CBCHS512)
   }
 
-  testZ("decrypt encryptedMessage_ECDHES_P521_A256GCM") {
+  testZ("decrypt encryptedMessage_ECDHES_P521_A256GCM".tag(fmgp.JsUnsupported)) {
     test_anonDecrypt(EncryptedMessageExamples.encryptedMessage_ECDHES_P521_A256GCM)
   }
 
@@ -114,32 +115,34 @@ class EncryptedMessageSuite extends ZSuite {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
-        ZIO.foreach(message.recipients) { recipient =>
-          val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
-          assert(key.isDefined)
-          for {
-            // FIXME REMOVE recipient.encrypted_key
-            // FIXME authDecryptOne
-            _ <- ZIO.unit
-            senderKey = JWKExamples.senderKeyP256_2.fromJson[ECPublicKey].toOption.get
-            data <- authDecryptOne(key.get, senderKey, recipient.encrypted_key, message) // .orDie
+        val recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)] =
+          message.recipients.map { recipient =>
+            val key = ks.keys.find(e => e.kid.contains(recipient.header.kid.value))
+            assert(key.isDefined)
+            (VerificationMethodReferenced(recipient.header.kid.value), key.get)
+          }
 
-            // {"payload":"eyJpZCI6IjEyMzQ1Njc4OTAiLCJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXBsYWluK2pzb24iLCJ0eXBlIjoiaHR0cDovL2V4YW1wbGUuY29tL3Byb3RvY29scy9sZXRzX2RvX2x1bmNoLzEuMC9wcm9wb3NhbCIsImZyb20iOiJkaWQ6ZXhhbXBsZTphbGljZSIsInRvIjpbImRpZDpleGFtcGxlOmJvYiJdLCJjcmVhdGVkX3RpbWUiOjE1MTYyNjkwMjIsImV4cGlyZXNfdGltZSI6MTUxNjM4NTkzMSwiYm9keSI6eyJtZXNzYWdlc3BlY2lmaWNhdHRyaWJ1dGUiOiJhbmQgaXRzIHZhbHVlIn19",
-            //  "signatures":[
-            //    {"protected":"eyJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXNpZ25lZCtqc29uIiwiYWxnIjoiRWREU0EifQ",
-            //     "signature":"FW33NnvOHV0Ted9-F7GZbkia-vYAfBKtH4oBxbrttWAhBZ6UFJMxcGjL3lwOl4YohI3kyyd08LHPWNMgP2EVCQ",
-            //     "header":{"kid":"did:example:alice#key-1"}
-            //    }
-            // ]}
-            // obj <- ZIO.fromEither(data.fromJson[SignedMessage]) // .orDieWith(str => RuntimeException(str))
-            obj = {
-              assert(data.isInstanceOf[SignedMessage])
-              data.asInstanceOf[SignedMessage]
-            }
-            signbyKey = JWKExamples.senderKeyEd25519.fromJson[OKPPublicKey].toOption.get
-            _ <- verify(signbyKey, obj)
-          } yield assertEquals(obj, SignedMessageExample.exampleSignatureEdDSA_obj)
-        }
+        val senderKey = JWKExamples.senderKeyP256_2.fromJson[ECPublicKey].toOption.get
+
+        authDecrypt(senderKey, recipientKidsKeys, message)
+          .flatMap {
+            case msg: SignedMessage =>
+              // {"payload":"eyJpZCI6IjEyMzQ1Njc4OTAiLCJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXBsYWluK2pzb24iLCJ0eXBlIjoiaHR0cDovL2V4YW1wbGUuY29tL3Byb3RvY29scy9sZXRzX2RvX2x1bmNoLzEuMC9wcm9wb3NhbCIsImZyb20iOiJkaWQ6ZXhhbXBsZTphbGljZSIsInRvIjpbImRpZDpleGFtcGxlOmJvYiJdLCJjcmVhdGVkX3RpbWUiOjE1MTYyNjkwMjIsImV4cGlyZXNfdGltZSI6MTUxNjM4NTkzMSwiYm9keSI6eyJtZXNzYWdlc3BlY2lmaWNhdHRyaWJ1dGUiOiJhbmQgaXRzIHZhbHVlIn19",
+              //  "signatures":[
+              //    {"protected":"eyJ0eXAiOiJhcHBsaWNhdGlvbi9kaWRjb21tLXNpZ25lZCtqc29uIiwiYWxnIjoiRWREU0EifQ",
+              //     "signature":"FW33NnvOHV0Ted9-F7GZbkia-vYAfBKtH4oBxbrttWAhBZ6UFJMxcGjL3lwOl4YohI3kyyd08LHPWNMgP2EVCQ",
+              //     "header":{"kid":"did:example:alice#key-1"}
+              //    }
+              // ]}
+
+              val signbyKey = JWKExamples.senderKeyEd25519.fromJson[OKPPublicKey].toOption.get
+              verify(signbyKey, msg).map { b =>
+                assert(b)
+                assertEquals(msg, SignedMessageExample.exampleSignatureEdDSA_obj)
+              }
+            case msg => ZIO.fail(s"msg is not of the type SignedMessage: $msg")
+          }
+
       case data => ZIO.dieMessage(data.toString)
     }
   }

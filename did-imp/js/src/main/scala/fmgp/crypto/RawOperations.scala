@@ -87,7 +87,7 @@ object RawOperations extends CryptoOperations {
   ): IO[DidFail, Message] = ZIO.die(NotImplementedError()) // FIXME
 
   /** See https://github.com/panva/jose/blob/HEAD/docs/functions/jwe_general_decrypt.generalDecrypt.md#readme */
-  override def anonDecryptOne(
+  def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
       msg: EncryptedMessageGeneric
