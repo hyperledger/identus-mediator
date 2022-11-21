@@ -29,11 +29,14 @@ import scala.collection.convert._
 import scala.collection.JavaConverters._
 
 import java.util.Collections
+import javax.crypto.SecretKey
 import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
 import com.nimbusds.jose.crypto.impl.ECDH1PU
-import javax.crypto.SecretKey
+import com.nimbusds.jose.crypto.utils.ECChecks
+import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
+import com.nimbusds.jose.JOSEException
 
-class MyECEncrypter(
+class ECDH_AnonEC(
     ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
     header: JWEHeader,
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
@@ -47,7 +50,7 @@ class MyECEncrypter(
     case _ => ??? // FIXME ERROR
   }
 
-  val myECDHCryptoProvider = new MyECDHCryptoProvider(curve)
+  val myProvider = new ECDH_AnonCryptoProvider(curve)
 
   /** TODO return errors:
     *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
@@ -69,15 +72,50 @@ class MyECEncrypter(
       (vmr, ECDH.deriveSharedSecret(key.toJWK.toECPublicKey(), ephemeralPrivateKey, use_the_defualt_JCA_Provider))
     }
 
-    myECDHCryptoProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  }
+
+  def decrypt(
+      // header: JWEHeader,
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL
+  ) = {
+
+    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
+    critPolicy.ensureHeaderPasses(header);
+
+    // Get ephemeral EC key
+    val ephemeralKey = Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[JWKECKey])
+      .getOrElse(throw new JOSEException("Missing ephemeral public EC key \"epk\" JWE header parameter"))
+
+    val sharedSecrets = ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
+      val recipientKey = recipient._2.toJWK
+      if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey())) {
+        throw new JOSEException("Invalid ephemeral public EC key: Point(s) not on the expected curve")
+      }
+
+      val use_the_defualt_JCA_Provider = null
+      val Z = ECDH.deriveSharedSecret(
+        ephemeralKey.toECPublicKey(),
+        recipientKey.toECPrivateKey(),
+        use_the_defualt_JCA_Provider
+      )
+      (recipient._1, Z)
+    }
+
+    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+
   }
 
 }
 
-class MyECDH1PUEncrypterMulti(
+class ECDH_AuthEC(
     sender: ECKey,
     ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-    header: JWEHeader,
+    header: JWEHeader, // FIXME REMOVE
 ) {
 
   val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
@@ -87,7 +125,7 @@ class MyECDH1PUEncrypterMulti(
     case _ => ??? // FIXME ERROR
   }
 
-  val myProvider = new MyECDH1PUCryptoProvider(curve)
+  val myProvider = ECDH_AuthCryptoProvider(curve)
 
   def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
     // Generate ephemeral EC key pair on the same curve as the consumer's public key
@@ -113,5 +151,40 @@ class MyECDH1PUEncrypterMulti(
     }
 
     myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  }
+
+  def decrypt(
+      // header: JWEHeader,
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL
+  ) = {
+
+    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
+    critPolicy.ensureHeaderPasses(header)
+
+    // Get ephemeral EC key
+    val ephemeralKey = Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[JWKECKey])
+      .getOrElse(throw new JOSEException("Missing ephemeral public EC key \"epk\" JWE header parameter"))
+
+    val sharedSecrets = ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
+      val recipientKey = recipient._2.toJWK
+      if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey())) {
+        throw new JOSEException("Invalid ephemeral public EC key: Point(s) not on the expected curve")
+      }
+
+      val use_the_defualt_JCA_Provider = null
+      val Z: SecretKey = ECDH1PU.deriveRecipientZ(
+        recipientKey.toECPrivateKey,
+        sender.toJWK.toECPublicKey,
+        ephemeralKey.toECPublicKey,
+        use_the_defualt_JCA_Provider
+      )
+      (recipient._1, Z)
+    }
+
+    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag);
   }
 }

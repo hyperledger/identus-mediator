@@ -255,13 +255,11 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
-    // TODO libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.23", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
-    libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
+    libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.25.6", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
 
-    // Needed for nimbus-jose-jwt with Ed25519Signer
     // BUT have vulnerabilities in the dependencies: CVE-2022-25647
     libraryDependencies += "com.google.crypto.tink" % "tink" % "1.7.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
-    // FIX vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
+    // To fix vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
     libraryDependencies += "com.google.code.gson" % "gson" % "2.10",
     libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.9",
   )

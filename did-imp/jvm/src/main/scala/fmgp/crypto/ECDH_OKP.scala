@@ -35,8 +35,11 @@ import scala.collection.JavaConverters._
 
 import java.util.Collections
 import com.nimbusds.jose.crypto.impl.ECDH1PU
+import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
+import com.nimbusds.jose.JOSEException //TODO REMOVE
+import javax.crypto.SecretKey
 
-class MyX25519Encrypter(
+class ECDH_AnonOKP(
     okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
     header: JWEHeader,
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
@@ -50,7 +53,7 @@ class MyX25519Encrypter(
     case _ => ??? // FIXME ERROR
   }
 
-  val myProvider = MyECDHCryptoProvider(curve)
+  val myProvider = ECDH_AnonCryptoProvider(curve)
 
   /** TODO return errors:
     *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
@@ -83,9 +86,51 @@ class MyX25519Encrypter(
 
     myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
   }
+
+  def decrypt(
+      // header: JWEHeader,
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL
+  ): Array[Byte] = {
+
+    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
+    critPolicy.ensureHeaderPasses(header)
+
+    val ephemeralKey = Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[OctetKeyPair])
+      .getOrElse(throw new JOSEException("Missing ephemeral public key epk JWE header parameter"))
+
+    val sharedSecrets = okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
+      val recipientKey = recipient._2.toJWK
+      // TODO check point on curve
+      val key = recipient._2.toJWK
+
+      if (!key.getCurve().equals(ephemeralKey.getCurve())) {
+        throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
+      }
+
+      val use_the_defualt_JCA_Provider = null
+      val Z = ECDH.deriveSharedSecret(
+        ephemeralKey, // Public Key
+        recipientKey, // Private Key
+      )
+      (recipient._1, Z)
+    }
+
+    myProvider.decryptAUX(
+      header,
+      sharedSecrets,
+      recipients,
+      iv,
+      cipherText,
+      authTag,
+    )
+  }
 }
 
-class MyX25519EncrypterOKP(
+class ECDH_AuthOKP( // FIXME rename
     sender: OKPKey,
     okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
     header: JWEHeader,
@@ -100,7 +145,7 @@ class MyX25519EncrypterOKP(
     case _ => ??? // FIXME ERROR
   }
 
-  val myProvider = MyECDH1PUCryptoProvider(curve)
+  val myProvider = ECDH_AuthCryptoProvider(curve)
 
   def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
     // Generate ephemeral X25519 key pair
@@ -136,5 +181,42 @@ class MyX25519EncrypterOKP(
     }
 
     myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  }
+
+  def decrypt(
+      //  header: JWEHeader,
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL
+  ) = {
+
+    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
+
+    critPolicy.ensureHeaderPasses(header);
+
+    // Get ephemeral key from header
+    val ephemeralPublicKey: OctetKeyPair = Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[OctetKeyPair])
+      .getOrElse(throw new JOSEException("Missing ephemeral public key epk JWE header parameter"))
+
+    val sharedSecrets = okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
+      val recipientKey = recipient._2.toJWK
+      // TODO check point on curve
+
+      // if (!key.getCurve().equals(ephemeralKey.getCurve())) {
+      //   throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
+      // }
+
+      val use_the_defualt_JCA_Provider = null
+      val Z: SecretKey = ECDH1PU.deriveRecipientZ(
+        recipientKey,
+        sender.toJWK.toPublicJWK(),
+        ephemeralPublicKey
+      )
+      (recipient._1, Z)
+    }
+
+    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag);
   }
 }

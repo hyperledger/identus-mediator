@@ -1,38 +1,19 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
-import com.nimbusds.jose.crypto.ECDHEncrypterMulti
-import com.nimbusds.jose.crypto.ECDHDecrypter
-import com.nimbusds.jose.crypto.X25519Decrypter
-import com.nimbusds.jose.crypto.X25519EncrypterMulti
-
-import com.nimbusds.jose.crypto.ECDH1PUDecrypter
-import com.nimbusds.jose.crypto.ECDH1PUEncrypterMulti
-import com.nimbusds.jose.crypto.ECDH1PUX25519Decrypter
-import com.nimbusds.jose.crypto.ECDH1PUX25519EncrypterMulti
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
-import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.crypto.Ed25519Verifier
+import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
-import com.nimbusds.jose.crypto.ECDHEncrypter
-import com.nimbusds.jose.crypto.X25519Encrypter
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.crypto.ECDH1PUEncrypter
-import com.nimbusds.jose.crypto.ECDH1PUX25519Encrypter
-import com.nimbusds.jose.util.Base64URL
-import com.nimbusds.jose.JOSEObjectType
-import com.nimbusds.jose.JWEEncrypter
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
@@ -45,8 +26,6 @@ import scala.util.Success
 import scala.util.Try
 import scala.util.chaining._
 import scala.collection.JavaConverters._
-import com.nimbusds.jose.UnprotectedHeader
-import com.nimbusds.jose.util.Pair
 
 object UtilsJVM {
 
@@ -84,7 +63,7 @@ object UtilsJVM {
       )
     }
 
-    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
+    def sign(plaintext: PlaintextMessage, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
       require(ecKey.isPrivate(), "EC JWK must include the private key (d)")
 
       val signer: JWSSigner = new ECDSASigner(ecKey) // Create the EC signer
@@ -117,7 +96,7 @@ object UtilsJVM {
       )
     }
 
-    def sign(plaintext: PlaintextMessageClass, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
+    def sign(plaintext: PlaintextMessage, alg: JWAAlgorithm): SignedMessage = { // TODO use PlaintextMessage
       require(okpKey.isPrivate(), "EC JWK must include the private key (d)")
 
       val signer: JWSSigner = new Ed25519Signer(okpKey) // Create the OKP signer

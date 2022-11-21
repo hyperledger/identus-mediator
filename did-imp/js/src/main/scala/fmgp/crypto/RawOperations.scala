@@ -27,7 +27,7 @@ import fmgp.crypto.error._
 
 object RawOperations extends CryptoOperations {
 
-  override def sign(key: PrivateKey, plaintext: PlaintextMessageClass): IO[CryptoFailed, SignedMessage] =
+  override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
     key.sign(plaintext)
 
   override def verify(key: OKP_EC_Key, jwm: SignedMessage): IO[CryptoFailed, Boolean] = key.verify(jwm)

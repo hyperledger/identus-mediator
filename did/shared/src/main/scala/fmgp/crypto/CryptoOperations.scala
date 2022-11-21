@@ -6,18 +6,12 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.crypto.error._
 
+/** methods: sign verify anonEncrypt authEncrypt anonDecrypt authDecrypt */
 trait CryptoOperations {
-
-//sign
-//verify
-//anonEncrypt
-//authEncrypt
-//anonDecrypt
-//authDecrypt
 
   def sign(
       key: PrivateKey,
-      plaintext: PlaintextMessageClass
+      plaintext: PlaintextMessage
   ): IO[CryptoFailed, SignedMessage]
 
   def verify(

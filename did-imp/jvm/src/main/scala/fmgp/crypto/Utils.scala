@@ -1,8 +1,13 @@
 package fmgp.crypto
 
 import com.nimbusds.jose.util.Base64URL
+import com.nimbusds.jose.UnprotectedHeader //REMOVE
 import java.security.MessageDigest
 import fmgp.did.VerificationMethodReferenced
+
+case class JWERecipient(vmr: VerificationMethodReferenced, encryptedKey: Base64URL) {
+  // def header = UnprotectedHeader.Builder().keyID(vmr.value).build()
+}
 
 object Utils {
   def calculateAPV(refs: Seq[VerificationMethodReferenced]): Base64URL = {

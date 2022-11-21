@@ -10,13 +10,14 @@ import com.nimbusds.jose.crypto.impl.ECDH
 import com.nimbusds.jose.crypto.impl.ECDHCryptoProvider
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider
 import com.nimbusds.jose.crypto.impl.AESKW
+import com.nimbusds.jose.crypto.impl.ECDH1PU
+import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator
 import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
 import com.nimbusds.jose.util.Base64URL
-import com.nimbusds.jose.UnprotectedHeader
 import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
@@ -27,7 +28,8 @@ import java.util.Collections
 import scala.collection.JavaConverters._
 import fmgp.did.VerificationMethodReferenced
 
-class MyECDHCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve) {
+/** Elliptic-curve Diffie–Hellman */
+case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve) {
 
   override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
 
@@ -58,7 +60,7 @@ class MyECDHCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve
         }
 
         val auxRecipient = ((head._1, headParts.getEncryptedKey) +: recipients)
-          .map(e => Recipient(e._2.toString(), RecipientHeader(e._1)))
+          .map(e => Recipient(e._2.toString, RecipientHeader(e._1)))
 
         EncryptedMessageGeneric(
           ciphertext = headParts.getCipherText().toString, // : Base64URL,
@@ -71,12 +73,31 @@ class MyECDHCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve
 
   }
 
+  def decryptAUX(
+      header: JWEHeader,
+      sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL,
+  ): Array[Byte] = {
+
+    val result = sharedSecrets.map { case (vmr, secretKey) =>
+      recipients
+        .find(recipient => recipient.vmr == vmr)
+        .map(_.encryptedKey)
+        .map(encryptedKey => decryptWithZ(header, secretKey, encryptedKey, iv, cipherText, authTag))
+    }.flatten
+
+    assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")
+
+    result.head
+  }
+
 }
 
-import com.nimbusds.jose.crypto.impl.ECDH1PU
-import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
-
-class MyECDH1PUCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoProvider(curve) {
+/** Elliptic-curve Diffie–Hellman */
+case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoProvider(curve) {
 
   override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
 
@@ -116,6 +137,27 @@ class MyECDH1PUCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoProvider
           iv = headParts.getInitializationVector().toString // : InitializationVector
         )
     }
+  }
+
+  def decryptAUX(
+      header: JWEHeader,
+      sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
+      recipients: Seq[JWERecipient],
+      iv: Base64URL,
+      cipherText: Base64URL,
+      authTag: Base64URL
+  ) = {
+
+    val result = sharedSecrets.map { case (vmr, secretKey) =>
+      recipients
+        .find(recipient => recipient.vmr == vmr)
+        .map(_.encryptedKey)
+        .map(encryptedKey => decryptWithZ(header, secretKey, encryptedKey, iv, cipherText, authTag))
+    }.flatten
+    // META DATA
+    assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")
+
+    result.head
   }
 
 }
