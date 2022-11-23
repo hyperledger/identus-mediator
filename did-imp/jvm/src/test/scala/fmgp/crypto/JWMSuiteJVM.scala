@@ -2,7 +2,6 @@ package fmgp.crypto
 
 import com.nimbusds.jose.jwk.ECKey
 import com.nimbusds.jose.jwk.Curve
-import com.nimbusds.jose.util.Base64URL
 
 import munit._
 import zio.json._
@@ -10,6 +9,7 @@ import zio.json._
 import fmgp.did.DIDDocument
 import fmgp.did.comm._
 import fmgp.crypto.UtilsJVM._
+import fmgp.util.Base64
 
 class JWMSuiteJVM extends FunSuite {
 
@@ -17,11 +17,11 @@ class JWMSuiteJVM extends FunSuite {
     val ecJWK: ECKey = ECKey // TODO use senderSecp256k1 parsed with
       .Builder(
         Curve.SECP256K1,
-        Base64URL("aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk"),
-        Base64URL("JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
+        Base64.fromBase64url("aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk"),
+        Base64.fromBase64url("JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
       )
       .keyID("did:example:alice#key-3")
-      .d(Base64URL("N3Hm1LXA210YVGGsXw_GklMwcLu_bMgnzDese6YQIyA"))
+      .d(Base64.fromBase64url("N3Hm1LXA210YVGGsXw_GklMwcLu_bMgnzDese6YQIyA"))
       .build()
 
     val jwsObject = ecJWK.sign(DIDCommExamples.plaintextMessageObj, JWAAlgorithm.ES256K)

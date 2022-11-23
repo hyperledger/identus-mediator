@@ -6,3 +6,11 @@ The project is license under [**MIT License**](https://github.com/fluency03/scal
 
 
 **Note: It was copy to make it crossProject and minor change!**
+
+## TODO - Implemente
+
+- Rename module to [Multiformats](https://multiformats.io/) and add:
+    - [unsigned-varint](https://github.com/multiformats/unsigned-varint)
+    - [multicodec](https://github.com/multiformats/multicodec/blob/master/table.csv)
+    - [multihash](https://github.com/multiformats/multihash)
+    - [multiaddr](https://github.com/multiformats/multiaddr)

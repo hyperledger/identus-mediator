@@ -2,13 +2,13 @@ package fmgp.did.resolver.peer
 
 import zio._
 import fmgp.did._
+import fmgp.util._
 import fmgp.multibase._
 import fmgp.crypto.error.DidMethodNotSupported
 import fmgp.crypto.OKPPublicKey
 import fmgp.crypto.KTY
 import fmgp.crypto.Curve
 import zio.json._
-import java.util.Base64
 import javax.lang.model.element.Element
 
 /** DID Peer
@@ -49,9 +49,9 @@ case class DIDPeer2(elements: Seq[DIDPeer2.Element]) extends DIDPeer {
             `type` = "JsonWebKey2020",
             publicKeyJwk = OKPPublicKey(
               kty = KTY.OKP,
-              crv = Curve.Ed25519,
+              crv = Curve.Ed25519, // TODO PLZ FIX BLACKMAGIC of did:peer! (zero documentation & unexpected logic)
               x = DIDPeer.decodeKey(e.mb.value),
-              kid = None // Option[String]
+              kid = None
             )
           )
         }
@@ -64,9 +64,9 @@ case class DIDPeer2(elements: Seq[DIDPeer2.Element]) extends DIDPeer {
           `type` = "JsonWebKey2020",
           publicKeyJwk = OKPPublicKey(
             kty = KTY.OKP,
-            crv = Curve.X25519,
+            crv = Curve.X25519, // TODO PLZ FIX BLACKMAGIC of did:peer! (zero documentation & unexpected logic)
             x = DIDPeer.decodeKey(e.mb.value),
-            kid = None // Option[String]
+            kid = None
           )
         )
       }.toSet
@@ -74,7 +74,7 @@ case class DIDPeer2(elements: Seq[DIDPeer2.Element]) extends DIDPeer {
     service = Some(
       elements
         .collect { case e: DIDPeer2.ElementService =>
-          val data = String(Base64.getDecoder().decode(e.base64))
+          val data = String(Base64.basicDecoder.decode(e.base64))
           data
             .fromJson[DIDPeerServiceEncoded]
             .toOption // TODO deal with errors
@@ -137,11 +137,10 @@ object DIDPeer {
   }
 
   def decodeKey(data: String): String = {
-    import fmgp.multibase.Base
-    import fmgp.multibase.Base64Impl
-    import fmgp.multibase.Multibase
-    val tmp = Multibase(data).decode.drop(2) // multibase type
-    Multibase.encode(Base.Base64URL, tmp).value.drop(1)
+    val tmp = Multibase(data).decode
+      .drop(1) // FIXME drop 1 for the multicodec type (0x12) and another becuase the type the multihash size
+      .drop(1) // FIXME drop 1 another becuase the type is multihash and this byte (0x20) is for the size
+    Base64.encode(tmp).urlBase64
   }
 
 }

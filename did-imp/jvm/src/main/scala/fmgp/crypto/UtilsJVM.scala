@@ -12,12 +12,12 @@ import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm._
+import fmgp.util._
 import zio.json._
 
 import scala.concurrent.Future
@@ -27,9 +27,12 @@ import scala.util.Try
 import scala.util.chaining._
 import scala.collection.JavaConverters._
 
+given Conversion[Base64, com.nimbusds.jose.util.Base64URL] with
+  def apply(x: Base64) = new com.nimbusds.jose.util.Base64URL(x.urlBase64)
+
 object UtilsJVM {
 
-  type Base64URLString = String
+  type Base64URLString = String // FIXME
 
   extension (alg: JWAAlgorithm) {
     def toJWSAlgorithm = alg match {
@@ -59,7 +62,7 @@ object UtilsJVM {
       verifier.verify(
         haeder,
         (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
-        Base64URL(jwm.signatures.head.signature) // FIXME .head
+        Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
 
@@ -92,7 +95,7 @@ object UtilsJVM {
       verifier.verify(
         haeder,
         (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
-        Base64URL(jwm.signatures.head.signature) // FIXME .head
+        Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
 
@@ -131,15 +134,19 @@ object UtilsJVM {
     def toJWK: JWKECKey = {
 
       val builder = ec.getCurve match {
-        case c: Curve.`P-256`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-        case c: Curve.`P-384`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-        case c: Curve.`P-521`.type   => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
-        case c: Curve.secp256k1.type => JWKECKey.Builder(c.toJWKCurve, Base64URL(ec.x), Base64URL(ec.y))
+        case c: Curve.`P-256`.type =>
+          JWKECKey.Builder(c.toJWKCurve, Base64.fromBase64url(ec.x), Base64.fromBase64url(ec.y))
+        case c: Curve.`P-384`.type =>
+          JWKECKey.Builder(c.toJWKCurve, Base64.fromBase64url(ec.x), Base64.fromBase64url(ec.y))
+        case c: Curve.`P-521`.type =>
+          JWKECKey.Builder(c.toJWKCurve, Base64.fromBase64url(ec.x), Base64.fromBase64url(ec.y))
+        case c: Curve.secp256k1.type =>
+          JWKECKey.Builder(c.toJWKCurve, Base64.fromBase64url(ec.x), Base64.fromBase64url(ec.y))
       }
       ec.kid.foreach(builder.keyID)
       ec match { // for private key
         case _: PublicKey  => // ok (just the public key)
-        case k: PrivateKey => builder.d(Base64URL(k.d))
+        case k: PrivateKey => builder.d(Base64.fromBase64url(k.d))
       }
       builder.build()
     }
@@ -147,13 +154,13 @@ object UtilsJVM {
   extension (okp: OKPKey) {
     def toJWK: OctetKeyPair = {
       val builder = okp.getCurve match {
-        case c: Curve.Ed25519.type => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
-        case c: Curve.X25519.type  => OctetKeyPair.Builder(c.toJWKCurve, Base64URL(okp.x))
+        case c: Curve.Ed25519.type => OctetKeyPair.Builder(c.toJWKCurve, Base64.fromBase64url(okp.x))
+        case c: Curve.X25519.type  => OctetKeyPair.Builder(c.toJWKCurve, Base64.fromBase64url(okp.x))
       }
       okp.kid.foreach(builder.keyID)
       okp match { // for private key
         case _: PublicKey  => // ok (just the public key)
-        case k: PrivateKey => builder.d(Base64URL(k.d))
+        case k: PrivateKey => builder.d(Base64.fromBase64url(k.d))
       }
       builder.build()
     }

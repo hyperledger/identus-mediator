@@ -15,9 +15,7 @@ import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
@@ -25,6 +23,7 @@ import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm.Recipient
 import fmgp.did.comm.RecipientHeader
+import fmgp.util.Base64
 
 import java.util.Collections
 import scala.collection.JavaConverters._
@@ -56,16 +55,16 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
 
         val recipients = tail.map { rs =>
           val sharedKey: SecretKey = ECDH.deriveSharedKey(header, rs._2, getConcatKDF)
-          val encryptedKey = Base64URL.encode(AESKW.wrapCEK(cek, sharedKey, getJCAContext.getKeyEncryptionProvider))
+          val encryptedKey = Base64.encode(AESKW.wrapCEK(cek, sharedKey, getJCAContext.getKeyEncryptionProvider))
           (rs._1, encryptedKey)
         }
 
-        val auxRecipient = ((head._1, headParts.getEncryptedKey) +: recipients)
-          .map(e => Recipient(e._2.toString, RecipientHeader(e._1)))
+        val auxRecipient = ((head._1, Base64.fromBase64url(headParts.getEncryptedKey.toString())) +: recipients)
+          .map(e => Recipient(e._2, RecipientHeader(e._1)))
 
         EncryptedMessageGeneric(
           ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          `protected` = Base64URL.encode(headParts.getHeader().toString).toString(), // : Base64URLHeaders,
+          `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
           recipients = auxRecipient.toSeq,
           tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
           iv = headParts.getInitializationVector().toString // : InitializationVector
@@ -78,9 +77,9 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
       header: JWEHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
-      iv: Base64URL,
-      cipherText: Base64URL,
-      authTag: Base64URL,
+      iv: Base64,
+      cipherText: Base64,
+      authTag: Base64,
   ): Array[Byte] = {
 
     val result = sharedSecrets.map { case (vmr, secretKey) =>
@@ -123,16 +122,16 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
         val recipients = tail.map { rs =>
           val sharedKey: SecretKey =
             ECDH1PU.deriveSharedKey(header, rs._2, headParts.getAuthenticationTag, getConcatKDF)
-          val encryptedKey = Base64URL.encode(AESKW.wrapCEK(cek, sharedKey, getJCAContext.getKeyEncryptionProvider))
+          val encryptedKey = Base64.encode(AESKW.wrapCEK(cek, sharedKey, getJCAContext.getKeyEncryptionProvider))
           (rs._1, encryptedKey)
         }
 
-        val auxRecipient = ((head._1, headParts.getEncryptedKey) +: recipients)
-          .map(e => Recipient(e._2.toString(), RecipientHeader(e._1)))
+        val auxRecipient = ((head._1, Base64.fromBase64url(headParts.getEncryptedKey.toString())) +: recipients)
+          .map(e => Recipient(e._2, RecipientHeader(e._1)))
 
         EncryptedMessageGeneric(
           ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          `protected` = Base64URL.encode(headParts.getHeader().toString).toString(), // : Base64URLHeaders,
+          `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
           recipients = auxRecipient.toSeq,
           tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
           iv = headParts.getInitializationVector().toString // : InitializationVector
@@ -144,9 +143,9 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
       header: JWEHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
-      iv: Base64URL,
-      cipherText: Base64URL,
-      authTag: Base64URL
+      iv: Base64,
+      cipherText: Base64,
+      authTag: Base64
   ) = {
 
     val result = sharedSecrets.map { case (vmr, secretKey) =>

@@ -2,9 +2,9 @@ package fmgp.did.comm
 
 import zio.json._
 import fmgp.did._
+import fmgp.util.Base64
 import fmgp.crypto.OKP_EC_Key
 import zio.json.ast.Json
-import java.util.Base64
 import zio.json.ast.JsonCursor
 
 /** DID Comm Message */
@@ -223,7 +223,7 @@ object EncryptedMessage {
 }
 
 extension (c: EncryptedMessage) {
-  def headersAsJson = String(Base64.getDecoder().decode(c.`protected`)).fromJson[Json]
+  def headersAsJson = String(Base64.basicDecoder.decode(c.`protected`)).fromJson[Json]
   def skid = c.headersAsJson
     .flatMap(_.get(JsonCursor.field("skid")))
     .flatMap(_.as[String])
@@ -245,7 +245,7 @@ trait HeadersJson { // TODO
 }
 
 case class Recipient(
-    encrypted_key: Base64URL,
+    encrypted_key: Base64,
     header: RecipientHeader,
 )
 object Recipient {

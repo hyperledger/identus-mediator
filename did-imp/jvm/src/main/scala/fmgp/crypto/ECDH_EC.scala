@@ -8,7 +8,6 @@ import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.UnprotectedHeader
 import com.nimbusds.jose.crypto.impl.ECDH
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
 import com.nimbusds.jose.util.Pair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
@@ -19,6 +18,7 @@ import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
 import fmgp.crypto.UtilsJVM.toJWKCurve
 import fmgp.crypto.UtilsJVM.toJWK
+import fmgp.util.Base64
 
 import zio.json._
 import scala.util.Failure
@@ -78,9 +78,9 @@ class ECDH_AnonEC(
   def decrypt(
       // header: JWEHeader,
       recipients: Seq[JWERecipient],
-      iv: Base64URL,
-      cipherText: Base64URL,
-      authTag: Base64URL
+      iv: Base64,
+      cipherText: Base64,
+      authTag: Base64
   ) = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
@@ -156,9 +156,9 @@ class ECDH_AuthEC(
   def decrypt(
       // header: JWEHeader,
       recipients: Seq[JWERecipient],
-      iv: Base64URL,
-      cipherText: Base64URL,
-      authTag: Base64URL
+      iv: Base64,
+      cipherText: Base64,
+      authTag: Base64
   ) = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();

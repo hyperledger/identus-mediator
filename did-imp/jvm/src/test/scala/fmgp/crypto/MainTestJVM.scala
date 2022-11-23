@@ -4,11 +4,11 @@ import com.nimbusds.jose.*
 import com.nimbusds.jose.crypto.*
 import com.nimbusds.jose.jwk.*
 import com.nimbusds.jose.jwk.gen.*
-import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
 import com.nimbusds.jwt.*
 import fmgp.did.comm.DIDCommExamples
 import fmgp.did.comm.PlaintextMessageClass
+import fmgp.util.Base64
 import zio.json._
 
 import java.math.BigInteger
@@ -37,11 +37,11 @@ object MainTestJVM {
     // val ecJWK: ECKey = ECKey
     //   .Builder(
     //     Curve.SECP256K1,
-    //     Base64URL("aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk"),
-    //     Base64URL("JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
+    //     Base64.fromBase64url("aToW5EaTq5mlAf8C5ECYDSkqsJycrW-e1SQ6_GJcAOk"),
+    //     Base64.fromBase64url("JAGX94caA21WKreXwYUaOCYTBMrqaX4KWIlsQZTHWCk")
     //   )
     //   .keyID("did:example:alice#key-3")
-    //   .d(Base64URL("N3Hm1LXA210YVGGsXw_GklMwcLu_bMgnzDese6YQIyA"))
+    //   .d(Base64.fromBase64url("N3Hm1LXA210YVGGsXw_GklMwcLu_bMgnzDese6YQIyA"))
     //   .build()
 
     // val ecPublicJWK: ECKey = ecJWK.toPublicJWK()

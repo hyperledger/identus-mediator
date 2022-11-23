@@ -93,10 +93,10 @@ object RawOperations extends CryptoOperations {
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message] = {
     val aux = msg.recipients
-      .find(_.encrypted_key == encryptedKey)
+      .find(_.encrypted_key.urlBase64 == encryptedKey)
       .map { r =>
         PickFlattenedJWEencrypted()
-          .setEncrypted_key(r.encrypted_key)
+          .setEncrypted_key(r.encrypted_key.urlBase64)
           .setHeader {
             val h = JWEHeaderParameters()
             h.kid = r.header.kid.value
