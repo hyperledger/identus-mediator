@@ -21,12 +21,13 @@ import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
+import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm.Recipient
 import fmgp.did.comm.RecipientHeader
+
 import java.util.Collections
 import scala.collection.JavaConverters._
-import fmgp.did.VerificationMethodReferenced
 
 /** Elliptic-curve Diffie–Hellman */
 case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve) {

@@ -13,7 +13,7 @@ import zio.json._
 
 import fmgp.crypto.UtilsJVM._
 import fmgp.crypto.error._
-import fmgp.data.IOR
+import fmgp.util.IOR
 import fmgp.did._
 import fmgp.did.comm._
 

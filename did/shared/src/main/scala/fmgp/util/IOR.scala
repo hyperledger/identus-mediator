@@ -1,4 +1,4 @@
-package fmgp.data
+package fmgp.util
 
 sealed abstract class IOR[+L, +R] extends Product with Serializable {
   // def leftMap[X](f: L => X): IOR[X, R]
