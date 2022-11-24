@@ -214,11 +214,11 @@ lazy val publishConfigure: Project => Project = _.settings(
 
 addCommandAlias(
   "testJVM",
-  ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test; multibaseJVM/test"
+  ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test; multiformatsJVM/test"
 )
 addCommandAlias(
   "testJS",
-  ";didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test;  multibaseJS/test"
+  ";didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test;  multiformatsJS/test"
 )
 addCommandAlias("testAll", ";testJVM;testJS")
 
@@ -277,12 +277,12 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   *
   * "com.github.fluency03" % "scala-multibase_2.12" % "0.0.1"
   */
-lazy val multibase =
+lazy val multiformats =
   crossProject(JSPlatform, JVMPlatform)
-    .in(file("multibase"))
+    .in(file("multiformats"))
     .configure(publishConfigure)
     .settings(
-      name := "multibase",
+      name := "multiformats",
       libraryDependencies += D.munit.value,
       libraryDependencies += D.zioMunitTest.value,
     )
@@ -302,7 +302,7 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72" % Test,
     libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1" % Test,
   )
-  .dependsOn(did, multibase)
+  .dependsOn(did, multiformats)
 
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
