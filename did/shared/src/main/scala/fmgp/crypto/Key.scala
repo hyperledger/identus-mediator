@@ -10,6 +10,10 @@ enum JWAAlgorithm:
   case ES384 extends JWAAlgorithm // TODO check https://identity.foundation/didcomm-messaging/spec/#algorithms
   case ES512 extends JWAAlgorithm // TODO check https://identity.foundation/didcomm-messaging/spec/#algorithms
   case EdDSA extends JWAAlgorithm
+object JWAAlgorithm {
+  given decoder: JsonDecoder[JWAAlgorithm] = JsonDecoder.string.map(JWAAlgorithm.valueOf)
+  given encoder: JsonEncoder[JWAAlgorithm] = JsonEncoder.string.contramap((e: JWAAlgorithm) => e.toString)
+}
 
 enum KTY:
   // case RSA extends KTY
@@ -39,6 +43,7 @@ enum Curve: // TODO make it type safe!
   case secp256k1 extends Curve
   case X25519 extends Curve
   case Ed25519 extends Curve
+
 // sealed trait ECCurve // Elliptic Curve
 type ECCurve = Curve.`P-256`.type | Curve.`P-384`.type | Curve.`P-521`.type | Curve.secp256k1.type
 // sealed trait OKPCurve // Edwards-curve Octet Key Pair

@@ -1,5 +1,7 @@
 package fmgp.did.comm
 
+import zio.json._
+
 /** IANA Media Types
   *
   * https://identity.foundation/didcomm-messaging/spec/#iana-media-types
@@ -15,6 +17,9 @@ enum MediaTypes(val typ: String) {
     * to any external party.
     */
   case SIGNED extends MediaTypes("application/didcomm-signed+json") // signed(plaintext)
+
+  /** ENCRYPTED is a generic just to be used by the [[MediaTypes.decoder]] */
+  case ENCRYPTED extends MediaTypes("application/didcomm-encrypted+json")
 
   /** Guarantees confidentiality and integrity without revealing the identity of the sender. */
   case ANONCRYPT extends MediaTypes("application/didcomm-encrypted+json") // anoncrypt(plaintext)
@@ -45,4 +50,14 @@ enum MediaTypes(val typ: String) {
     */
   case ANONCRYPT_AUTHCRYPT extends MediaTypes("application/didcomm-encrypted+json") // anoncrypt(authcrypt(plaintext))
 
+}
+
+object MediaTypes {
+  given decoder: JsonDecoder[MediaTypes] = JsonDecoder.string
+    .map {
+      case "application/didcomm-plain+json"     => PLAINTEXT
+      case "application/didcomm-signed+json"    => SIGNED
+      case "application/didcomm-encrypted+json" => ENCRYPTED
+    }
+  given encoder: JsonEncoder[MediaTypes] = JsonEncoder.string.contramap(e => e.typ)
 }

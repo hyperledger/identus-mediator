@@ -5,29 +5,55 @@ import zio.json._
 import fmgp.did.DIDDocument
 import zio.json.ast.Json
 
+/** didJVM/testOnly fmgp.crypto.KeySuite */
 class KeySuite extends FunSuite {
 
-  test("parse serialize Curve P-256") {
+  test("parse & serialize JWAAlgorithm ES256K") {
+    assertEquals(JWAAlgorithm.ES256K.toJson, """"ES256K"""")
+    assertEquals(JWAAlgorithm.ES256K.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.ES256K))
+  }
+
+  test("parse & serialize JWAAlgorithm ES256") {
+    assertEquals(JWAAlgorithm.ES256.toJson, """"ES256"""")
+    assertEquals(JWAAlgorithm.ES256.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.ES256))
+  }
+
+  test("parse & serialize JWAAlgorithm ES384") {
+    assertEquals(JWAAlgorithm.ES384.toJson, """"ES384"""")
+    assertEquals(JWAAlgorithm.ES384.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.ES384))
+  }
+
+  test("parse & serialize JWAAlgorithm ES512") {
+    assertEquals(JWAAlgorithm.ES512.toJson, """"ES512"""")
+    assertEquals(JWAAlgorithm.ES512.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.ES512))
+  }
+
+  test("parse & serialize JWAAlgorithm EdDSA") {
+    assertEquals(JWAAlgorithm.EdDSA.toJson, """"EdDSA"""")
+    assertEquals(JWAAlgorithm.EdDSA.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.EdDSA))
+  }
+
+  test("parse & serialize Curve P-256") {
     assertEquals(Curve.`P-256`.toJson, """"P-256"""")
     assertEquals(Curve.`P-256`.toJson.fromJson[Curve], Right(Curve.`P-256`))
   }
 
-  test("parse serialize Curve P-384") {
+  test("parse & serialize Curve P-384") {
     assertEquals(Curve.`P-384`.toJson, """"P-384"""")
     assertEquals(Curve.`P-384`.toJson.fromJson[Curve], Right(Curve.`P-384`))
   }
 
-  test("parse serialize Curve P-521") {
+  test("parse & serialize Curve P-521") {
     assertEquals(Curve.`P-521`.toJson, """"P-521"""")
     assertEquals(Curve.`P-521`.toJson.fromJson[Curve], Right(Curve.`P-521`))
   }
 
-  test("parse serialize Curve secp256k1") {
+  test("parse & serialize Curve secp256k1") {
     assertEquals(Curve.secp256k1.toJson, """"secp256k1"""")
     assertEquals(Curve.secp256k1.toJson.fromJson[Curve], Right(Curve.secp256k1))
   }
 
-  test("parse and stringify PrivateKey") {
+  test("parse & stringify PrivateKey") {
     val ret = JWKExamples.senderKeySecp256k1.fromJson[PrivateKey]
     ret match {
       case Left(error) => fail(error)
@@ -47,7 +73,7 @@ class KeySuite extends FunSuite {
     ) // stringify PrivateKey
   }
 
-  test("parse and stringify PublicKey") {
+  test("parse & stringify PublicKey") {
     val ret = JWKExamples.senderKeySecp256k1.fromJson[PublicKey]
     ret match {
       case Left(error) => fail(error)
@@ -61,7 +87,7 @@ class KeySuite extends FunSuite {
     }
   }
 
-  test("parse and stringify PublicKey with no kid") {
+  test("parse & stringify PublicKey with no kid") {
     val tmp = """{"kty":"OKP","crv":"X25519","x":"GFcMopJljf4pLZfch4a_GhTM_YAf6iNI1dWDGyVCaw0"}"""
     val ret = tmp.fromJson[PublicKey]
 
