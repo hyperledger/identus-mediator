@@ -2,6 +2,7 @@ package fmgp.did.comm
 
 import zio.json._
 import fmgp.did._
+import fmgp.util.Base64Obj
 import fmgp.crypto.OKP_EC_Key
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
@@ -17,7 +18,7 @@ import zio.json.ast.JsonCursor
   */
 case class EncryptedMessageGeneric(
     ciphertext: Base64URL,
-    `protected`: Base64URLHeaders,
+    `protected`: Base64Obj[ProtectedHeader],
     recipients: Seq[Recipient],
     tag: AuthenticationTag,
     iv: InitializationVector

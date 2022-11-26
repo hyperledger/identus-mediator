@@ -19,6 +19,7 @@ import com.nimbusds.jose.util.StandardCharset
 import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
+import zio.json._
 import fmgp.util.Base64
 import fmgp.crypto.JWERecipient
 import fmgp.did.VerificationMethodReferenced
@@ -30,6 +31,7 @@ import fmgp.did.comm.ProtectedHeader
 
 import java.util.Collections
 import scala.collection.JavaConverters._
+import fmgp.util.Base64Obj
 
 /** Elliptic-curve Diffie–Hellman */
 case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve) {
@@ -66,9 +68,13 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
         val auxRecipient = ((head._1, Base64.fromBase64url(headParts.getEncryptedKey.toString())) +: recipients)
           .map(e => Recipient(e._2, RecipientHeader(e._1)))
 
+        val protectedHeader: ProtectedHeader =
+          headParts.getHeader().toString.fromJson[ProtectedHeader].toOption.get // FIXME get
+
         EncryptedMessageGeneric(
           ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
+          // `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
+          `protected` = Base64Obj(protectedHeader),
           recipients = auxRecipient.toSeq,
           tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
           iv = headParts.getInitializationVector().toString // : InitializationVector
@@ -133,9 +139,13 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
         val auxRecipient = ((head._1, Base64.fromBase64url(headParts.getEncryptedKey.toString())) +: recipients)
           .map(e => Recipient(e._2, RecipientHeader(e._1)))
 
+        val protectedHeader: ProtectedHeader =
+          headParts.getHeader().toString.fromJson[ProtectedHeader].toOption.get // FIXME get
+
         EncryptedMessageGeneric(
           ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
+          // `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
+          `protected` = Base64Obj(protectedHeader), // : Base64URLHeaders,
           recipients = auxRecipient.toSeq,
           tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
           iv = headParts.getInitializationVector().toString // : InitializationVector

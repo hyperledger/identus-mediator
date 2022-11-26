@@ -2,7 +2,7 @@ package fmgp.did.comm
 
 import zio.json._
 import fmgp.did._
-import fmgp.util.Base64
+import fmgp.util._
 import fmgp.crypto.OKP_EC_Key
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
@@ -207,7 +207,7 @@ object JWMHeader {
   */
 trait EncryptedMessage extends Message {
   def ciphertext: Base64URL
-  def `protected`: Base64URLHeaders
+  def `protected`: Base64Obj[ProtectedHeader]
   def recipients: Seq[Recipient]
   def tag: AuthenticationTag
   def iv: InitializationVector
@@ -223,10 +223,11 @@ object EncryptedMessage {
 }
 
 extension (c: EncryptedMessage) {
-  def headersAsJson = String(Base64.basicDecoder.decode(c.`protected`)).fromJson[Json]
-  def skid = c.headersAsJson
-    .flatMap(_.get(JsonCursor.field("skid")))
-    .flatMap(_.as[String])
+  // def headersAsJson = c.`protected`.obj.toJson.fromJson[Json]
+  // def skid = c.headersAsJson
+  //   .flatMap(_.get(JsonCursor.field("skid")))
+  //   .flatMap(_.as[String])
+  def skid = c.`protected`.obj.skid
   // def headers: HeadersJson = protectedAsString.fromJson[HeadersJson] //TODO
 }
 

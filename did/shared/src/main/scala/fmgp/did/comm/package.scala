@@ -9,5 +9,4 @@ package object comm {
   type AuthenticationTag = Base64URL // TODO
   type InitializationVector = Base64URL // TODO
 
-  type Base64URLHeaders = Base64URL // TODO
 }

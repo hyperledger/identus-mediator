@@ -234,9 +234,9 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+          _ = assert(!message.`protected`.obj.apv.bytes.isEmpty)
+          _ = assert(message.`protected`.obj.apu.isEmpty)
+          _ = assert(message.`protected`.obj.skid.isEmpty)
           _ = assert(message.recipients.size == 3)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -267,9 +267,9 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+          _ = assert(!message.`protected`.obj.apv.bytes.isEmpty)
+          _ = assert(message.`protected`.obj.apu.isEmpty)
+          _ = assert(message.`protected`.obj.skid.isEmpty)
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -301,9 +301,9 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isLeft)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isLeft)
+          _ = assert(!message.`protected`.obj.apv.bytes.isEmpty)
+          _ = assert(message.`protected`.obj.apu.isEmpty)
+          _ = assert(message.`protected`.obj.skid.isEmpty)
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -341,9 +341,9 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- authEncrypt(senderKidKey, kidKeys, data)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isRight)
+          _ = assert(!message.`protected`.obj.apv.bytes.isEmpty)
+          _ = assert(message.`protected`.obj.apu.isDefined)
+          _ = assert(message.`protected`.obj.skid.isDefined)
           _ = assert(message.recipients.size == 3)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -380,9 +380,9 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- authEncrypt(senderKidKey, kidKeys, data)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apv")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("apu")).isRight)
-          _ = assert(message.headersAsJson.toOption.get.get(JsonCursor.field("skid")).isRight)
+          _ = assert(!message.`protected`.obj.apv.bytes.isEmpty)
+          _ = assert(message.`protected`.obj.apu.isDefined)
+          _ = assert(message.`protected`.obj.skid.isDefined)
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>

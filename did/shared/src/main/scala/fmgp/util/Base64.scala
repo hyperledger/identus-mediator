@@ -46,7 +46,9 @@ object Base64:
     def bytes: Array[Byte] = bytes
     def decode: String = String(Base64.urlDecoder.decode(bytes))
 
-case class Base64Obj[T](obj: T)
+case class Base64Obj[T](obj: T) {
+  def base64url(using jsonEncoder: JsonEncoder[T]): String = Base64.encode(obj.toJson).urlBase64
+}
 object Base64Obj {
   given decoder[T](using jsonDecoder: JsonDecoder[T]): JsonDecoder[Base64Obj[T]] =
     Base64.decoder.mapOrFail(e => e.decode.fromJson[T].map(Base64Obj(_)))

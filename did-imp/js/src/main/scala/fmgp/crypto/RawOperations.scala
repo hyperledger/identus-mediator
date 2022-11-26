@@ -110,7 +110,7 @@ object RawOperations extends CryptoOperations {
       js.Array(aux), // recipients: js.Array[PickFlattenedJWEencrypted],
       msg.tag, // tag: String
     )
-      .setProtected(msg.`protected`)
+      .setProtected(msg.`protected`.base64url)
 
     // "enc":"A256CBC-HS512","alg":"ECDH-ES+A256KW"
     // "enc":"XC20P","alg":"ECDH-ES+A256KW"}

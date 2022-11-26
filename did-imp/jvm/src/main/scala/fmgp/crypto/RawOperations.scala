@@ -152,8 +152,8 @@ object RawOperations extends CryptoOperations {
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message] = {
 
-    val header =
-      String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
+    def header = msg.`protected`.obj
+    // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val kids = msg.recipients.map(_.header.kid.value)
     val allKeysUsedOnMsg = recipientKidsKeys.filterNot(e => kids.contains(e._1))
@@ -194,8 +194,8 @@ object RawOperations extends CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message] = {
-    val header =
-      String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
+    def header = msg.`protected`.obj
+    // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val jweRecipient =
       msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
