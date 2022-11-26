@@ -1,6 +1,7 @@
 package fmgp.util
 
 import munit._
+import zio.json._
 
 // didJVM/testOnly fmgp.util.Base64Suite
 class Base64Suite extends FunSuite {
@@ -27,4 +28,25 @@ class Base64Suite extends FunSuite {
     }
   }
 
+  case class A(b: B)
+  object A {
+    given decoder: JsonDecoder[A] = DeriveJsonDecoder.gen[A]
+    given encoder: JsonEncoder[A] = DeriveJsonEncoder.gen[A]
+  }
+  case class B(x: String, y: Int)
+  object B {
+    given decoder: JsonDecoder[B] = DeriveJsonDecoder.gen[B]
+    given encoder: JsonEncoder[B] = DeriveJsonEncoder.gen[B]
+  }
+
+  test("Check Base64Obj") {
+    val obj = Base64Obj(A(B("xx", 123)))
+    val expected = """"eyJiIjp7IngiOiJ4eCIsInkiOjEyM319"""" // {"b":{"x":"xx","y":123}}
+    assertEquals(obj.toJson, expected)
+
+    expected.fromJson[Base64Obj[A]] match {
+      case Left(error)  => fail(error)
+      case Right(value) => assertEquals(value, obj)
+    }
+  }
 }
