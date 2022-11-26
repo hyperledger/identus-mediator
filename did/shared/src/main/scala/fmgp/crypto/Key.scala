@@ -118,10 +118,10 @@ sealed abstract class OKP_EC_Key extends JWKObj {
   }
 
   def alg = crv match {
-    case Curve.secp256k1 => JWAAlgorithm.ES256K //  ES256K
-    case Curve.`P-256`   => JWAAlgorithm.ES256 // ES256
-    case Curve.`P-384`   => JWAAlgorithm.ES384 // ES384
-    case Curve.`P-521`   => JWAAlgorithm.ES512 // ES512
+    case Curve.secp256k1 => JWAAlgorithm.ES256K
+    case Curve.`P-256`   => JWAAlgorithm.ES256
+    case Curve.`P-384`   => JWAAlgorithm.ES384
+    case Curve.`P-521`   => JWAAlgorithm.ES512
     case Curve.X25519    => JWAAlgorithm.EdDSA
     case Curve.Ed25519   => JWAAlgorithm.EdDSA
   }

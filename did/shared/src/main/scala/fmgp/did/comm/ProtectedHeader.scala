@@ -4,6 +4,7 @@ import zio.json._
 import fmgp.did._
 import fmgp.crypto.PublicKey
 import fmgp.util.Base64
+import java.security.MessageDigest
 
 // class Base64JWEHeader(data: Base64) extends Selectable:
 //   val json = data.decode.fromJson[Json].toOption.get
@@ -25,16 +26,27 @@ import fmgp.util.Base64
 case class ProtectedHeader(
     epk: Option[PublicKey],
     apv: Base64,
-    skid: Option[VerificationMethodReferenced], // did:example:alice#key-p256-1
-    apu: Option[Base64],
+    skid: Option[VerificationMethodReferenced] = None, // did:example:alice#key-p256-1
+    apu: Option[Base64] = None,
     typ: MediaTypes,
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
-)
+) {
+  // Asserts for DEBUG
+  if (typ == MediaTypes.ANONCRYPT | typ == MediaTypes.ANONCRYPT_AUTHCRYPT | typ == MediaTypes.ANONCRYPT_SIGN)
+    assert(skid.isEmpty, "ANON messagem MUST NOT have 'skid'") // IMPROVE make it type safe
+  if (typ == MediaTypes.AUTHCRYPT | typ == MediaTypes.AUTHCRYPT_SIGN)
+    assert(skid.isDefined, "AUTH messagem MUST HAVE 'skid'") // IMPROVE make it type safe
+}
 
 object ProtectedHeader {
   given decoder: JsonDecoder[ProtectedHeader] = DeriveJsonDecoder.gen[ProtectedHeader]
   given encoder: JsonEncoder[ProtectedHeader] = DeriveJsonEncoder.gen[ProtectedHeader]
+
+  def calculateAPV(refs: Seq[VerificationMethodReferenced]): Base64 =
+    Base64.encode(MessageDigest.getInstance("SHA-256").digest(refs.map(_.value).sorted.mkString(".").getBytes()))
+
+  def calculateAPU(ref: VerificationMethodReferenced): Base64 = Base64.encode(ref.value.getBytes)
 }
 
 enum ENCAlgorithm { // JWAAlgorithm

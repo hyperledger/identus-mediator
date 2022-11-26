@@ -41,7 +41,7 @@ import javax.crypto.SecretKey
 
 class ECDH_AnonOKP(
     okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-    header: JWEHeader,
+    header: ProtectedHeader
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
     // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
 ) {
@@ -75,10 +75,9 @@ class ECDH_AnonOKP(
         .d(Base64.encode(ephemeralPrivateKeyBytes))
         .build();
     val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
+    val ecKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
 
-    val updatedHeader: JWEHeader = new JWEHeader.Builder(header)
-      .ephemeralPublicKey(ephemeralPublicKey)
-      .build()
+    val updatedHeader = header.copy(epk = Some(ecKeyEphemeral))
 
     val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
       (vmr, ECDH.deriveSharedSecret(key.toJWK, ephemeralPrivateKey))
@@ -88,7 +87,6 @@ class ECDH_AnonOKP(
   }
 
   def decrypt(
-      // header: JWEHeader,
       recipients: Seq[JWERecipient],
       iv: Base64,
       cipherText: Base64,

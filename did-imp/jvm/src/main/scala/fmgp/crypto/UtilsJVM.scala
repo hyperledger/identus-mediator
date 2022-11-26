@@ -27,6 +27,33 @@ import scala.util.Try
 import scala.util.chaining._
 import scala.collection.JavaConverters._
 
+import com.nimbusds.jose.JWEHeader
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEObjectType
+import fmgp.crypto.UtilsJVM.toJWK
+
+given Conversion[ProtectedHeader, JWEHeader] with
+  def apply(x: ProtectedHeader) = {
+    val encryptionMethod = x.enc match
+      case ENCAlgorithm.XC20P           => EncryptionMethod.XC20P
+      case ENCAlgorithm.A256GCM         => EncryptionMethod.A256GCM
+      case ENCAlgorithm.`A256CBC-HS512` => EncryptionMethod.A256CBC_HS512
+
+    val algorithm = x.alg match
+      case KWAlgorithm.`ECDH-ES+A256KW`  => JWEAlgorithm.ECDH_ES_A256KW
+      case KWAlgorithm.`ECDH-1PU+A256KW` => JWEAlgorithm.ECDH_1PU_A256KW
+
+    val tmp = new JWEHeader.Builder(algorithm, encryptionMethod)
+      .`type`(JOSEObjectType(x.typ.typ))
+      .agreementPartyVInfo(x.apv) // Utils.calculateAPV(x.apv  ecRecipientsKeys.map(_._1)))
+
+    x.epk.foreach(e => tmp.ephemeralPublicKey(e.toJWK)) // new JWKECKey.Builder(curve, ephemeralPublicKey).build())
+    x.skid.foreach(e => tmp.senderKeyID(e.value))
+    x.apu.foreach(e => tmp.agreementPartyUInfo(e))
+    tmp.build()
+  }
+
 given Conversion[Base64, com.nimbusds.jose.util.Base64URL] with
   def apply(x: Base64) = new com.nimbusds.jose.util.Base64URL(x.urlBase64)
 

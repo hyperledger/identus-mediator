@@ -1,9 +1,5 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.OctetKeyPair
 
@@ -24,20 +20,16 @@ import scala.collection.JavaConverters._
 object RawOperations extends CryptoOperations {
 
   override def sign(key: PrivateKey, plaintext: PlaintextMessage): UIO[SignedMessage] =
-    ZIO.succeed(
-      key.toJWK match {
-        case ecKey: JWKECKey      => ecKey.sign(plaintext, key.jwaAlgorithmtoSign)
-        case okpKey: OctetKeyPair => okpKey.sign(plaintext, key.jwaAlgorithmtoSign)
-      }
-    )
+    ZIO.succeed(key.match {
+      case okp: OKPPrivateKey => okp.toJWK.sign(plaintext, key.jwaAlgorithmtoSign)
+      case ec: ECPrivateKey   => ec.toJWK.sign(plaintext, key.jwaAlgorithmtoSign)
+    })
 
-  override def verify(key: OKP_EC_Key, jwm: SignedMessage): UIO[Boolean] =
-    ZIO.succeed(
-      key.toJWK match {
-        case ecKey: JWKECKey      => ecKey.verify(jwm, key.jwaAlgorithmtoSign)
-        case okpKey: OctetKeyPair => okpKey.verify(jwm, key.jwaAlgorithmtoSign)
-      }
-    )
+  override def verify(key: PublicKey, jwm: SignedMessage): UIO[Boolean] =
+    ZIO.succeed(key.match {
+      case okp: OKPPublicKey => okp.toJWK.verify(jwm, key.jwaAlgorithmtoSign)
+      case ec: ECPublicKey   => ec.toJWK.verify(jwm, key.jwaAlgorithmtoSign)
+    })
 
   // ###############
   // ### encrypt ###
@@ -89,10 +81,15 @@ object RawOperations extends CryptoOperations {
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512)
-      .`type`(JOSEObjectType(MediaTypes.ANONCRYPT.typ))
-      .agreementPartyVInfo(Utils.calculateAPV(ecRecipientsKeys.map(_._1)))
-      .build()
+    val header = ProtectedHeader(
+      epk = None, // : Option[PublicKey],
+      apv = ProtectedHeader.calculateAPV(ecRecipientsKeys.map(_._1)),
+      skid = None,
+      apu = None,
+      typ = MediaTypes.ANONCRYPT,
+      enc = ENCAlgorithm.`A256CBC-HS512`,
+      alg = KWAlgorithm.`ECDH-ES+A256KW`,
+    )
     ZIO.succeed(ECDH_AnonEC(ecRecipientsKeys, header).encrypt(clearText))
   }
 
@@ -100,10 +97,15 @@ object RawOperations extends CryptoOperations {
       okpRecipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES_A256KW, EncryptionMethod.A256CBC_HS512)
-      .`type`(JOSEObjectType(MediaTypes.ANONCRYPT.typ))
-      .agreementPartyVInfo(Utils.calculateAPV(okpRecipientKeys.map(_._1)))
-      .build()
+    val header = ProtectedHeader(
+      epk = None, // : Option[PublicKey],
+      apv = ProtectedHeader.calculateAPV(okpRecipientKeys.map(_._1)),
+      skid = None,
+      apu = None,
+      typ = MediaTypes.ANONCRYPT,
+      enc = ENCAlgorithm.`A256CBC-HS512`,
+      alg = KWAlgorithm.`ECDH-ES+A256KW`,
+    )
     ZIO.succeed(ECDH_AnonOKP(okpRecipientKeys, header).encrypt(clearText))
   }
 
@@ -112,12 +114,15 @@ object RawOperations extends CryptoOperations {
       recipientKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
-      .`type`(JOSEObjectType(MediaTypes.AUTHCRYPT.typ))
-      .senderKeyID(senderKidKey._1.value)
-      .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
-      .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
-      .build()
+    val header = ProtectedHeader(
+      epk = None, // : Option[PublicKey],
+      apv = ProtectedHeader.calculateAPV(recipientKeys.map(_._1)),
+      skid = Some(senderKidKey._1),
+      apu = Some(ProtectedHeader.calculateAPU(senderKidKey._1)),
+      typ = MediaTypes.AUTHCRYPT,
+      enc = ENCAlgorithm.`A256CBC-HS512`,
+      alg = KWAlgorithm.`ECDH-1PU+A256KW`,
+    )
     ZIO.succeed(ECDH_AuthEC(senderKidKey._2, recipientKeys, header).encrypt(clearText))
   }
 
@@ -126,12 +131,15 @@ object RawOperations extends CryptoOperations {
       recipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
   ): UIO[EncryptedMessageGeneric] = {
-    val header: JWEHeader = new JWEHeader.Builder(JWEAlgorithm.ECDH_1PU_A256KW, EncryptionMethod.A256CBC_HS512)
-      .`type`(JOSEObjectType(MediaTypes.AUTHCRYPT.typ))
-      .senderKeyID(senderKidKey._1.value)
-      .agreementPartyUInfo(Utils.calculateAPU(senderKidKey._1))
-      .agreementPartyVInfo(Utils.calculateAPV(recipientKeys.map(_._1)))
-      .build()
+    val header = ProtectedHeader(
+      epk = None, // : Option[PublicKey],
+      apv = ProtectedHeader.calculateAPV(recipientKeys.map(_._1)),
+      skid = Some(senderKidKey._1),
+      apu = Some(ProtectedHeader.calculateAPU(senderKidKey._1)),
+      typ = MediaTypes.AUTHCRYPT,
+      enc = ENCAlgorithm.`A256CBC-HS512`,
+      alg = KWAlgorithm.`ECDH-1PU+A256KW`,
+    )
     ZIO.succeed(ECDH_AuthOKP(senderKidKey._2, recipientKeys, header).encrypt(clearText))
   }
 
@@ -143,7 +151,10 @@ object RawOperations extends CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message] = {
-    val header: JWEHeader = JWEHeader.parse(Base64.fromBase64url(msg.`protected`))
+
+    val header =
+      String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
+
     val kids = msg.recipients.map(_.header.kid.value)
     val allKeysUsedOnMsg = recipientKidsKeys.filterNot(e => kids.contains(e._1))
 
@@ -183,7 +194,8 @@ object RawOperations extends CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessageGeneric
   ): IO[DidFail, Message] = {
-    val header: JWEHeader = JWEHeader.parse(Base64.fromBase64url(msg.`protected`))
+    val header =
+      String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val jweRecipient =
       msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))

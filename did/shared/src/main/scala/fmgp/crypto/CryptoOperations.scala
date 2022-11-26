@@ -15,7 +15,7 @@ trait CryptoOperations {
   ): IO[CryptoFailed, SignedMessage]
 
   def verify(
-      key: OKP_EC_Key,
+      key: PublicKey,
       jwm: SignedMessage
   ): IO[CryptoFailed, Boolean]
 

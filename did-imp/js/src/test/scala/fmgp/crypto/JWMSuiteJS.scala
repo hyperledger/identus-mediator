@@ -20,8 +20,8 @@ class JWMSuiteJS extends ZSuite {
   testZ("sign and verify an example") {
     val key: ECPrivateKey = JWKExamples.senderKeySecp256k1.fromJson[ECPrivateKey].toOption.get
     sign(key, DIDCommExamples.plaintextMessageObj).flatMap { jwsObject =>
-      verify(key, jwsObject).map(e => assert(e))
-        <&> verify(key, SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
+      verify(key.toPublicKey, jwsObject).map(e => assert(e))
+        <&> verify(key.toPublicKey, SignedMessageExample.exampleSignatureES256K_obj).map(e => assert(e))
     }
   }
 

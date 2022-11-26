@@ -19,11 +19,14 @@ import com.nimbusds.jose.util.StandardCharset
 import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
+import fmgp.util.Base64
+import fmgp.crypto.JWERecipient
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm.Recipient
 import fmgp.did.comm.RecipientHeader
-import fmgp.util.Base64
+import fmgp.did.comm.MediaTypes
+import fmgp.did.comm.ProtectedHeader
 
 import java.util.Collections
 import scala.collection.JavaConverters._
@@ -34,10 +37,11 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
   override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
 
   /** @throws JOSEException
+    *   //FIXME
     */
   def encryptAUX(
-      header: JWEHeader,
-      sharedSecrets: Seq[(fmgp.did.VerificationMethodReferenced, javax.crypto.SecretKey)],
+      header: ProtectedHeader,
+      sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
   ): EncryptedMessageGeneric = {
 
@@ -103,7 +107,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
 
   def encryptAUX(
       header: JWEHeader,
-      sharedSecrets: Seq[(fmgp.did.VerificationMethodReferenced, javax.crypto.SecretKey)],
+      sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
   ): EncryptedMessageGeneric = {
 

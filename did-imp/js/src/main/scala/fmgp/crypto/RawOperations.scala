@@ -30,7 +30,7 @@ object RawOperations extends CryptoOperations {
   override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
     key.sign(plaintext)
 
-  override def verify(key: OKP_EC_Key, jwm: SignedMessage): IO[CryptoFailed, Boolean] = key.verify(jwm)
+  override def verify(key: PublicKey, jwm: SignedMessage): IO[CryptoFailed, Boolean] = key.verify(jwm)
 
   // ###############
   // ### encrypt ###

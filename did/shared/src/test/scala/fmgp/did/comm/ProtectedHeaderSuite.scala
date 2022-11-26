@@ -83,4 +83,12 @@ class ProtectedHeaderSuite extends ZSuite {
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex6)
     }
   }
+
+  test("Parse Header another example") {
+    """{"epk":{"kty":"EC","crv":"P-521","x":"AEkksOZmmhfFXuOt0s2mWEbUrmT79w5HTpRoS-6Y5zdbY9OB9odGohCbmOxjjceaYE9fsZ_tZ6giLaA5ADRpkXNU","y":"ACibg-vD2aGTJGo9fEIzCWWOhRUINlX7CXFI2jx9JT6fO2_0fwK36Y7-4sTe4iEURhygSXP9oSTW3NGYMuC1iOCp"},"apv":"GOeo76ym6NCg9WWMEYfW0eVDT5668zEhl2uAIW-E-HE","typ":"application/didcomm-encrypted+json","enc":"A256GCM","alg":"ECDH-ES+A256KW"}"""
+      .fromJson[ProtectedHeader] match {
+      case Left(error) => fail(error)
+      case Right(obj)  => assertEquals(obj.enc, ENCAlgorithm.A256GCM)
+    }
+  }
 }

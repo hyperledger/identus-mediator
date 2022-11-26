@@ -38,7 +38,7 @@ import com.nimbusds.jose.JOSEException
 
 class ECDH_AnonEC(
     ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-    header: JWEHeader,
+    header: ProtectedHeader
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
     // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
 ) {
@@ -62,10 +62,9 @@ class ECDH_AnonEC(
     val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
     val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
     val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
+    val ecKeyEphemeral = ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].toOption.get // FIXME
 
-    val updatedHeader: JWEHeader = new JWEHeader.Builder(header)
-      .ephemeralPublicKey(new JWKECKey.Builder(curve, ephemeralPublicKey).build())
-      .build()
+    val updatedHeader = header.copy(epk = Some(ecKeyEphemeral))
 
     val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
       val use_the_defualt_JCA_Provider = null
@@ -107,15 +106,13 @@ class ECDH_AnonEC(
     }
 
     myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
-
   }
-
 }
 
 class ECDH_AuthEC(
     sender: ECKey,
     ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-    header: JWEHeader, // FIXME REMOVE
+    header: ProtectedHeader
 ) {
 
   val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
