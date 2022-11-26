@@ -17,11 +17,11 @@ import zio.json.ast.JsonCursor
   * https://neilmadden.blog/2017/05/17/so-how-do-you-validate-nist-ecdh-public-keys/
   */
 case class EncryptedMessageGeneric(
-    ciphertext: Base64URL,
+    ciphertext: CipherText,
     `protected`: Base64Obj[ProtectedHeader],
     recipients: Seq[Recipient],
-    tag: AuthenticationTag,
-    iv: InitializationVector
+    tag: TAG,
+    iv: IV
 ) extends EncryptedMessage
 
 object EncryptedMessageGeneric {

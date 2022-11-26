@@ -166,9 +166,9 @@ object RawOperations extends CryptoOperations {
         val ret = ECDH_AnonEC(fixme, header)
           .decrypt(
             jweRecipient,
-            Base64.fromBase64url(msg.iv),
-            Base64.fromBase64url(msg.ciphertext),
-            Base64.fromBase64url(msg.tag)
+            msg.iv,
+            msg.ciphertext,
+            msg.tag
           )
         ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
 
@@ -180,9 +180,9 @@ object RawOperations extends CryptoOperations {
         val ret = ECDH_AnonOKP(fixme, header)
           .decrypt(
             jweRecipient,
-            Base64.fromBase64url(msg.iv),
-            Base64.fromBase64url(msg.ciphertext),
-            Base64.fromBase64url(msg.tag)
+            msg.iv,
+            msg.ciphertext,
+            msg.tag
           )
         ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
     }
@@ -229,9 +229,9 @@ object RawOperations extends CryptoOperations {
             ECDH_AuthEC(ecSenderKey, ecRecipientsKeys, header)
               .decrypt(
                 jweRecipient,
-                Base64.fromBase64url(msg.iv),
-                Base64.fromBase64url(msg.ciphertext),
-                Base64.fromBase64url(msg.tag)
+                msg.iv,
+                msg.ciphertext,
+                msg.tag
               )
           }
           .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))
@@ -263,9 +263,9 @@ object RawOperations extends CryptoOperations {
             ECDH_AuthOKP(okpSenderKey, okpRecipientsKeys, header)
               .decrypt(
                 jweRecipient,
-                Base64.fromBase64url(msg.iv),
-                Base64.fromBase64url(msg.ciphertext),
-                Base64.fromBase64url(msg.tag)
+                msg.iv,
+                msg.ciphertext,
+                msg.tag
               )
           }
           .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))

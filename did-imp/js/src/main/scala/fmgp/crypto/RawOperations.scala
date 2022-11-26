@@ -105,10 +105,10 @@ object RawOperations extends CryptoOperations {
       }
       .get
     val jweJS = GeneralJWE(
-      msg.ciphertext, // ciphertext: String,
-      msg.iv, // iv: String,
+      msg.ciphertext.value,
+      msg.iv.value,
       js.Array(aux), // recipients: js.Array[PickFlattenedJWEencrypted],
-      msg.tag, // tag: String
+      msg.tag.value,
     )
       .setProtected(msg.`protected`.base64url)
 

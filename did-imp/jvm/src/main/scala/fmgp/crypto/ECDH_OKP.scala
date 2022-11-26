@@ -88,9 +88,9 @@ class ECDH_AnonOKP(
 
   def decrypt(
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG
   ): Array[Byte] = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
@@ -184,9 +184,9 @@ class ECDH_AuthOKP( // FIXME rename
   def decrypt(
       //  header: JWEHeader,
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG
   ) = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()

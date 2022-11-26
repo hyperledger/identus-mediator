@@ -77,9 +77,9 @@ class ECDH_AnonEC(
   def decrypt(
       // header: JWEHeader,
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG
   ) = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
@@ -153,9 +153,9 @@ class ECDH_AuthEC(
   def decrypt(
       // header: JWEHeader,
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG
   ) = {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();

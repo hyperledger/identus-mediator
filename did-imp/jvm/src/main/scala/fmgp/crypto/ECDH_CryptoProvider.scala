@@ -23,12 +23,7 @@ import zio.json._
 import fmgp.util.Base64
 import fmgp.crypto.JWERecipient
 import fmgp.did.VerificationMethodReferenced
-import fmgp.did.comm.EncryptedMessageGeneric
-import fmgp.did.comm.Recipient
-import fmgp.did.comm.RecipientHeader
-import fmgp.did.comm.MediaTypes
-import fmgp.did.comm.ProtectedHeader
-
+import fmgp.did.comm._
 import java.util.Collections
 import scala.collection.JavaConverters._
 import fmgp.util.Base64Obj
@@ -72,12 +67,11 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
           headParts.getHeader().toString.fromJson[ProtectedHeader].toOption.get // FIXME get
 
         EncryptedMessageGeneric(
-          ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          // `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
+          ciphertext = CipherText(headParts.getCipherText().toString),
           `protected` = Base64Obj(protectedHeader),
           recipients = auxRecipient.toSeq,
-          tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
-          iv = headParts.getInitializationVector().toString // : InitializationVector
+          tag = TAG(headParts.getAuthenticationTag().toString),
+          iv = IV(headParts.getInitializationVector().toString),
         )
     }
 
@@ -87,16 +81,18 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
       header: JWEHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64,
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG,
   ): Array[Byte] = {
 
     val result = sharedSecrets.map { case (vmr, secretKey) =>
       recipients
         .find(recipient => recipient.vmr == vmr)
         .map(_.encryptedKey)
-        .map(encryptedKey => decryptWithZ(header, secretKey, encryptedKey, iv, cipherText, authTag))
+        .map(encryptedKey =>
+          decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+        )
     }.flatten
 
     assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")
@@ -143,12 +139,11 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
           headParts.getHeader().toString.fromJson[ProtectedHeader].toOption.get // FIXME get
 
         EncryptedMessageGeneric(
-          ciphertext = headParts.getCipherText().toString, // : Base64URL,
-          // `protected` = Base64.encode(headParts.getHeader().toString).urlBase64, // : Base64URLHeaders,
-          `protected` = Base64Obj(protectedHeader), // : Base64URLHeaders,
+          ciphertext = CipherText(headParts.getCipherText().toString),
+          `protected` = Base64Obj(protectedHeader),
           recipients = auxRecipient.toSeq,
-          tag = headParts.getAuthenticationTag().toString, // AuthenticationTag,
-          iv = headParts.getInitializationVector().toString // : InitializationVector
+          tag = TAG(headParts.getAuthenticationTag().toString),
+          iv = IV(headParts.getInitializationVector().toString)
         )
     }
   }
@@ -157,16 +152,18 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
       header: JWEHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
-      iv: Base64,
-      cipherText: Base64,
-      authTag: Base64
+      iv: IV,
+      cipherText: CipherText,
+      authTag: TAG
   ) = {
 
     val result = sharedSecrets.map { case (vmr, secretKey) =>
       recipients
         .find(recipient => recipient.vmr == vmr)
         .map(_.encryptedKey)
-        .map(encryptedKey => decryptWithZ(header, secretKey, encryptedKey, iv, cipherText, authTag))
+        .map(encryptedKey =>
+          decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+        )
     }.flatten
     // META DATA
     assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")

@@ -206,11 +206,11 @@ object JWMHeader {
   *   - ECDH-1PU+A256KW (with P-256; P-384; P-521; X25519) for "authcrypt" messages
   */
 trait EncryptedMessage extends Message {
-  def ciphertext: Base64URL
+  def ciphertext: CipherText
   def `protected`: Base64Obj[ProtectedHeader]
   def recipients: Seq[Recipient]
-  def tag: AuthenticationTag
-  def iv: InitializationVector
+  def tag: TAG
+  def iv: IV
 }
 
 object EncryptedMessage {
