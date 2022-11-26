@@ -62,6 +62,23 @@ open `file:///home/fabio/workspace/ScalaDID/webapp/index-fastopt.html#/`
 
 google-chrome-stable --disable-web-security --user-data-dir="/tmp/chrome_tmp" --new-window file:///home/fabio/workspace/ScalaDID/webapp/index-fastopt.html#/
 
+## Test coverage
+
+1. `sbt clean coverage testJVM` - Run test
+2. `sbt coverageReport` - Generate reports
+3. `sbt coverageAggregate` - Aggregate reports
+
+|   date   |  all  |  did  |did-imp|did-resolver-web|didresolver-peer
+|:--------:|:-----:|:-----:|:-----:|:--------------:|:--------------:
+|2022-11-26|29.21 %|25.31 %|57.60 %|     81.58 %    |     27.50 %
+
+You should open the reports with your browser. The reports will be in each module `target/scala-<scala-version>/scoverage-report`
+- [all/aggregate](/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/target/scala-3.2.2-RC1/scoverage-report/index.html
+- [did](/did/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
+- [did-imp](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-imp/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
+- [did-resolver-web](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-web/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
+- [did-resolver-peer](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-peer/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
+
 ## Limitations
 
 ### WIP

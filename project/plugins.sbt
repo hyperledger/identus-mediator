@@ -39,6 +39,9 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 // CI
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4") // sbt> dependencyUpdates
 
+// TEST COVERAGE
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.6") // Needs scala version 3.2.2
+
 // PUBLISH
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.11")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.14")
