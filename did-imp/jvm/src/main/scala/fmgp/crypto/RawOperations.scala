@@ -83,7 +83,7 @@ object RawOperations extends CryptoOperations {
   ): UIO[EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = ProtectedHeader.calculateAPV(ecRecipientsKeys.map(_._1)),
+      apv = APV(ecRecipientsKeys.map(_._1)),
       skid = None,
       apu = None,
       typ = MediaTypes.ANONCRYPT,
@@ -99,7 +99,7 @@ object RawOperations extends CryptoOperations {
   ): UIO[EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = ProtectedHeader.calculateAPV(okpRecipientKeys.map(_._1)),
+      apv = APV(okpRecipientKeys.map(_._1)),
       skid = None,
       apu = None,
       typ = MediaTypes.ANONCRYPT,
@@ -116,9 +116,9 @@ object RawOperations extends CryptoOperations {
   ): UIO[EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = ProtectedHeader.calculateAPV(recipientKeys.map(_._1)),
+      apv = APV(recipientKeys.map(_._1)),
       skid = Some(senderKidKey._1),
-      apu = Some(ProtectedHeader.calculateAPU(senderKidKey._1)),
+      apu = Some(APU(senderKidKey._1)),
       typ = MediaTypes.AUTHCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
@@ -133,9 +133,9 @@ object RawOperations extends CryptoOperations {
   ): UIO[EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = ProtectedHeader.calculateAPV(recipientKeys.map(_._1)),
+      apv = APV(recipientKeys.map(_._1)),
       skid = Some(senderKidKey._1),
-      apu = Some(ProtectedHeader.calculateAPU(senderKidKey._1)),
+      apu = Some(APU(senderKidKey._1)),
       typ = MediaTypes.AUTHCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,

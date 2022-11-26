@@ -25,9 +25,9 @@ import java.security.MessageDigest
   */
 case class ProtectedHeader(
     epk: Option[PublicKey],
-    apv: Base64,
+    apv: APV,
     skid: Option[VerificationMethodReferenced] = None, // did:example:alice#key-p256-1
-    apu: Option[Base64] = None,
+    apu: Option[APU] = None,
     typ: MediaTypes,
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
@@ -42,11 +42,6 @@ case class ProtectedHeader(
 object ProtectedHeader {
   given decoder: JsonDecoder[ProtectedHeader] = DeriveJsonDecoder.gen[ProtectedHeader]
   given encoder: JsonEncoder[ProtectedHeader] = DeriveJsonEncoder.gen[ProtectedHeader]
-
-  def calculateAPV(refs: Seq[VerificationMethodReferenced]): Base64 =
-    Base64.encode(MessageDigest.getInstance("SHA-256").digest(refs.map(_.value).sorted.mkString(".").getBytes()))
-
-  def calculateAPU(ref: VerificationMethodReferenced): Base64 = Base64.encode(ref.value.getBytes)
 }
 
 enum ENCAlgorithm { // JWAAlgorithm

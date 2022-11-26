@@ -46,11 +46,11 @@ given Conversion[ProtectedHeader, JWEHeader] with
 
     val tmp = new JWEHeader.Builder(algorithm, encryptionMethod)
       .`type`(JOSEObjectType(x.typ.typ))
-      .agreementPartyVInfo(x.apv) // Utils.calculateAPV(x.apv  ecRecipientsKeys.map(_._1)))
+      .agreementPartyVInfo(x.apv.base64) // Utils.calculateAPV(x.apv  ecRecipientsKeys.map(_._1)))
 
     x.epk.foreach(e => tmp.ephemeralPublicKey(e.toJWK)) // new JWKECKey.Builder(curve, ephemeralPublicKey).build())
     x.skid.foreach(e => tmp.senderKeyID(e.value))
-    x.apu.foreach(e => tmp.agreementPartyUInfo(e))
+    x.apu.foreach(e => tmp.agreementPartyUInfo(e.base64))
     tmp.build()
   }
 

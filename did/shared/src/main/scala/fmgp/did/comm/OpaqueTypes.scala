@@ -2,6 +2,8 @@ package fmgp.did.comm
 
 import zio.json._
 import fmgp.util.Base64
+import fmgp.did.VerificationMethodReferenced
+import java.security.MessageDigest
 
 /** CipherText is a Base64 url encode */
 opaque type CipherText = String
@@ -32,3 +34,31 @@ object TAG:
     def base64: Base64 = Base64.fromBase64url(tag.value)
   given decoder: JsonDecoder[TAG] = JsonDecoder.string.map(TAG(_))
   given encoder: JsonEncoder[TAG] = JsonEncoder.string.contramap[TAG](_.value)
+
+  /** APV is a Base64 url encode */
+opaque type APV = String
+object APV:
+  def apply(value: String): APV = value
+  def apply(refs: Seq[VerificationMethodReferenced]): APV =
+    Base64
+      .encode(MessageDigest.getInstance("SHA-256").digest(refs.map(_.value).sorted.mkString(".").getBytes()))
+      .urlBase64
+  extension (apv: APV)
+    def value: String = apv
+    def base64: Base64 = Base64.fromBase64url(apv.value)
+
+  given decoder: JsonDecoder[APV] = JsonDecoder.string.map(APV(_))
+  given encoder: JsonEncoder[APV] = JsonEncoder.string.contramap[APV](_.value)
+
+/** APU is a Base64 url encode */
+opaque type APU = String
+object APU:
+  def apply(value: String): APU = value
+  def apply(ref: VerificationMethodReferenced): APU =
+    Base64.encode(ref.value.getBytes).urlBase64
+  extension (apu: APU)
+    def value: String = apu
+    def base64: Base64 = Base64.fromBase64url(apu.value)
+
+  given decoder: JsonDecoder[APU] = JsonDecoder.string.map(APU(_))
+  given encoder: JsonEncoder[APU] = JsonEncoder.string.contramap[APU](_.value)

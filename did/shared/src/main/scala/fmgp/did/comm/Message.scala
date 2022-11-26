@@ -144,7 +144,7 @@ enum ContentEncryptionAlgorithms {
   * https://datatracker.ietf.org/doc/html/draft-looker-jwm-01
   */
 case class SignedMessage(
-    payload: Base64URL,
+    payload: String, // FIXME Base64URL
     signatures: Seq[JWMSignatureObj]
 ) extends Message {
   def base64 = signatures.head.`protected` + "." + payload + "." + signatures.head.signature
@@ -236,9 +236,8 @@ trait HeadersJson { // TODO
   def skid: String
 
   /** base64URL(skid value) */
-  def apu: Base64URL
-
-  def apv: Base64URL
+  def apu: APU
+  def apv: APV
 
   def typ: String // like "application/didcomm-encrypted+json"
   def enc: String // like "XC20P"
