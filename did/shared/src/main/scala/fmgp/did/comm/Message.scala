@@ -144,7 +144,7 @@ enum ContentEncryptionAlgorithms {
   * https://datatracker.ietf.org/doc/html/draft-looker-jwm-01
   */
 case class SignedMessage(
-    payload: String, // FIXME Base64URL
+    payload: Payload,
     signatures: Seq[JWMSignatureObj]
 ) extends Message {
   def base64 = signatures.head.`protected` + "." + payload + "." + signatures.head.signature

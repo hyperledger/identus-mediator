@@ -26,20 +26,20 @@ trait CryptoOperations {
   def encrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = anonEncrypt(recipientKidsKeys, data: Array[Byte])
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = anonEncrypt(recipientKidsKeys, data: Array[Byte])
 
   def encrypt(
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = authEncrypt(senderKidKey, recipientKidsKeys, data)
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = authEncrypt(senderKidKey, recipientKidsKeys, data)
 
   /** anoncrypt - Guarantees confidentiality and integrity without revealing the identity of the sender.
     */
   def anonEncrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric]
+  ): IO[CryptoFailed, EncryptedMessageGeneric]
 
   /** authcrypt - Guarantees confidentiality and integrity. Also proves the identity of the sender – but in a way that
     * only the recipient can verify. This is the default wrapping choice, and SHOULD be used unless a different goal is
@@ -50,7 +50,7 @@ trait CryptoOperations {
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric]
+  ): IO[CryptoFailed, EncryptedMessageGeneric]
 
   // ###############
   // ### Decrypt ###

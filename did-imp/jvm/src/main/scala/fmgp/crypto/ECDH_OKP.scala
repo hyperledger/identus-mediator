@@ -14,6 +14,8 @@ import com.nimbusds.jose.crypto.X25519Encrypter
 import com.nimbusds.jose.crypto.ECDH1PUEncrypter
 import com.nimbusds.jose.crypto.ECDH1PUX25519Encrypter
 import com.nimbusds.jose.crypto.impl.ECDH
+import com.nimbusds.jose.crypto.impl.ECDH1PU
+import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
@@ -26,16 +28,14 @@ import fmgp.crypto.UtilsJVM.toJWK
 import fmgp.util.Base64
 
 import zio.json._
-import scala.util.Failure
-import scala.util.Success
+
 import scala.util.Try
 import scala.util.chaining._
 import scala.collection.convert._
 import scala.collection.JavaConverters._
 
 import java.util.Collections
-import com.nimbusds.jose.crypto.impl.ECDH1PU
-import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
+
 import com.nimbusds.jose.JOSEException //TODO REMOVE
 import javax.crypto.SecretKey
 
@@ -67,13 +67,13 @@ class ECDH_AnonOKP(
       Try(com.google.crypto.tink.subtle.X25519.publicFromPrivate(ephemeralPrivateKeyBytes)).recover {
         case ex: java.security.InvalidKeyException =>
           // Should never happen since we just generated this private key
-          throw ex // new JOSEException(eex.getMessage(), ex);
+          throw ex // new JOSEException(eex.getMessage(), ex)
       }.get
 
     val ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
       new OctetKeyPair.Builder(curve, Base64.encode(ephemeralPublicKeyBytes))
         .d(Base64.encode(ephemeralPrivateKeyBytes))
-        .build();
+        .build()
     val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
     val ecKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
 
@@ -109,7 +109,6 @@ class ECDH_AnonOKP(
         throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
       }
 
-      val use_the_defualt_JCA_Provider = null
       val Z = ECDH.deriveSharedSecret(
         ephemeralKey, // Public Key
         recipientKey, // Private Key
@@ -167,7 +166,6 @@ class ECDH_AuthOKP( // FIXME rename
       .build()
 
     val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
-      val use_the_defualt_JCA_Provider = null
       (
         vmr,
         ECDH1PU.deriveSenderZ(
@@ -206,7 +204,6 @@ class ECDH_AuthOKP( // FIXME rename
       //   throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
       // }
 
-      val use_the_defualt_JCA_Provider = null
       val Z: SecretKey = ECDH1PU.deriveRecipientZ(
         recipientKey,
         sender.toJWK.toPublicJWK(),

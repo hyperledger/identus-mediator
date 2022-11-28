@@ -1,3 +1,4 @@
+/*
 package fmgp.crypto
 
 import typings.jose.anon.PickFlattenedJWEencrypted
@@ -28,9 +29,10 @@ import fmgp.crypto.error._
 object RawOperations extends CryptoOperations {
 
   override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
-    key.sign(plaintext)
+    PlatformSpecificOperations.sign(key, plaintext)
 
-  override def verify(key: PublicKey, jwm: SignedMessage): IO[CryptoFailed, Boolean] = key.verify(jwm)
+  override def verify(key: PublicKey, jwm: SignedMessage): IO[CryptoFailed, Boolean] =
+    PlatformSpecificOperations.verify(key, jwm)
 
   // ###############
   // ### encrypt ###
@@ -178,3 +180,4 @@ object RawOperations extends CryptoOperations {
   ): IO[DidFail, Message] = ZIO.die(NotImplementedError()) // FIXME
 
 }
+ */

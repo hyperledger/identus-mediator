@@ -1,12 +1,8 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
-import com.nimbusds.jose.jwk.OctetKeyPair
-
 import zio._
 import zio.json._
 
-import fmgp.crypto.UtilsJVM._
 import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
@@ -14,22 +10,15 @@ import fmgp.util.IOR
 import fmgp.util.Base64
 
 import scala.util.chaining._
-import scala.collection.JavaConverters._
 
 /** https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms */
 object RawOperations extends CryptoOperations {
 
-  override def sign(key: PrivateKey, plaintext: PlaintextMessage): UIO[SignedMessage] =
-    ZIO.succeed(key.match {
-      case okp: OKPPrivateKey => okp.toJWK.sign(plaintext, key.jwaAlgorithmtoSign)
-      case ec: ECPrivateKey   => ec.toJWK.sign(plaintext, key.jwaAlgorithmtoSign)
-    })
+  override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
+    PlatformSpecificOperations.sign(key, plaintext)
 
-  override def verify(key: PublicKey, jwm: SignedMessage): UIO[Boolean] =
-    ZIO.succeed(key.match {
-      case okp: OKPPublicKey => okp.toJWK.verify(jwm, key.jwaAlgorithmtoSign)
-      case ec: ECPublicKey   => ec.toJWK.verify(jwm, key.jwaAlgorithmtoSign)
-    })
+  override def verify(key: PublicKey, jwm: SignedMessage): IO[CryptoFailed, Boolean] =
+    PlatformSpecificOperations.verify(key, jwm)
 
   // ###############
   // ### encrypt ###
@@ -38,7 +27,7 @@ object RawOperations extends CryptoOperations {
   override def anonEncrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] =
+  ): IO[CryptoFailed, EncryptedMessageGeneric] =
     recipientKidsKeys
       .foldRight(
         (Seq.empty[(VerificationMethodReferenced, ECKey)], Seq.empty[(VerificationMethodReferenced, OKPKey)])
@@ -59,7 +48,7 @@ object RawOperations extends CryptoOperations {
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] =
+  ): IO[CryptoFailed, EncryptedMessageGeneric] =
     (senderKidKey._2) match {
       case (ecSenderKey: ECKey) =>
         val recipientKeys = recipientKidsKeys.map {
@@ -80,7 +69,7 @@ object RawOperations extends CryptoOperations {
   def anoncryptEC(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(ecRecipientsKeys.map(_._1)),
@@ -90,13 +79,14 @@ object RawOperations extends CryptoOperations {
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-ES+A256KW`,
     )
-    ZIO.succeed(ECDH_AnonEC(ecRecipientsKeys, header).encrypt(clearText))
+    // ZIO.succeed(ECDH_AnonEC(ecRecipientsKeys, header).encrypt(clearText))
+    ZIO.fromEither(ECDH.anonEncryptEC(ecRecipientsKeys, header, clearText))
   }
 
   def anoncryptOKP(
       okpRecipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(okpRecipientKeys.map(_._1)),
@@ -106,14 +96,15 @@ object RawOperations extends CryptoOperations {
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-ES+A256KW`,
     )
-    ZIO.succeed(ECDH_AnonOKP(okpRecipientKeys, header).encrypt(clearText))
+    // ZIO.succeed(ECDH_AnonOKP(okpRecipientKeys, header).encrypt(clearText))
+    ZIO.fromEither(ECDH.anonEncryptOKP(okpRecipientKeys, header, clearText))
   }
 
   def authcryptEC(
       senderKidKey: (VerificationMethodReferenced, ECKey),
       recipientKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(recipientKeys.map(_._1)),
@@ -123,14 +114,15 @@ object RawOperations extends CryptoOperations {
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )
-    ZIO.succeed(ECDH_AuthEC(senderKidKey._2, recipientKeys, header).encrypt(clearText))
+    // ZIO.succeed(ECDH_AuthEC(senderKidKey._2, recipientKeys, header).encrypt(clearText))
+    ZIO.fromEither(ECDH.authEncryptEC(senderKidKey._2, recipientKeys, header, clearText))
   }
 
   def authcryptOKP(
       senderKidKey: (VerificationMethodReferenced, OKPKey),
       recipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
-  ): UIO[EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(recipientKeys.map(_._1)),
@@ -140,7 +132,8 @@ object RawOperations extends CryptoOperations {
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )
-    ZIO.succeed(ECDH_AuthOKP(senderKidKey._2, recipientKeys, header).encrypt(clearText))
+    // ZIO.succeed(ECDH_AuthOKP(senderKidKey._2, recipientKeys, header).encrypt(clearText))
+    ZIO.fromEither(ECDH.authEncryptOKP(senderKidKey._2, recipientKeys, header, clearText))
   }
 
   // ###############
@@ -162,29 +155,25 @@ object RawOperations extends CryptoOperations {
       case ecKey: ECKey =>
         val jweRecipient =
           msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
-        val fixme = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[ECPrivateKey])) // FIXME
-        val ret = ECDH_AnonEC(fixme, header)
-          .decrypt(
-            jweRecipient,
-            msg.iv,
-            msg.ciphertext,
-            msg.tag
-          )
-        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
+        val ecRecipientsKeys = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[ECPrivateKey])) // FIXME
+        val ret = ECDH
+          .anonDecryptEC(ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
+        ZIO.fromEither(ret match {
+          case Left(error: CryptoFailed) => Left(error)
+          case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+        })
 
       case okpKey: OKPKey =>
         val fixme = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[OKPPrivateKey])) // FIXME
         val jweRecipient =
           msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
 
-        val ret = ECDH_AnonOKP(fixme, header)
-          .decrypt(
-            jweRecipient,
-            msg.iv,
-            msg.ciphertext,
-            msg.tag
-          )
-        ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_)))
+        val ret = ECDH
+          .anonDecryptOKP(fixme, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
+        ZIO.fromEither(ret match {
+          case Left(error: CryptoFailed) => Left(error)
+          case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+        })
     }
 
   }
@@ -226,15 +215,14 @@ object RawOperations extends CryptoOperations {
           .map { case IOR.Both(warnings, encryptedKey_vmr_keys) =>
             val ecRecipientsKeys = encryptedKey_vmr_keys.map { case (encryptedKey, vmr, keys) => (vmr, keys) }
 
-            ECDH_AuthEC(ecSenderKey, ecRecipientsKeys, header)
-              .decrypt(
-                jweRecipient,
-                msg.iv,
-                msg.ciphertext,
-                msg.tag
-              )
+            ECDH.authDecryptEC(ecSenderKey, ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
-          .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))
+          .flatMap(ret =>
+            ZIO.fromEither(ret match {
+              case Left(error: CryptoFailed) => Left(error)
+              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            })
+          )
       case okpSenderKey: OKPKey =>
         ZIO
           .foreach(msg.recipients) { recipien =>
@@ -260,15 +248,14 @@ object RawOperations extends CryptoOperations {
           .map { case IOR.Both(warnings, encryptedKey_vmr_keys) =>
             val okpRecipientsKeys = encryptedKey_vmr_keys.map { case (encryptedKey, vmr, keys) => (vmr, keys) }
 
-            ECDH_AuthOKP(okpSenderKey, okpRecipientsKeys, header)
-              .decrypt(
-                jweRecipient,
-                msg.iv,
-                msg.ciphertext,
-                msg.tag
-              )
+            ECDH.authDecryptOKP(okpSenderKey, okpRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
-          .flatMap(ret => ZIO.fromEither(String(ret).fromJson[Message].left.map(FailToParse(_))))
+          .flatMap(ret =>
+            ZIO.fromEither(ret match {
+              case Left(error: CryptoFailed) => Left(error)
+              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            })
+          )
     }
   }
 

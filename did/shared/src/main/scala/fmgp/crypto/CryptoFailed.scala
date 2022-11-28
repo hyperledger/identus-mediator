@@ -13,6 +13,7 @@ package error {
   // Error Crypto
   sealed trait CryptoFailed extends DidFail
 
+  case object CryptoNotImplementedError extends CryptoFailed
   case object UnknownError extends CryptoFailed
 
   case object WrongKeysTypeCombination extends CryptoFailed

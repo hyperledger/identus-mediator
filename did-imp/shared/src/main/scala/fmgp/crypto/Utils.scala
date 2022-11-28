@@ -1,6 +1,5 @@
 package fmgp.crypto
 
-import java.security.MessageDigest
 import fmgp.did.VerificationMethodReferenced
 import fmgp.util.Base64
 

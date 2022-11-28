@@ -4,7 +4,6 @@ import zio.json._
 import fmgp.did._
 import fmgp.crypto.PublicKey
 import fmgp.util.Base64
-import java.security.MessageDigest
 
 // class Base64JWEHeader(data: Base64) extends Selectable:
 //   val json = data.decode.fromJson[Json].toOption.get

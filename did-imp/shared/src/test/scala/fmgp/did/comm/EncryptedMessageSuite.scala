@@ -11,6 +11,7 @@ import zio.json._
 import zio.json.ast.JsonCursor
 import zio.json.ast.Json
 
+/* didImpJVM/testOnly fmgp.did.comm.EncryptedMessageSuite */
 class EncryptedMessageSuite extends ZSuite {
 
   test("Example parse plaintextMessage") {
