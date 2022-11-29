@@ -40,13 +40,13 @@ trait PlaintextMessage extends Message {
   /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
   def `type`: Required[String]
 
-  def to: NotRequired[Set[DIDURLSyntax]]
+  def to: NotRequired[Set[DIDSubject]]
 
   /** OPTIONAL when the message is to be encrypted via anoncrypt;
     *
     * TODO REQUIRED when the message is encrypted via authcrypt
     */
-  def from: NotRequired[DIDURLSyntax]
+  def from: NotRequired[DIDSubject]
 
   /** Thread identifier */
   def thid: NotRequired[String]

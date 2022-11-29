@@ -12,8 +12,16 @@ type MULTIBASE = String // TODO
   *
   * https://w3c-ccg.github.io/security-vocab/#verificationMethod
   * https://w3c.github.io/did-core/#verification-method-properties
+  * https://www.w3.org/TR/did-core/#verification-method-properties
   */
 sealed trait VerificationMethod
+// { FIXME
+//   def id: String // DID URL Syntax.
+//   def controller: String // DID Syntax.
+//   def `type`: String
+//   def publicKeyJwk: String // RFC7517
+//   def publicKeyMultibase: String // MULTIBASE
+// }
 
 object VerificationMethod {
   given decoder: JsonDecoder[VerificationMethod] =

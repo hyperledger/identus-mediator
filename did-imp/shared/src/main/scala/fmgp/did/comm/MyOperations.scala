@@ -7,10 +7,9 @@ import fmgp.did._
 import fmgp.crypto.error._
 import fmgp.crypto._
 
-
 class MyOperations extends Operations {
 
-  def sign(msg: PlaintextMessageClass): ZIO[Agent, CryptoFailed, SignedMessage] =
+  def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] =
     for {
       agent <- ZIO.service[Agent]
       key = agent.keys.head // FIXME
@@ -34,12 +33,12 @@ class MyOperations extends Operations {
     } yield ret
   }
 
-  override def anonEncrypt(msg: PlaintextMessageClass): ZIO[Resolver, DidFail, EncryptedMessage] = {
+  override def anonEncrypt(msg: PlaintextMessage): ZIO[Resolver, DidFail, EncryptedMessage] = {
     // TODO return EncryptionFailed.type on docs
     for {
       resolver <- ZIO.service[Resolver]
-      docs <- ZIO.foreach(msg.to.toSeq.flatten)(e => resolver.didDocument(DIDSubject(e)))
-      verificationMethods = docs.flatMap(_.verificationMethod.toSeq.flatten)
+      docs <- ZIO.foreach(msg.to.toSeq.flatten)(resolver.didDocument(_))
+      verificationMethods = docs.flatMap(_.didCommKeys.toSeq.flatten)
       recipientKidsKeys = verificationMethods.map {
         case e: VerificationMethodReferenced        => ??? // FIXME
         case e: VerificationMethodEmbeddedJWK       => (VerificationMethodReferenced(e.id), e.publicKeyJwk)
@@ -49,7 +48,7 @@ class MyOperations extends Operations {
     } yield ret
   }
 
-  def authEncrypt(msg: PlaintextMessageClass): ZIO[Agent & Resolver, DidFail, EncryptedMessage] = {
+  def authEncrypt(msg: PlaintextMessage): ZIO[Agent & Resolver, DidFail, EncryptedMessage] = {
     // TODO return EncryptionFailed.type on docs
     for {
       agent <- ZIO.service[Agent]
@@ -57,8 +56,8 @@ class MyOperations extends Operations {
         .flatMap(e => e.kid.map(kid => (VerificationMethodReferenced(kid), e)))
         .head // FIXME
       resolver <- ZIO.service[Resolver]
-      docs <- ZIO.foreach(msg.to.toSeq.flatten)(e => resolver.didDocument(DIDSubject(e)))
-      verificationMethods = docs.flatMap(_.verificationMethod.toSeq.flatten)
+      docs <- ZIO.foreach(msg.to.toSeq.flatten)(resolver.didDocument(_))
+      verificationMethods = docs.flatMap(_.didCommKeys.toSeq.flatten)
       recipientKidsKeys = verificationMethods.map {
         case e: VerificationMethodReferenced        => ??? // FIXME
         case e: VerificationMethodEmbeddedJWK       => (VerificationMethodReferenced(e.id), e.publicKeyJwk)
@@ -70,10 +69,10 @@ class MyOperations extends Operations {
 
   /** decrypt */
   def anonDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, CryptoFailed, Message] =
-    ???
+    ??? // FIXME
 
   /** decrypt verify sender */
   def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, CryptoFailed, Message] =
-    ???
+    ??? // FIXME
 
 }

@@ -114,9 +114,9 @@ object DIDPeer {
   // #regexPeer2 = "^did:peer:(2((\\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\\.(S)[0-9a-zA-Z=]*)?))$".r
   def regexPeer2 = "^did:peer:2((\\.([AEVID])z([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\\.(S)([0-9a-zA-Z=]*))?)$".r
 
-  def apply(didSubject: DIDSubject): DIDPeer = asDIDPeer(didSubject.toDID)
+  def apply(didSubject: DIDSubject): DIDPeer = fromDID(didSubject.toDID)
 
-  def asDIDPeer(did: DID) = did.string match {
+  def fromDID(did: DID) = did.string match {
     case regexPeer0(all, z: "z", data) => DIDPeer0(all.drop(1))
     case regexPeer1(all, z: "z", data) => DIDPeer1(all.drop(1))
     case regexPeer2(all, str: _*) =>

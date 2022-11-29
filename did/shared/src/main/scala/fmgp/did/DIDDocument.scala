@@ -32,6 +32,7 @@ trait DIDDocument extends DID {
 
   // methods
   def didSubject = id.toDID
+  def didCommKeys = verificationMethod ++ keyAgreement // TODO CHECK is this that way to get keys used on did comm?
 
   val (namespace, specificId) = (id.namespace, id.specificId) // DID.getNamespaceAndSpecificId(id)
 

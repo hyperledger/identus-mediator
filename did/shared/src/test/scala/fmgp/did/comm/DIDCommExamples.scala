@@ -1,6 +1,7 @@
 package fmgp.did.comm
 
 import fmgp.crypto.JWKExamples
+import fmgp.did.DIDSubject
 
 object DIDCommExamples {
 
@@ -38,8 +39,8 @@ object DIDCommExamples {
   val plaintextMessageObj = PlaintextMessageClass(
     id = "1234567890",
     `type` = "<message-type-uri>",
-    from = Some("did:example:alice"),
-    to = Some(Set("did:example:bob")),
+    from = Some(DIDSubject("did:example:alice")),
+    to = Some(Set(DIDSubject("did:example:bob"))),
     thid = None,
     created_time = Some(1516269022L),
     expires_time = Some(1516385931L),

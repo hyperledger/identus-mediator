@@ -32,14 +32,14 @@ class DIDPeerSuite extends ZSuite {
 
   test("Create DIDPeer apply ex5_peer1") {
     val s = DIDSubject(ex5_peer1)
-    val did = DIDPeer.asDIDPeer(s)
+    val did = DIDPeer.fromDID(s)
     assertEquals(did, DIDPeer1("zQmZMygzYqNwU6Uhmewx5Xepf2VLp5S4HLSwwgf2aiKZuwa"))
     assertEquals(did.string, s.string)
   }
 
   test("Create DIDPeer apply ex4_peer2_did") {
     val s = DIDSubject(ex4_peer2_did)
-    val did = DIDPeer.asDIDPeer(s)
+    val did = DIDPeer.fromDID(s)
     assertEquals(
       did,
       DIDPeer2(
@@ -58,7 +58,7 @@ class DIDPeerSuite extends ZSuite {
 
   test("Create DIDPeer apply myExampleDID") {
     val s = DIDSubject(myExampleDID)
-    val did = DIDPeer.asDIDPeer(s)
+    val did = DIDPeer.fromDID(s)
     assertEquals(
       did,
       DIDPeer2(
@@ -89,7 +89,7 @@ class DIDPeerSuite extends ZSuite {
 
   //   // val exDID = DIDSubject(DIDPeerExamples.ex4_peer2_did)
 
-  //   DIDPeer.asDIDPeer(exDID)
+  //   DIDPeer.fromDID(exDID)
   //   for {
   //     doc <- DidPeerResolver.didDocument(exDID)
   //     _ = println(doc)

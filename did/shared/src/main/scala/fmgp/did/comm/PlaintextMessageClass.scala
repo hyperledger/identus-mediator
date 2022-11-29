@@ -6,8 +6,8 @@ import fmgp.did._
 case class PlaintextMessageClass(
     id: Required[String],
     `type`: Required[String],
-    to: NotRequired[Set[DIDURLSyntax]],
-    from: NotRequired[DIDURLSyntax],
+    to: NotRequired[Set[DIDSubject]],
+    from: NotRequired[DIDSubject],
     thid: NotRequired[String],
     created_time: NotRequired[UTCEpoch],
     expires_time: NotRequired[UTCEpoch],
