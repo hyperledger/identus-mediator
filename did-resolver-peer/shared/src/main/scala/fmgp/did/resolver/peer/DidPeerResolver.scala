@@ -10,7 +10,8 @@ object DidPeerResolver extends Resolver {
 
   override def didDocument(did: DIDSubject): IO[DidMethodNotSupported, DIDDocument] = (did: DID) match {
     case peer: DIDPeer => didDocument(peer)
-    // case did: DIDSubject if DIDPeer.regexPeer0.matches(did) => did.asInstanceOf[DID]
+    case did if DIDPeer.regexPeer.matches(did.string) =>
+      didDocument(DIDPeer(did))
     case did => ZIO.fail(DidMethodNotSupported(did.namespace))
   }
 
