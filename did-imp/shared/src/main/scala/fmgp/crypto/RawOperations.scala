@@ -38,10 +38,10 @@ object RawOperations extends CryptoOperations {
       }
       .pipe(e => (e._1.sortBy(_._1.value), e._2.sortBy(_._1.value))) // order recipients by name
       .pipe {
-        case (Seq(), Seq())    => ??? // FIXME ERROR
+        case (Seq(), Seq())    => ZIO.fail(NoKeys)
         case (ecKeys, Seq())   => anoncryptEC(ecKeys, data)
         case (Seq(), okpKeys)  => anoncryptOKP(okpKeys, data)
-        case (ecKeys, okpKeys) => ??? // FIXME ERROR
+        case (ecKeys, okpKeys) => ZIO.fail(IncompatibleKeys)
       }
 
   override def authEncrypt(

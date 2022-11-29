@@ -129,7 +129,7 @@ class ECDH_AnonOKP(
 
 class ECDH_AuthOKP( // FIXME rename
     sender: OKPKey,
-    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
     header: JWEHeader,
     // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
     // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512

@@ -21,6 +21,8 @@ package error {
   case object EncryptionFailed extends CryptoFailed
   case object DecryptionFailed extends CryptoFailed
 
+  case object NoKeys extends CryptoFailed
+  case object IncompatibleKeys extends CryptoFailed
   case object MissingDecryptionKey extends CryptoFailed
   case object SignatureVerificationFailed extends CryptoFailed
 
