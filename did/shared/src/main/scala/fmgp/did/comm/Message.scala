@@ -213,6 +213,9 @@ trait EncryptedMessage extends Message {
   def iv: IV
 }
 
+// trait AnonEncryptedMessage //TODO and make EncryptedMessage a sealed trait
+// trait AuthEncryptedMessage //TODO and make EncryptedMessage a sealed trait
+
 object EncryptedMessage {
   given decoder: JsonDecoder[EncryptedMessage] =
     EncryptedMessageGeneric.decoder.map(e => e: EncryptedMessage)

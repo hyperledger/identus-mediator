@@ -157,6 +157,10 @@ object UtilsJVM {
     }
   }
 
+  // TODO extension (ec: ECPublicKey) def toJWK: JWKECKey = ???
+  // TODO extension (ec: ECPrivateKey) def toJWK: JWKECKey = ???
+  // TODO extension (okp: OKPPublicKey) def toJWK: OctetKeyPair = ???
+  // TODO extension (okp: OKPPrivateKey) def toJWK: OctetKeyPair = ???
   extension (ec: ECKey) {
     def toJWK: JWKECKey = {
 

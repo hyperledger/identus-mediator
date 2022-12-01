@@ -38,6 +38,9 @@ case class ProtectedHeader(
     assert(skid.isDefined, "AUTH messagem MUST HAVE 'skid'") // IMPROVE make it type safe
 }
 
+// trait AnonProtectedHeader //TODO and make ProtectedHeader a sealed trait
+// trait AuthProtectedHeader //TODO and make ProtectedHeader a sealed trait
+
 object ProtectedHeader {
   given decoder: JsonDecoder[ProtectedHeader] = DeriveJsonDecoder.gen[ProtectedHeader]
   given encoder: JsonEncoder[ProtectedHeader] = DeriveJsonEncoder.gen[ProtectedHeader]
