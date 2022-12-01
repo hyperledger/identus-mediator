@@ -1,6 +1,7 @@
 package fmgp.crypto
 
 import fmgp.did.VerificationMethodReferenced
+import fmgp.did.VerificationMethodReferencedWithKey
 import fmgp.did.comm._
 import fmgp.crypto.error._
 
@@ -24,7 +25,7 @@ object ECDH {
 
   def authEncryptEC(
       sender: ECKey,
-      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      ecRecipientsKeys: Seq[VerificationMethodReferencedWithKey[ECPublicKey]],
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
@@ -60,7 +61,7 @@ object ECDH {
 
   def authEncryptOKP(
       sender: OKPKey,
-      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+      okpRecipientsKeys: Seq[VerificationMethodReferencedWithKey[OKPPublicKey]],
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =

@@ -27,7 +27,7 @@ object RawOperations extends CryptoOperations {
   override def anonEncrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] =
+  ): IO[CryptoFailed, EncryptedMessage] =
     recipientKidsKeys
       .foldRight(
         (Seq.empty[(VerificationMethodReferenced, ECKey)], Seq.empty[(VerificationMethodReferenced, OKPKey)])
@@ -48,18 +48,18 @@ object RawOperations extends CryptoOperations {
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] =
+  ): IO[CryptoFailed, EncryptedMessage] =
     (senderKidKey._2) match {
       case (ecSenderKey: ECKey) =>
         val recipientKeys = recipientKidsKeys.map {
-          case (vmr, key: ECPublicKey)  => (vmr, key)
+          case (vmr, key: ECPublicKey)  => VerificationMethodReferencedWithKey(vmr.value, key)
           case (vmr, key: OKPPublicKey) => ??? // FIXME
         }
         authcryptEC((senderKidKey._1, ecSenderKey), recipientKeys, data)
       case okpSenderKey: OKPKey =>
         val recipientKeys = recipientKidsKeys.map {
           case (vmr, key: ECPublicKey)  => ??? // FIXME
-          case (vmr, key: OKPPublicKey) => (vmr, key)
+          case (vmr, key: OKPPublicKey) => VerificationMethodReferencedWithKey(vmr.value, key)
         }
         authcryptOKP((senderKidKey._1, okpSenderKey), recipientKeys, data)
     }
@@ -69,7 +69,7 @@ object RawOperations extends CryptoOperations {
   def anoncryptEC(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessage] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(ecRecipientsKeys.map(_._1)),
@@ -86,7 +86,7 @@ object RawOperations extends CryptoOperations {
   def anoncryptOKP(
       okpRecipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessage] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
       apv = APV(okpRecipientKeys.map(_._1)),
@@ -102,37 +102,35 @@ object RawOperations extends CryptoOperations {
 
   def authcryptEC(
       senderKidKey: (VerificationMethodReferenced, ECKey),
-      recipientKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      recipientKeys: Seq[VerificationMethodReferencedWithKey[ECPublicKey]],
       clearText: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessage] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = APV(recipientKeys.map(_._1)),
+      apv = APV(recipientKeys.map(_.vmr)),
       skid = Some(senderKidKey._1),
       apu = Some(APU(senderKidKey._1)),
       typ = MediaTypes.AUTHCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )
-    // ZIO.succeed(ECDH_AuthEC(senderKidKey._2, recipientKeys, header).encrypt(clearText))
     ZIO.fromEither(ECDH.authEncryptEC(senderKidKey._2, recipientKeys, header, clearText))
   }
 
   def authcryptOKP(
       senderKidKey: (VerificationMethodReferenced, OKPKey),
-      recipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+      recipientKeys: Seq[VerificationMethodReferencedWithKey[OKPPublicKey]],
       clearText: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = {
+  ): IO[CryptoFailed, EncryptedMessage] = {
     val header = ProtectedHeader(
       epk = None, // : Option[PublicKey],
-      apv = APV(recipientKeys.map(_._1)),
+      apv = APV(recipientKeys.map(_.vmr)),
       skid = Some(senderKidKey._1),
       apu = Some(APU(senderKidKey._1)),
       typ = MediaTypes.AUTHCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )
-    // ZIO.succeed(ECDH_AuthOKP(senderKidKey._2, recipientKeys, header).encrypt(clearText))
     ZIO.fromEither(ECDH.authEncryptOKP(senderKidKey._2, recipientKeys, header, clearText))
   }
 
@@ -142,7 +140,7 @@ object RawOperations extends CryptoOperations {
 
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message] = {
 
     def header = msg.`protected`.obj
@@ -181,7 +179,7 @@ object RawOperations extends CryptoOperations {
   override def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message] = {
     def header = msg.`protected`.obj
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME

@@ -16,6 +16,7 @@ package error {
   case object CryptoNotImplementedError extends CryptoFailed
   case object UnknownError extends CryptoFailed
 
+  /* EX: Curve of public key does not match curve of private key */
   case object WrongKeysTypeCombination extends CryptoFailed
 
   case object EncryptionFailed extends CryptoFailed

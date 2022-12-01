@@ -19,10 +19,10 @@ trait Operations {
   def authEncrypt(msg: PlaintextMessage): ZIO[Agent & Resolver, DidFail, EncryptedMessage]
 
   /** decrypt */
-  def anonDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, CryptoFailed, Message]
+  def anonDecrypt(msg: EncryptedMessage): ZIO[Agent, DidFail, Message]
 
   /** decrypt verify sender */
-  def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, CryptoFailed, Message]
+  def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Message]
 
 }
 
@@ -51,13 +51,13 @@ object Operations {
   /** decrypt */
   def anonDecrypt(
       msg: EncryptedMessage
-  ): ZIO[Operations & Agent & Resolver, CryptoFailed, Message] =
+  ): ZIO[Operations & Agent, DidFail, Message] =
     ZIO.serviceWithZIO[Operations](_.anonDecrypt(msg))
 
   /** decryptAndVerify */
   def authDecrypt(
       msg: EncryptedMessage
-  ): ZIO[Operations & Agent & Resolver, CryptoFailed, Message] =
+  ): ZIO[Operations & Agent & Resolver, DidFail, Message] =
     ZIO.serviceWithZIO[Operations](_.authDecrypt(msg))
 
 }

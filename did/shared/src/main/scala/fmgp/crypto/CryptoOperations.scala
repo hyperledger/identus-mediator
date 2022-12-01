@@ -26,20 +26,20 @@ trait CryptoOperations {
   def encrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = anonEncrypt(recipientKidsKeys, data: Array[Byte])
+  ): IO[CryptoFailed, EncryptedMessage] = anonEncrypt(recipientKidsKeys, data: Array[Byte])
 
   def encrypt(
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric] = authEncrypt(senderKidKey, recipientKidsKeys, data)
+  ): IO[CryptoFailed, EncryptedMessage] = authEncrypt(senderKidKey, recipientKidsKeys, data)
 
   /** anoncrypt - Guarantees confidentiality and integrity without revealing the identity of the sender.
     */
   def anonEncrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric]
+  ): IO[CryptoFailed, EncryptedMessage]
 
   /** authcrypt - Guarantees confidentiality and integrity. Also proves the identity of the sender – but in a way that
     * only the recipient can verify. This is the default wrapping choice, and SHOULD be used unless a different goal is
@@ -50,7 +50,7 @@ trait CryptoOperations {
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
       data: Array[Byte]
-  ): IO[CryptoFailed, EncryptedMessageGeneric]
+  ): IO[CryptoFailed, EncryptedMessage]
 
   // ###############
   // ### Decrypt ###
@@ -58,27 +58,27 @@ trait CryptoOperations {
 
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message]
 
   def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message]
 
   /*TODO REMOVE
   def anonDecryptOne(
       key: PrivateKey,
       encryptedKey: String,
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message]
 
   def authDecryptOne(
       recipientKey: PrivateKey,
       senderKey: PublicKey,
       encryptedKey: String,
-      msg: EncryptedMessageGeneric
+      msg: EncryptedMessage
   ): IO[DidFail, Message]
    */
 
