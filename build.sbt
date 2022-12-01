@@ -318,6 +318,19 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
   )
   .dependsOn(did)
 
+lazy val demo = crossProject(JSPlatform, JVMPlatform)
+  .in(file("demo"))
+  .configure(publishConfigure)
+  .settings(
+    name := "did-demo",
+    libraryDependencies += D.munit.value,
+    libraryDependencies += D.zioMunitTest.value,
+  )
+  .jvmSettings(
+    libraryDependencies += D.ziohttp.value,
+  )
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
+
 lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
