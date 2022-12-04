@@ -1,6 +1,8 @@
 package fmgp.did.comm
 
 import zio.json._
+import zio.json.ast._
+
 import fmgp.did._
 import fmgp.crypto.PublicKey
 import fmgp.util.Base64
@@ -13,6 +15,43 @@ import fmgp.util.Base64
 //   val name: String
 //   val age: Int
 // }
+
+sealed trait ProtectedHeaderTMP {
+  // def epk: Option[PublicKey]
+  def apv: APV
+  // def skid: Option[VerificationMethodReferenced] = None
+  // def apu: Option[APU] = None
+  def typ: MediaTypes
+  def enc: ENCAlgorithm
+  def alg: KWAlgorithm
+}
+
+// FIXME replace ProtectedHeader
+sealed trait ProtectedHeaderAUX extends ProtectedHeaderTMP {
+  def epk: PublicKey
+  def apv: APV
+  // def skid: Option[VerificationMethodReferenced]
+  // def apu: Option[APU]
+  def typ: MediaTypes
+  def enc: ENCAlgorithm
+  def alg: KWAlgorithm
+}
+
+object ProtectedHeaderAUX {
+  given decoder: JsonDecoder[ProtectedHeaderAUX] = Json.Obj.decoder.mapOrFail { originalAst =>
+    originalAst.get(JsonCursor.field("skid")) match {
+      case Left(value) /* "No such field: 'skid' */ => AnonProtectedHeader.decoder.decodeJson(originalAst.toJson)
+      case Right(value)                             => AuthProtectedHeader.decoder.decodeJson(originalAst.toJson)
+    }
+  }
+  given encoder: JsonEncoder[ProtectedHeaderAUX] = new JsonEncoder[ProtectedHeaderAUX] {
+    override def unsafeEncode(b: ProtectedHeaderAUX, indent: Option[Int], out: zio.json.internal.Write): Unit =
+      b match {
+        case obj: AnonProtectedHeader => AnonProtectedHeader.encoder.unsafeEncode(obj, indent, out)
+        case obj: AuthProtectedHeader => AuthProtectedHeader.encoder.unsafeEncode(obj, indent, out)
+      }
+  }
+}
 
 /** {{{
   * "epk": {"kty":"OKP","crv":"X25519","x":"JHjsmIRZAaB0zRG_wNXLV2rPggF00hdHbW5rj8g0I24"},
@@ -38,12 +77,46 @@ case class ProtectedHeader(
     assert(skid.isDefined, "AUTH messagem MUST HAVE 'skid'") // IMPROVE make it type safe
 }
 
-// trait AnonProtectedHeader //TODO and make ProtectedHeader a sealed trait
-// trait AuthProtectedHeader //TODO and make ProtectedHeader a sealed trait
-
 object ProtectedHeader {
   given decoder: JsonDecoder[ProtectedHeader] = DeriveJsonDecoder.gen[ProtectedHeader]
   given encoder: JsonEncoder[ProtectedHeader] = DeriveJsonEncoder.gen[ProtectedHeader]
+}
+
+case class AnonProtectedHeader(
+    epk: PublicKey,
+    apv: APV,
+    typ: MediaTypes = MediaTypes.ANONCRYPT,
+    enc: ENCAlgorithm,
+    alg: KWAlgorithm,
+) extends ProtectedHeaderAUX
+
+object AnonProtectedHeader {
+  given decoder: JsonDecoder[AnonProtectedHeader] = {
+    given aux: JsonDecoder[AnonProtectedHeader] = DeriveJsonDecoder.gen[AnonProtectedHeader]
+    Json.Obj.decoder.mapOrFail { originalAst =>
+      originalAst.get(JsonCursor.field("skid")) match {
+        case Left(value) /* "No such field: 'skid' */ => aux.decodeJson(originalAst.toJson)
+        case Right(value)                             => Left("Found field 'skid'")
+      }
+    }
+  }
+
+  given encoder: JsonEncoder[AnonProtectedHeader] = DeriveJsonEncoder.gen[AnonProtectedHeader]
+}
+
+case class AuthProtectedHeader(
+    epk: PublicKey,
+    apv: APV,
+    skid: VerificationMethodReferenced, // did:example:alice#key-p256-1
+    apu: APU,
+    typ: MediaTypes = MediaTypes.AUTHCRYPT,
+    enc: ENCAlgorithm,
+    alg: KWAlgorithm,
+) extends ProtectedHeaderAUX
+
+object AuthProtectedHeader {
+  given decoder: JsonDecoder[AuthProtectedHeader] = DeriveJsonDecoder.gen[AuthProtectedHeader]
+  given encoder: JsonEncoder[AuthProtectedHeader] = DeriveJsonEncoder.gen[AuthProtectedHeader]
 }
 
 enum ENCAlgorithm { // JWAAlgorithm

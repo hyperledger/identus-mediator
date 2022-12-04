@@ -47,6 +47,12 @@ object AgentEX1 extends ExDID1 {
     )
   }
   def layer: ULayer[AgentEX1.type] = ZLayer.succeed(this)
+//   Exception occurred while executing macro expansion.
+// java.lang.RuntimeException: TYPEREPR, UNSUPPORTED: class dotty.tools.dotc.core.Types$CachedThisType - ThisType(TypeRef(ThisType(TypeRef(NoPrefix,module class demo)),module class AgentEX1$))
+// 	at izumi.reflect.dottyreflection.Inspector.inspectTypeRepr(Inspector.scala:89)
+// 	at izumi.reflect.dottyreflection.Inspector.buildTypeRef(Inspector.scala:18)
+// 	at izumi.reflect.dottyreflection.TypeInspections$.apply(TypeInspections.scala:9)
+// 	at izumi.reflect.dottyreflection.Inspect$.inspectAny(Inspect.scala:15)
 }
 
 trait ExDID1 { // https://localhost:9091/

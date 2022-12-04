@@ -91,4 +91,79 @@ class ProtectedHeaderSuite extends ZSuite {
       case Right(obj)  => assertEquals(obj.enc, ENCAlgorithm.A256GCM)
     }
   }
+
+  test("Parse ANON/AUTH Header ex1 (ANON)") {
+    Base64.fromBase64url(ex1).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AnonProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex1)
+    }
+  }
+  test("Parse ANON/AUTH Header ex2 (ANON)") {
+    Base64.fromBase64url(ex2).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AnonProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex2)
+    }
+  }
+  test("Parse ANON/AUTH Header ex3 (ANON)") {
+    Base64.fromBase64url(ex3).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AnonProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex3)
+    }
+  }
+  test("Parse ANON/AUTH Header ex4 (AUTH)") {
+    Base64.fromBase64url(ex4).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AuthProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex4)
+    }
+  }
+  test("Parse ANON/AUTH Header ex5 (AUTH)") {
+    Base64.fromBase64url(ex5).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AuthProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex5)
+    }
+  }
+  test("Parse ANON/AUTH Header ex6 (ANON)") {
+    Base64.fromBase64url(ex6).decode.fromJson[ProtectedHeaderAUX] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AnonProtectedHeader])
+        assertEquals(Base64.encode(obj.toJson).urlBase64, ex6)
+    }
+  }
+
+  test("Parse Header ex1 as ANON") {
+    Base64.fromBase64url(ex1).decode.fromJson[AnonProtectedHeader] match {
+      case Left(error) => fail(error)
+      case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex1)
+    }
+  }
+  test("Parse Header ex1 as AUTH fail") {
+    Base64.fromBase64url(ex1).decode.fromJson[AuthProtectedHeader] match {
+      case Left(error) => assertEquals(error, ".skid(missing)")
+      case Right(obj)  => fail("parsing must fail")
+    }
+  }
+
+  test("Parse Header ex4 as ANON fail") {
+    Base64.fromBase64url(ex4).decode.fromJson[AnonProtectedHeader] match {
+      case Left(error) => assertEquals(error, "(Found field 'skid')")
+      case Right(obj)  => fail("parsing must fail")
+    }
+  }
+  test("Parse Header ex4 as AUTH") {
+    Base64.fromBase64url(ex4).decode.fromJson[AuthProtectedHeader] match {
+      case Left(error) => fail(error)
+      case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex4)
+    }
+  }
 }

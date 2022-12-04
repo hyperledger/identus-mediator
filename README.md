@@ -104,3 +104,7 @@ DID Credentials -> [Verifiable Credentials Data Model v1.1](https://www.w3.org/T
 
 Error `Error: error:0308010C:digital envelope routines::unsupported`
 export NODE_OPTIONS=--openssl-legacy-provider
+# Pseudo-Random
+
+https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
+https://www.rfc-editor.org/rfc/rfc3797
