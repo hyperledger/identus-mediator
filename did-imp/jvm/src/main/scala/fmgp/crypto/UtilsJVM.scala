@@ -44,14 +44,22 @@ given Conversion[ProtectedHeader, JWEHeader] with
       case KWAlgorithm.`ECDH-ES+A256KW`  => JWEAlgorithm.ECDH_ES_A256KW
       case KWAlgorithm.`ECDH-1PU+A256KW` => JWEAlgorithm.ECDH_1PU_A256KW
 
-    val tmp = new JWEHeader.Builder(algorithm, encryptionMethod)
-      .`type`(JOSEObjectType(x.typ.typ))
-      .agreementPartyVInfo(x.apv.base64) // Utils.calculateAPV(x.apv  ecRecipientsKeys.map(_._1)))
-
-    x.epk.foreach(e => tmp.ephemeralPublicKey(e.toJWK)) // new JWKECKey.Builder(curve, ephemeralPublicKey).build())
-    x.skid.foreach(e => tmp.senderKeyID(e.value))
-    x.apu.foreach(e => tmp.agreementPartyUInfo(e.base64))
-    tmp.build()
+    x match {
+      case AnonProtectedHeader(epk, apv, typ, enc, alg) =>
+        new JWEHeader.Builder(algorithm, encryptionMethod)
+          .`type`(JOSEObjectType(typ.typ))
+          .agreementPartyVInfo(apv.base64)
+          .ephemeralPublicKey(epk.toJWK)
+          .build()
+      case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) =>
+        new JWEHeader.Builder(algorithm, encryptionMethod)
+          .`type`(JOSEObjectType(typ.typ))
+          .agreementPartyVInfo(apv.base64)
+          .ephemeralPublicKey(epk.toJWK)
+          .senderKeyID(skid.value)
+          .agreementPartyUInfo(apu.base64)
+          .build()
+    }
   }
 
 given Conversion[Base64, com.nimbusds.jose.util.Base64URL] with

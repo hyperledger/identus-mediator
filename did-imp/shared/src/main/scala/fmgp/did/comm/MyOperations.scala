@@ -119,7 +119,9 @@ class MyOperations extends Operations {
           }
         )
       resolver <- ZIO.service[Resolver]
-      skid = msg.`protected`.obj.skid.get
+      skid = msg.`protected`.obj match
+        case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ??? // FIXME
+        case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => skid
       senderDID = skid.did
       doc <- resolver.didDocument(senderDID)
       senderKey = doc.didCommKeys

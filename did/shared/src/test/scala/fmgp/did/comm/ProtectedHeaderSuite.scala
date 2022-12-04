@@ -93,7 +93,7 @@ class ProtectedHeaderSuite extends ZSuite {
   }
 
   test("Parse ANON/AUTH Header ex1 (ANON)") {
-    Base64.fromBase64url(ex1).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex1).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -101,7 +101,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex2 (ANON)") {
-    Base64.fromBase64url(ex2).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex2).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -109,7 +109,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex3 (ANON)") {
-    Base64.fromBase64url(ex3).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex3).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -117,7 +117,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex4 (AUTH)") {
-    Base64.fromBase64url(ex4).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex4).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AuthProtectedHeader])
@@ -125,7 +125,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex5 (AUTH)") {
-    Base64.fromBase64url(ex5).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex5).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AuthProtectedHeader])
@@ -133,7 +133,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex6 (ANON)") {
-    Base64.fromBase64url(ex6).decode.fromJson[ProtectedHeaderAUX] match {
+    Base64.fromBase64url(ex6).decode.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])

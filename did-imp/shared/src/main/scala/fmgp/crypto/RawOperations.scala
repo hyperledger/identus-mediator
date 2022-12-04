@@ -70,12 +70,8 @@ object RawOperations extends CryptoOperations {
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       clearText: Array[Byte]
   ): IO[CryptoFailed, EncryptedMessage] = {
-    val header = ProtectedHeader(
-      epk = None, // : Option[PublicKey],
+    val header = AnonHeaderBuilder(
       apv = APV(ecRecipientsKeys.map(_._1)),
-      skid = None,
-      apu = None,
-      typ = MediaTypes.ANONCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-ES+A256KW`,
     )
@@ -87,12 +83,8 @@ object RawOperations extends CryptoOperations {
       okpRecipientKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       clearText: Array[Byte]
   ): IO[CryptoFailed, EncryptedMessage] = {
-    val header = ProtectedHeader(
-      epk = None, // : Option[PublicKey],
+    val header = AnonHeaderBuilder(
       apv = APV(okpRecipientKeys.map(_._1)),
-      skid = None,
-      apu = None,
-      typ = MediaTypes.ANONCRYPT,
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-ES+A256KW`,
     )
@@ -105,12 +97,10 @@ object RawOperations extends CryptoOperations {
       recipientKeys: Seq[VerificationMethodReferencedWithKey[ECPublicKey]],
       clearText: Array[Byte]
   ): IO[CryptoFailed, EncryptedMessage] = {
-    val header = ProtectedHeader(
-      epk = None, // : Option[PublicKey],
+    val header = AuthHeaderBuilder(
       apv = APV(recipientKeys.map(_.vmr)),
-      skid = Some(senderKidKey._1),
-      apu = Some(APU(senderKidKey._1)),
-      typ = MediaTypes.AUTHCRYPT,
+      skid = senderKidKey._1,
+      apu = APU(senderKidKey._1),
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )
@@ -122,12 +112,10 @@ object RawOperations extends CryptoOperations {
       recipientKeys: Seq[VerificationMethodReferencedWithKey[OKPPublicKey]],
       clearText: Array[Byte]
   ): IO[CryptoFailed, EncryptedMessage] = {
-    val header = ProtectedHeader(
-      epk = None, // : Option[PublicKey],
+    val header = AuthHeaderBuilder(
       apv = APV(recipientKeys.map(_.vmr)),
-      skid = Some(senderKidKey._1),
-      apu = Some(APU(senderKidKey._1)),
-      typ = MediaTypes.AUTHCRYPT,
+      skid = senderKidKey._1,
+      apu = APU(senderKidKey._1),
       enc = ENCAlgorithm.`A256CBC-HS512`,
       alg = KWAlgorithm.`ECDH-1PU+A256KW`,
     )

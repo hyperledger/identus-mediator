@@ -8,7 +8,7 @@ import fmgp.crypto.error._
 object ECDH {
   def anonEncryptEC(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: AnonHeaderBuilder,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
     Right(ECDH_AnonEC.encrypt(ecRecipientsKeys, header, clearText))
@@ -26,7 +26,7 @@ object ECDH {
   def authEncryptEC(
       sender: ECKey,
       ecRecipientsKeys: Seq[VerificationMethodReferencedWithKey[ECPublicKey]],
-      header: ProtectedHeader,
+      header: AuthHeaderBuilder,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
     Right(ECDH_AuthEC.encrypt(sender, ecRecipientsKeys.map(_.pair), header, clearText))
@@ -44,7 +44,7 @@ object ECDH {
 
   def anonEncryptOKP(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-      header: ProtectedHeader,
+      header: AnonHeaderBuilder,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
     Right(ECDH_AnonOKP.encrypt(okpRecipientsKeys, header, clearText))
@@ -62,7 +62,7 @@ object ECDH {
   def authEncryptOKP(
       sender: OKPKey,
       okpRecipientsKeys: Seq[VerificationMethodReferencedWithKey[OKPPublicKey]],
-      header: ProtectedHeader,
+      header: AuthHeaderBuilder,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
     Right(ECDH_AuthOKP.encrypt(sender, okpRecipientsKeys.map(_.pair), header, clearText))

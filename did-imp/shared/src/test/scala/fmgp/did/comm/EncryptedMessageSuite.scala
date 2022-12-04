@@ -235,9 +235,7 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(!message.`protected`.obj.apv.base64.bytes.isEmpty) // REMOVE TEST
-          _ = assert(message.`protected`.obj.apu.isEmpty)
-          _ = assert(message.`protected`.obj.skid.isEmpty)
+          _ = assert(message.`protected`.obj.isInstanceOf[AnonProtectedHeader])
           _ = assert(message.recipients.size == 3)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -268,9 +266,7 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(!message.`protected`.obj.apv.base64.bytes.isEmpty) // REMOVE TEST
-          _ = assert(message.`protected`.obj.apu.isEmpty)
-          _ = assert(message.`protected`.obj.skid.isEmpty)
+          _ = assert(message.`protected`.obj.isInstanceOf[AnonProtectedHeader])
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -302,9 +298,7 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- encrypt(kidKeys, data)
-          _ = assert(!message.`protected`.obj.apv.base64.bytes.isEmpty) // REMOVE TEST
-          _ = assert(message.`protected`.obj.apu.isEmpty)
-          _ = assert(message.`protected`.obj.skid.isEmpty)
+          _ = assert(message.`protected`.obj.isInstanceOf[AnonProtectedHeader])
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -342,9 +336,7 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- authEncrypt(senderKidKey, kidKeys, data)
-          _ = assert(!message.`protected`.obj.apv.base64.bytes.isEmpty) // REMOVE TEST
-          _ = assert(message.`protected`.obj.apu.isDefined)
-          _ = assert(message.`protected`.obj.skid.isDefined)
+          _ = assert(message.`protected`.obj.isInstanceOf[AuthProtectedHeader])
           _ = assert(message.recipients.size == 3)
 
           recipientKidsKeys = message.recipients.map { recipient =>
@@ -381,9 +373,7 @@ class EncryptedMessageSuite extends ZSuite {
 
         for {
           message <- authEncrypt(senderKidKey, kidKeys, data)
-          _ = assert(!message.`protected`.obj.apv.base64.bytes.isEmpty) // REMOVE TEST
-          _ = assert(message.`protected`.obj.apu.isDefined)
-          _ = assert(message.`protected`.obj.skid.isDefined)
+          _ = assert(message.`protected`.obj.isInstanceOf[AuthProtectedHeader])
           _ = assert(message.recipients.size == 2)
 
           recipientKidsKeys = message.recipients.map { recipient =>

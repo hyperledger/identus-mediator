@@ -58,7 +58,7 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
     */
   def encrypt(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-      header: ProtectedHeader,
+      header: AnonHeaderBuilder,
       clearText: Array[Byte],
   ): EncryptedMessageGeneric = {
     val curve = getCurve(okpRecipientsKeys)
@@ -81,7 +81,7 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
     val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
     val ecKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
 
-    val updatedHeader = header.copy(epk = Some(ecKeyEphemeral))
+    val updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
 
     val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
       (vmr, ECDH.deriveSharedSecret(key.toJWK, ephemeralPrivateKey))
@@ -103,7 +103,6 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
     critPolicy.ensureHeaderPasses(header)
-
     val ephemeralKey = Option(header.getEphemeralPublicKey)
       .map(_.asInstanceOf[OctetKeyPair])
       .getOrElse(throw new JOSEException("Missing ephemeral public key epk JWE header parameter"))
@@ -140,7 +139,7 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
   def encrypt(
       sender: OKPKey,
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
-      header: JWEHeader,
+      header: AuthHeaderBuilder,
       clearText: Array[Byte],
   ): EncryptedMessageGeneric = {
     val curve = getCurve(okpRecipientsKeys)
@@ -161,10 +160,9 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
         .d(Base64.encode(ephemeralPrivateKeyBytes))
         .build();
     val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
+    val okpKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
 
-    val updatedHeader: JWEHeader = new JWEHeader.Builder(header)
-      .ephemeralPublicKey(ephemeralPublicKey)
-      .build()
+    val updatedHeader = header.buildWithKey(okpKeyEphemeral)
 
     val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
       (

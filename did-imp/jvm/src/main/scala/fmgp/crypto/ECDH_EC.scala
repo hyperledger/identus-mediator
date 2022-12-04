@@ -56,7 +56,7 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
     */
   def encrypt(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: AnonHeaderBuilder,
       clearText: Array[Byte],
   ): EncryptedMessageGeneric = { // FIXME
     val curve = getCurve(ecRecipientsKeys)
@@ -68,7 +68,7 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
     val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
     val ecKeyEphemeral = ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].toOption.get // FIXME
 
-    val updatedHeader = header.copy(epk = Some(ecKeyEphemeral))
+    val updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
 
     val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
       val use_the_defualt_JCA_Provider = null
@@ -121,7 +121,7 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
   def encrypt(
       sender: ECKey,
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: AuthHeaderBuilder,
       clearText: Array[Byte],
   ): EncryptedMessageGeneric = {
     val curve = getCurve(ecRecipientsKeys)
@@ -131,10 +131,10 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
     val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
     val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
     val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
+    val ecKeyEphemeral = ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].toOption.get // FIXME
 
     // Add the ephemeral public EC key to the header
-    val updatedHeader: JWEHeader =
-      new JWEHeader.Builder(header).ephemeralPublicKey(new JWKECKey.Builder(curve, ephemeralPublicKey).build()).build()
+    val updatedHeader = header.buildWithKey(ecKeyEphemeral)
 
     val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
       val use_the_defualt_JCA_Provider = null

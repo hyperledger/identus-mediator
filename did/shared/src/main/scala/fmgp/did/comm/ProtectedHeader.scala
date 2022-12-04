@@ -26,31 +26,24 @@ sealed trait ProtectedHeaderTMP {
   def alg: KWAlgorithm
 }
 
-// FIXME replace ProtectedHeader
-sealed trait ProtectedHeaderAUX extends ProtectedHeaderTMP {
-  def epk: PublicKey
-  def apv: APV
-  // def skid: Option[VerificationMethodReferenced]
-  // def apu: Option[APU]
-  def typ: MediaTypes
-  def enc: ENCAlgorithm
-  def alg: KWAlgorithm
+case class AnonHeaderBuilder(
+    apv: APV,
+    enc: ENCAlgorithm,
+    alg: KWAlgorithm,
+) extends ProtectedHeaderTMP {
+  def typ: MediaTypes = MediaTypes.ANONCRYPT
+  def buildWithKey(epk: PublicKey) = AnonProtectedHeader(epk, apv, typ, enc, alg)
 }
 
-object ProtectedHeaderAUX {
-  given decoder: JsonDecoder[ProtectedHeaderAUX] = Json.Obj.decoder.mapOrFail { originalAst =>
-    originalAst.get(JsonCursor.field("skid")) match {
-      case Left(value) /* "No such field: 'skid' */ => AnonProtectedHeader.decoder.decodeJson(originalAst.toJson)
-      case Right(value)                             => AuthProtectedHeader.decoder.decodeJson(originalAst.toJson)
-    }
-  }
-  given encoder: JsonEncoder[ProtectedHeaderAUX] = new JsonEncoder[ProtectedHeaderAUX] {
-    override def unsafeEncode(b: ProtectedHeaderAUX, indent: Option[Int], out: zio.json.internal.Write): Unit =
-      b match {
-        case obj: AnonProtectedHeader => AnonProtectedHeader.encoder.unsafeEncode(obj, indent, out)
-        case obj: AuthProtectedHeader => AuthProtectedHeader.encoder.unsafeEncode(obj, indent, out)
-      }
-  }
+case class AuthHeaderBuilder(
+    apv: APV,
+    skid: VerificationMethodReferenced,
+    apu: APU,
+    enc: ENCAlgorithm,
+    alg: KWAlgorithm,
+) extends ProtectedHeaderTMP {
+  def typ: MediaTypes = MediaTypes.AUTHCRYPT
+  def buildWithKey(epk: PublicKey) = AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg)
 }
 
 /** {{{
@@ -61,25 +54,30 @@ object ProtectedHeaderAUX {
   * "alg":"ECDH-ES+A256KW"
   * }}}
   */
-case class ProtectedHeader(
-    epk: Option[PublicKey],
-    apv: APV,
-    skid: Option[VerificationMethodReferenced] = None, // did:example:alice#key-p256-1
-    apu: Option[APU] = None,
-    typ: MediaTypes,
-    enc: ENCAlgorithm,
-    alg: KWAlgorithm,
-) {
-  // Asserts for DEBUG
-  if (typ == MediaTypes.ANONCRYPT | typ == MediaTypes.ANONCRYPT_AUTHCRYPT | typ == MediaTypes.ANONCRYPT_SIGN)
-    assert(skid.isEmpty, "ANON messagem MUST NOT have 'skid'") // IMPROVE make it type safe
-  if (typ == MediaTypes.AUTHCRYPT | typ == MediaTypes.AUTHCRYPT_SIGN)
-    assert(skid.isDefined, "AUTH messagem MUST HAVE 'skid'") // IMPROVE make it type safe
+sealed trait ProtectedHeader extends ProtectedHeaderTMP {
+  def epk: PublicKey
+  def apv: APV
+  // def skid: Option[VerificationMethodReferenced]
+  // def apu: Option[APU]
+  def typ: MediaTypes
+  def enc: ENCAlgorithm
+  def alg: KWAlgorithm
 }
 
 object ProtectedHeader {
-  given decoder: JsonDecoder[ProtectedHeader] = DeriveJsonDecoder.gen[ProtectedHeader]
-  given encoder: JsonEncoder[ProtectedHeader] = DeriveJsonEncoder.gen[ProtectedHeader]
+  given decoder: JsonDecoder[ProtectedHeader] = Json.Obj.decoder.mapOrFail { originalAst =>
+    originalAst.get(JsonCursor.field("skid")) match {
+      case Left(value) /* "No such field: 'skid' */ => AnonProtectedHeader.decoder.decodeJson(originalAst.toJson)
+      case Right(value)                             => AuthProtectedHeader.decoder.decodeJson(originalAst.toJson)
+    }
+  }
+  given encoder: JsonEncoder[ProtectedHeader] = new JsonEncoder[ProtectedHeader] {
+    override def unsafeEncode(b: ProtectedHeader, indent: Option[Int], out: zio.json.internal.Write): Unit =
+      b match {
+        case obj: AnonProtectedHeader => AnonProtectedHeader.encoder.unsafeEncode(obj, indent, out)
+        case obj: AuthProtectedHeader => AuthProtectedHeader.encoder.unsafeEncode(obj, indent, out)
+      }
+  }
 }
 
 case class AnonProtectedHeader(
@@ -88,7 +86,7 @@ case class AnonProtectedHeader(
     typ: MediaTypes = MediaTypes.ANONCRYPT,
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
-) extends ProtectedHeaderAUX
+) extends ProtectedHeader
 
 object AnonProtectedHeader {
   given decoder: JsonDecoder[AnonProtectedHeader] = {
@@ -112,7 +110,7 @@ case class AuthProtectedHeader(
     typ: MediaTypes = MediaTypes.AUTHCRYPT,
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
-) extends ProtectedHeaderAUX
+) extends ProtectedHeader
 
 object AuthProtectedHeader {
   given decoder: JsonDecoder[AuthProtectedHeader] = DeriveJsonDecoder.gen[AuthProtectedHeader]

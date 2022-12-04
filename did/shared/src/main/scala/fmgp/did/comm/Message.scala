@@ -226,25 +226,10 @@ object EncryptedMessage {
 }
 
 extension (c: EncryptedMessage) {
-  // def headersAsJson = c.`protected`.obj.toJson.fromJson[Json]
-  // def skid = c.headersAsJson
-  //   .flatMap(_.get(JsonCursor.field("skid")))
-  //   .flatMap(_.as[String])
-  def skid = c.`protected`.obj.skid
-  // def headers: HeadersJson = protectedAsString.fromJson[HeadersJson] //TODO
-}
-
-trait HeadersJson { // TODO
-  def epk: Required[OKP_EC_Key]
-  def skid: String
-
-  /** base64URL(skid value) */
-  def apu: APU
-  def apv: APV
-
-  def typ: String // like "application/didcomm-encrypted+json"
-  def enc: String // like "XC20P"
-  def alg: String // like "ECDH-ES+A256KW"
+  def skid = c.`protected`.obj match {
+    case o: AuthProtectedHeader => Some(o.skid)
+    case o: AnonProtectedHeader => None
+  }
 }
 
 case class Recipient(
