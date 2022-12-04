@@ -1,17 +1,14 @@
 package fmgp.crypto
 
 import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.crypto.ECDHDecrypter
+import com.nimbusds.jose.crypto.impl.AESKW
 import com.nimbusds.jose.crypto.impl.ECDH
 import com.nimbusds.jose.crypto.impl.ECDHCryptoProvider
-import com.nimbusds.jose.crypto.impl.ContentCryptoProvider
-import com.nimbusds.jose.crypto.impl.AESKW
 import com.nimbusds.jose.crypto.impl.ECDH1PU
 import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
+import com.nimbusds.jose.crypto.impl.ContentCryptoProvider
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator
@@ -78,7 +75,7 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
   }
 
   def decryptAUX(
-      header: JWEHeader,
+      header: ProtectedHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
       iv: IV,
@@ -108,7 +105,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
   override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
 
   def encryptAUX(
-      header: JWEHeader,
+      header: ProtectedHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
   ): EncryptedMessageGeneric = {
@@ -149,7 +146,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
   }
 
   def decryptAUX(
-      header: JWEHeader,
+      header: ProtectedHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
       iv: IV,

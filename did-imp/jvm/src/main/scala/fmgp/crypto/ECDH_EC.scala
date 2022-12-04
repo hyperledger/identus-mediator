@@ -1,15 +1,11 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.Payload
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.UnprotectedHeader
+import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.crypto.impl.ECDH
-import com.nimbusds.jose.util.StandardCharset
-import com.nimbusds.jose.util.Pair
+import com.nimbusds.jose.crypto.impl.ECDH1PU
+import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
+import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
+import com.nimbusds.jose.crypto.utils.ECChecks
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator
@@ -30,11 +26,6 @@ import scala.collection.JavaConverters._
 
 import java.util.Collections
 import javax.crypto.SecretKey
-import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
-import com.nimbusds.jose.crypto.impl.ECDH1PU
-import com.nimbusds.jose.crypto.utils.ECChecks
-import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
-import com.nimbusds.jose.JOSEException
 
 trait ECDH_UtilsEC {
 

@@ -1,25 +1,10 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWSAlgorithm
-import com.nimbusds.jose.JWSHeader
-import com.nimbusds.jose.JWSObject
-import com.nimbusds.jose.JWSSigner
-import com.nimbusds.jose.Payload
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
-import com.nimbusds.jose.crypto.X25519Decrypter
-import com.nimbusds.jose.crypto.X25519Encrypter
-import com.nimbusds.jose.crypto.ECDH1PUEncrypter
-import com.nimbusds.jose.crypto.ECDH1PUX25519Encrypter
 import com.nimbusds.jose.crypto.impl.ECDH
 import com.nimbusds.jose.crypto.impl.ECDH1PU
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
 import com.nimbusds.jose.jwk.OctetKeyPair
-import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
-import com.nimbusds.jose.util.StandardCharset
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
@@ -181,7 +166,7 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
   def decrypt(
       sender: OKPKey,
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
-      header: JWEHeader,
+      header: ProtectedHeader,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
