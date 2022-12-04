@@ -11,7 +11,7 @@ object ECDH {
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
-    Right(ECDH_AnonEC(ecRecipientsKeys, header).encrypt(clearText))
+    Right(ECDH_AnonEC.encrypt(ecRecipientsKeys, header, clearText))
 
   def anonDecryptEC(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
@@ -21,7 +21,7 @@ object ECDH {
       cipherText: CipherText,
       authTag: TAG,
   ): Either[CryptoFailed, Array[Byte]] =
-    Right(ECDH_AnonEC(ecRecipientsKeys, header).decrypt(recipients, iv, cipherText, authTag))
+    Right(ECDH_AnonEC.decrypt(ecRecipientsKeys, header, recipients, iv, cipherText, authTag))
 
   def authEncryptEC(
       sender: ECKey,
@@ -29,7 +29,7 @@ object ECDH {
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
-    Right(ECDH_AuthEC(sender, ecRecipientsKeys.map(_.pair), header).encrypt(clearText))
+    Right(ECDH_AuthEC.encrypt(sender, ecRecipientsKeys.map(_.pair), header, clearText))
 
   def authDecryptEC(
       sender: ECKey,
@@ -40,14 +40,14 @@ object ECDH {
       cipherText: CipherText,
       authTag: TAG,
   ): Either[CryptoFailed, Array[Byte]] =
-    Right(ECDH_AuthEC(sender, ecRecipientsKeys, header).decrypt(recipients, iv, cipherText, authTag))
+    Right(ECDH_AuthEC.decrypt(sender, ecRecipientsKeys, header, recipients, iv, cipherText, authTag))
 
   def anonEncryptOKP(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
-    Right(ECDH_AnonOKP(okpRecipientsKeys, header).encrypt(clearText))
+    Right(ECDH_AnonOKP.encrypt(okpRecipientsKeys, header, clearText))
 
   def anonDecryptOKP(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
@@ -57,7 +57,7 @@ object ECDH {
       cipherText: CipherText,
       authTag: TAG,
   ): Either[CryptoFailed, Array[Byte]] =
-    Right(ECDH_AnonOKP(okpRecipientsKeys, header).decrypt(recipients, iv, cipherText, authTag))
+    Right(ECDH_AnonOKP.decrypt(okpRecipientsKeys, header, recipients, iv, cipherText, authTag))
 
   def authEncryptOKP(
       sender: OKPKey,
@@ -65,7 +65,7 @@ object ECDH {
       header: ProtectedHeader,
       clearText: Array[Byte],
   ): Either[CryptoFailed, EncryptedMessageGeneric] =
-    Right(ECDH_AuthOKP(sender, okpRecipientsKeys.map(_.pair), header).encrypt(clearText))
+    Right(ECDH_AuthOKP.encrypt(sender, okpRecipientsKeys.map(_.pair), header, clearText))
 
   def authDecryptOKP(
       sender: OKPKey,
@@ -76,5 +76,5 @@ object ECDH {
       cipherText: CipherText,
       authTag: TAG,
   ): Either[CryptoFailed, Array[Byte]] =
-    Right(ECDH_AuthOKP(sender, okpRecipientsKeys, header).decrypt(recipients, iv, cipherText, authTag))
+    Right(ECDH_AuthOKP.decrypt(sender, okpRecipientsKeys, header, recipients, iv, cipherText, authTag))
 }

@@ -39,27 +39,31 @@ import java.util.Collections
 import com.nimbusds.jose.JOSEException //TODO REMOVE
 import javax.crypto.SecretKey
 
-class ECDH_AnonOKP(
-    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-    header: ProtectedHeader
-    // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
-    // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
-) {
-
-  val curve = okpRecipientsKeys.collect(_._2.getCurve).toSet match {
-    case theCurve if theCurve.size == 1 =>
-      assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-      theCurve.head.toJWKCurve
-    case _ => ??? // FIXME ERROR
+trait ECDH_UtilsOKP {
+  protected def getCurve(okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)]) = {
+    okpRecipientsKeys.collect(_._2.getCurve).toSet match {
+      case theCurve if theCurve.size == 1 =>
+        assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+        theCurve.head.toJWKCurve
+      case _ => ??? // FIXME ERROR
+    }
   }
+}
 
-  val myProvider = ECDH_AnonCryptoProvider(curve)
+object ECDH_AnonOKP extends ECDH_UtilsOKP {
 
   /** TODO return errors:
     *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
     *   - com.nimbusds.jose.JOSEException: Couldn't unwrap AES key: Integrity check failed
     */
-  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
+  def encrypt(
+      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+      header: ProtectedHeader,
+      clearText: Array[Byte],
+  ): EncryptedMessageGeneric = {
+    val curve = getCurve(okpRecipientsKeys)
+    val myProvider = ECDH_AnonCryptoProvider(curve)
+
     // Generate ephemeral X25519 key pair
     val ephemeralPrivateKeyBytes: Array[Byte] =
       com.google.crypto.tink.subtle.X25519.generatePrivateKey()
@@ -87,11 +91,15 @@ class ECDH_AnonOKP(
   }
 
   def decrypt(
+      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
+      header: ProtectedHeader,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
   ): Array[Byte] = {
+    val curve = getCurve(okpRecipientsKeys)
+    val myProvider = ECDH_AnonCryptoProvider(curve)
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
     critPolicy.ensureHeaderPasses(header)
@@ -127,24 +135,17 @@ class ECDH_AnonOKP(
   }
 }
 
-class ECDH_AuthOKP( // FIXME rename
-    sender: OKPKey,
-    okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
-    header: JWEHeader,
-    // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
-    // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
-) {
+object ECDH_AuthOKP extends ECDH_UtilsOKP {
 
-  val curve = okpRecipientsKeys.collect(_._2.getCurve).toSet match {
-    case theCurve if theCurve.size == 1 =>
-      assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-      theCurve.head.toJWKCurve
-    case _ => ??? // FIXME ERROR
-  }
+  def encrypt(
+      sender: OKPKey,
+      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
+      header: JWEHeader,
+      clearText: Array[Byte],
+  ): EncryptedMessageGeneric = {
+    val curve = getCurve(okpRecipientsKeys)
+    val myProvider = ECDH_AuthCryptoProvider(curve)
 
-  val myProvider = ECDH_AuthCryptoProvider(curve)
-
-  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
     // Generate ephemeral X25519 key pair
     val ephemeralPrivateKeyBytes: Array[Byte] =
       com.google.crypto.tink.subtle.X25519.generatePrivateKey()
@@ -180,12 +181,16 @@ class ECDH_AuthOKP( // FIXME rename
   }
 
   def decrypt(
-      //  header: JWEHeader,
+      sender: OKPKey,
+      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
+      header: JWEHeader,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
   ) = {
+    val curve = getCurve(okpRecipientsKeys)
+    val myProvider = ECDH_AuthCryptoProvider(curve)
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
 

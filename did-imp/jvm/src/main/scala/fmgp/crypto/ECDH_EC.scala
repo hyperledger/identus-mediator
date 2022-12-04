@@ -36,27 +36,31 @@ import com.nimbusds.jose.crypto.utils.ECChecks
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
 import com.nimbusds.jose.JOSEException
 
-class ECDH_AnonEC(
-    ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-    header: ProtectedHeader
-    // alg: JWEAlgorithm = JWEAlgorithm.ECDH_ES_A256KW,
-    // enc: EncryptionMethod = EncryptionMethod.A256CBC_HS512
-) {
+trait ECDH_UtilsEC {
 
-  val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
-    case theCurve if theCurve.size == 1 =>
-      assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-      theCurve.head.toJWKCurve
-    case _ => ??? // FIXME ERROR
-  }
+  protected def getCurve(ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)]) =
+    ecRecipientsKeys.collect(_._2.getCurve).toSet match {
+      case theCurve if theCurve.size == 1 =>
+        assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
+        theCurve.head.toJWKCurve
+      case _ => ??? // FIXME ERROR
+    }
 
-  val myProvider = new ECDH_AnonCryptoProvider(curve)
+}
+
+object ECDH_AnonEC extends ECDH_UtilsEC {
 
   /** TODO return errors:
     *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
     *   - com.nimbusds.jose.JOSEException: Couldn't unwrap AES key: Integrity check failed
     */
-  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = { // FIXME
+  def encrypt(
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      header: ProtectedHeader,
+      clearText: Array[Byte],
+  ): EncryptedMessageGeneric = { // FIXME
+    val curve = getCurve(ecRecipientsKeys)
+    val myProvider = new ECDH_AnonCryptoProvider(curve)
 
     // Generate ephemeral EC key pair
     val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
@@ -75,12 +79,15 @@ class ECDH_AnonEC(
   }
 
   def decrypt(
-      // header: JWEHeader,
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      header: ProtectedHeader,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
   ) = {
+    val curve = getCurve(ecRecipientsKeys)
+    val myProvider = new ECDH_AnonCryptoProvider(curve)
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
     critPolicy.ensureHeaderPasses(header);
@@ -109,22 +116,17 @@ class ECDH_AnonEC(
   }
 }
 
-class ECDH_AuthEC(
-    sender: ECKey,
-    ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-    header: ProtectedHeader
-) {
+object ECDH_AuthEC extends ECDH_UtilsEC {
 
-  val curve = ecRecipientsKeys.collect(_._2.getCurve).toSet match {
-    case theCurve if theCurve.size == 1 =>
-      assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-      theCurve.head.toJWKCurve
-    case _ => ??? // FIXME ERROR
-  }
+  def encrypt(
+      sender: ECKey,
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      header: ProtectedHeader,
+      clearText: Array[Byte],
+  ): EncryptedMessageGeneric = {
+    val curve = getCurve(ecRecipientsKeys)
+    val myProvider = new ECDH_AuthCryptoProvider(curve)
 
-  val myProvider = ECDH_AuthCryptoProvider(curve)
-
-  def encrypt(clearText: Array[Byte]): EncryptedMessageGeneric = {
     // Generate ephemeral EC key pair on the same curve as the consumer's public key
     val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
     val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
@@ -151,12 +153,16 @@ class ECDH_AuthEC(
   }
 
   def decrypt(
-      // header: JWEHeader,
+      sender: ECKey,
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
+      header: ProtectedHeader,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
   ) = {
+    val curve = getCurve(ecRecipientsKeys)
+    val myProvider = new ECDH_AuthCryptoProvider(curve)
 
     val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
     critPolicy.ensureHeaderPasses(header)
