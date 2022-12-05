@@ -2,6 +2,7 @@ package fmgp.did
 
 import zio.json._
 import scala.util.chaining._
+import fmgp.crypto.error._
 
 /** The entity identified by a DID and described by a DID document. Anything can be a DID subject: person, group,
   * organization, physical thing, digital thing, logical thing, etc.
@@ -22,7 +23,9 @@ object DIDSubject {
     }
   given Conversion[DIDSubject, DID] = _.toDID
 
-  def apply(s: String): DIDSubject = s // FIXME perse with REGEX
+  def apply(s: String): DIDSubject = s // TODO use maybe instead of apply
+  def either(s: String): Either[FailToParse, DIDSubject] =
+    if (pattern.matches(s)) Right(DIDSubject(s)) else Left(FailToParse(s"NOT a DID! '$s'"))
 
   implicit val decoder: JsonDecoder[DIDSubject] = JsonDecoder.string.map(s => DIDSubject(s))
   implicit val encoder: JsonEncoder[DIDSubject] = JsonEncoder.string.contramap(e => e.value)
