@@ -50,6 +50,8 @@ trait PlaintextMessage extends Message {
 
   /** Thread identifier */
   def thid: NotRequired[String]
+  // TODO def pthid: NotRequired[String] // "1e513ad4-48c9-444e-9e7e-5b8b45c5e325",
+  // TODO def ack: NotRequired[Seq[String]] // ["1e513ad4-48c9-444e-9e7e-5b8b45c5e325"],
 
   def created_time: NotRequired[UTCEpoch]
   def expires_time: NotRequired[UTCEpoch]

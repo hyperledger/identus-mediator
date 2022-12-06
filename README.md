@@ -84,10 +84,13 @@ You should open the reports with your browser. The reports will be in each modul
 ### WIP
 
 - We are still working on API.
+- Routing https://didcomm.org/book/v2/routing
 
 ### Limitations in JS
 
 ATM no library was native JavaScript support for `ECHD-1PU` and `XC20P`.
+- `ECHD-1PU` is used to create AUTHCRYPT message
+- `XC20P` is optional and is used for content encryption of the message on ANONCRYPT
 
 [For an encrypted DIDComm message, the JWA of `ECDH-1PU` MUST be used within the structure of a JWE.](https://identity.foundation/didcomm-messaging/spec/#sender-authenticated-encryption)
 
