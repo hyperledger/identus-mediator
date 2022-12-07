@@ -9,7 +9,7 @@ import fmgp.crypto._
 import fmgp.did.resolver.peer._
 // object DemoMain extends ZIOAppDefault
 @main def DemoMain() = {
-  import BootstrapDemo._
+  import AgentEX0._
   val program = for {
     _ <- Console.printLine(
       """██████╗ ██╗██████╗     ██████╗ ███████╗███╗   ███╗ ██████╗ 
@@ -59,9 +59,9 @@ import fmgp.did.resolver.peer._
       .run(
         program.provide(
           operations ++
-            BootstrapDemo.agentLayer ++
-            AgentEX1.layer ++
-            AgentEX2.layer ++
+            AgentEX0.agentLayer ++
+            Agents.layerEX1 ++
+            Agents.layerEX2 ++
             resolvers
         )
       )

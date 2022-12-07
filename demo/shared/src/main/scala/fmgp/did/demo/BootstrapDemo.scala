@@ -8,7 +8,7 @@ import fmgp.did.resolver.peer.DIDPeer
 import fmgp.crypto.OKPPrivateKey
 import fmgp.crypto.PrivateKey
 
-object BootstrapDemo extends ExDID0 {
+object AgentEX0 extends ExDID0 {
 
   val agent: Agent = new Agent {
     def id: DID = did
@@ -39,6 +39,12 @@ trait ExDID0 { // https://localhost:9090/
       .get // TODO get
 }
 
+object Agents {
+  def layerEX0: ULayer[AgentEX0.type] = ZLayer.succeed(AgentEX0)
+  def layerEX1: ULayer[AgentEX1.type] = ZLayer.succeed(AgentEX1)
+  def layerEX2: ULayer[AgentEX2.type] = ZLayer.succeed(AgentEX2)
+}
+
 object AgentEX1 extends ExDID1 {
   val agent: Agent = new Agent {
     def id: DID = did
@@ -46,7 +52,7 @@ object AgentEX1 extends ExDID1 {
       keyAuthentication.copy(kid = Some(did.string + "#6MkeTY54nNujTFzUQH6DuERrqXjwKe1dbKDa7nzFS8GNPq1"))
     )
   }
-  def layer: ULayer[AgentEX1.type] = ZLayer.succeed(this)
+  // def layer: ULayer[AgentEX1.type] = ZLayer.succeed(this)
 //   Exception occurred while executing macro expansion.
 // java.lang.RuntimeException: TYPEREPR, UNSUPPORTED: class dotty.tools.dotc.core.Types$CachedThisType - ThisType(TypeRef(ThisType(TypeRef(NoPrefix,module class demo)),module class AgentEX1$))
 // 	at izumi.reflect.dottyreflection.Inspector.inspectTypeRepr(Inspector.scala:89)
@@ -80,7 +86,7 @@ object AgentEX2 extends ExDID2 {
       keyAuthentication.copy(kid = Some(did.string + "#6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF"))
     )
   }
-  def layer: ULayer[AgentEX2.type] = ZLayer.succeed(this)
+  // def layer: ULayer[AgentEX2.type] = ZLayer.succeed(this)
 }
 
 trait ExDID2 { // https://localhost:9092/
