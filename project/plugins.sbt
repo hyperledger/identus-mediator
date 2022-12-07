@@ -18,7 +18,8 @@ libraryDependencies += "org.scala-js" %% "scalajs-env-jsdom-nodejs" % "1.1.0"
   *
   * You need to have npm installed on your system.
   */
-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
+//addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
+addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.21.1")
 
 // GRPC
 //resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -56,3 +57,9 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
 
 // mdoc
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.6")
+
+// Deploy demo
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.0.0")
+
+// To quick develop the demo
+addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")

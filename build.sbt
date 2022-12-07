@@ -172,8 +172,9 @@ lazy val scalaJSBundlerConfigure: Project => Project =
     .settings((setupTestConfig): _*)
     .settings(
       scalaJSLinkerConfig ~= {
-        _.withSourceMap(false) // disabled because it somehow triggers many warnings
-          .withModuleKind(ModuleKind.CommonJSModule)
+        _.withSourceMap(false) // disabled because it somehow triggers warnings and errors
+          .withModuleKind(ModuleKind.CommonJSModule) // ModuleKind.ESModule
+          // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
           .withJSHeader(
             """/* FMGP IPFS Example tool
             | * https://github.com/FabioPinheiro/did
@@ -229,7 +230,7 @@ lazy val root = project
   .aggregate(didImp.js, didImp.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
-  .aggregate(webapp)
+  .aggregate(webapp, demo.jvm, demo.js)
   .settings(commonSettings: _*)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
@@ -239,10 +240,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "did",
     libraryDependencies += D.zioJson.value,
-    // libraryDependencies += D.zioTest.value,
-    // libraryDependencies += D.zioTestSBT.value,
     libraryDependencies += D.zioMunitTest.value,
-    // testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
 
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
@@ -263,12 +261,11 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "com.google.code.gson" % "gson" % "2.10",
     libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.21.10",
   )
-  // .jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin))
   .jsConfigure(scalaJSBundlerConfigure)
   .jsSettings( // Add JS-specific settings here
     stShortModuleNames := true,
     Compile / npmDependencies ++= NPM.jose, // NPM.elliptic, // NPM.nodeJose
-    // 2Test / scalaJSUseMainModuleInitializer := true, Test / scalaJSUseTestModuleInitializer := false, Test / mainClass := Some("fmgp.crypto.MainTestJS")
+    // Test / scalaJSUseMainModuleInitializer := true, Test / scalaJSUseTestModuleInitializer := false, Test / mainClass := Some("fmgp.crypto.MainTestJS")
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
@@ -318,6 +315,28 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
   )
   .dependsOn(did)
 
+lazy val webapp = project
+  .in(file("webapp"))
+  .settings(publish / skip := true)
+  .settings(name := "fmgp-webapp")
+  .configure(scalaJSBundlerConfigure)
+  .configure(buildInfoConfigure)
+  .dependsOn(did.js)
+  .settings(
+    libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
+    libraryDependencies ++= Seq(D.zio.value, /*D.zioStreams.value,*/ D.zioJson.value),
+    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient
+    // ++ List("ms" -> "2.1.1"),
+    // stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
+  )
+  .settings(
+    stShortModuleNames := true,
+    webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
+    Compile / scalaJSModuleInitializers += {
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.ipfs.webapp.App", "main")
+    },
+  )
+
 lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
   .configure(publishConfigure)
@@ -327,28 +346,36 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
   )
   .jvmSettings(
+    reStart / mainClass := Some("fmgp.did.demo.AppServer"),
+    assembly / mainClass := Some("fmgp.did.demo.AppServer"),
+    assembly / assemblyJarName := "scala-did-demo-server.jar",
     libraryDependencies += D.ziohttp.value,
+
+    // WebScalaJSBundlerPlugin
+    scalaJSProjects := Seq(webapp),
+    /** scalaJSPipeline task runs scalaJSDev when isDevMode is true, runs scalaJSProd otherwise. scalaJSProd task runs
+      * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
+      * development, including Scala.js fastOptJS task and source maps.
+      */
+    Assets / pipelineStages := Seq(scalaJSPipeline),
+    // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
+    Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
+    // Frontend dependency configuration
+    Assets / WebKeys.packagePrefix := "public/",
+    Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
+  .enablePlugins(WebScalaJSBundlerPlugin)
 
-lazy val webapp = project
-  .in(file("webapp"))
-  .settings(publish / skip := true)
-  .settings(name := "fmgp-ipfs-webapp")
-  .configure(scalaJSBundlerConfigure)
-  .configure(buildInfoConfigure)
-  .dependsOn(did.js)
-  .settings(
-    libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
-    libraryDependencies ++= Seq(D.zio.value, /*D.zioStreams.value,*/ D.zioJson.value),
-    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient ++
-      List("ms" -> "2.1.1"),
-    stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
-  )
-  .settings(
-    stShortModuleNames := true,
-    webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
-    Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.ipfs.webapp.App", "main")
-    },
-  )
+ThisBuild / assemblyMergeStrategy := {
+  case "META-INF/versions/9/module-info.class" => MergeStrategy.first
+  case "META-INF/io.netty.versions.properties" => MergeStrategy.first
+//   case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+//   case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+//   case "application.conf"                            => MergeStrategy.concat
+//   case "unwanted.txt"                                => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
