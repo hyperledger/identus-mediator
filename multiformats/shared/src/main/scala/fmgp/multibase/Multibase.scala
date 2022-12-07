@@ -33,6 +33,7 @@ object Multibase {
     def value: String = x
 
     def decodeToString: String = new String(x.decode)
+    def decodeToHex = x.decode.map("%02X" format _) // .mkString
 
     def decode: Array[Byte] = {
       val baseOpt = Base.Codes.get(x.charAt(0))
