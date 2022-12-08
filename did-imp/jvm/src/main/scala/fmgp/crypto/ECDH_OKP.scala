@@ -21,59 +21,60 @@ import scala.collection.JavaConverters._
 
 import java.util.Collections
 
-import com.nimbusds.jose.JOSEException //TODO REMOVE
 import javax.crypto.SecretKey
+import fmgp.crypto.error._
 
 trait ECDH_UtilsOKP {
-  protected def getCurve(okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)]) = {
+  protected def getCurve(
+      okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)]
+  ): Either[CurveError, Curve] = {
     okpRecipientsKeys.collect(_._2.getCurve).toSet match {
       case theCurve if theCurve.size == 1 =>
-        assert(Curve.okpCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-        theCurve.head.toJWKCurve
-      case _ => ??? // FIXME ERROR
+        if (Curve.okpCurveSet.contains(theCurve.head)) Right(theCurve.head)
+        else Left(WrongCurve(theCurve.head, Curve.okpCurveSet))
+      case multiCurves if multiCurves.size > 1 =>
+        Left(MultiCurvesTypes(multiCurves, Curve.okpCurveSet))
+      case zero if zero.size == 0 =>
+        Left(MissingCurve(Curve.okpCurveSet))
     }
   }
 }
-
+//.toJWKCurve
 object ECDH_AnonOKP extends ECDH_UtilsOKP {
 
-  /** TODO return errors:
-    *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
-    *   - com.nimbusds.jose.JOSEException: Couldn't unwrap AES key: Integrity check failed
-    */
   def encrypt(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
       header: AnonHeaderBuilder,
       clearText: Array[Byte],
-  ): EncryptedMessageGeneric = {
-    val curve = getCurve(okpRecipientsKeys)
-    val myProvider = ECDH_AnonCryptoProvider(curve)
+  ): Either[CryptoFailed, EncryptedMessageGeneric] = for {
+    curve <- getCurve(okpRecipientsKeys).map(_.toJWKCurve)
+    myProvider = ECDH_AnonCryptoProvider(curve)
 
     // Generate ephemeral X25519 key pair
-    val ephemeralPrivateKeyBytes: Array[Byte] =
+    ephemeralPrivateKeyBytes: Array[Byte] =
       com.google.crypto.tink.subtle.X25519.generatePrivateKey()
-    var ephemeralPublicKeyBytes: Array[Byte] =
+    ephemeralPublicKeyBytes: Array[Byte] =
       Try(com.google.crypto.tink.subtle.X25519.publicFromPrivate(ephemeralPrivateKeyBytes)).recover {
         case ex: java.security.InvalidKeyException =>
           // Should never happen since we just generated this private key
-          throw ex // new JOSEException(eex.getMessage(), ex)
+          throw ex // TODO
       }.get
 
-    val ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
+    ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
       new OctetKeyPair.Builder(curve, Base64.encode(ephemeralPublicKeyBytes))
         .d(Base64.encode(ephemeralPrivateKeyBytes))
         .build()
-    val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
-    val ecKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
+    ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
+    ecKeyEphemeral <- ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].left.map(CryptoFailToParse(_))
 
-    val updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
+    updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
 
-    val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
+    sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
       (vmr, ECDH.deriveSharedSecret(key.toJWK, ephemeralPrivateKey))
     }
 
-    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
-  }
+    ret = myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  } yield (ret)
 
   def decrypt(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
@@ -82,33 +83,42 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
-  ): Array[Byte] = {
-    val curve = getCurve(okpRecipientsKeys)
-    val myProvider = ECDH_AnonCryptoProvider(curve)
-
-    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
-    critPolicy.ensureHeaderPasses(header)
-    val ephemeralKey = Option(header.getEphemeralPublicKey)
-      .map(_.asInstanceOf[OctetKeyPair])
-      .getOrElse(throw new JOSEException("Missing ephemeral public key epk JWE header parameter"))
-
-    val sharedSecrets = okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
-      val recipientKey = recipient._2.toJWK
-      // TODO check point on curve
-      val key = recipient._2.toJWK
-
-      if (!key.getCurve().equals(ephemeralKey.getCurve())) {
-        throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
-      }
-
-      val Z = ECDH.deriveSharedSecret(
-        ephemeralKey, // Public Key
-        recipientKey, // Private Key
-      )
-      (recipient._1, Z)
+  ): Either[CryptoFailed, Array[Byte]] = for {
+    curve <- getCurve(okpRecipientsKeys).map(_.toJWKCurve)
+    myProvider = ECDH_AnonCryptoProvider(curve)
+    critPolicy: CriticalHeaderParamsDeferral = {
+      val aux = new CriticalHeaderParamsDeferral()
+      aux.ensureHeaderPasses(header)
+      aux
     }
 
-    myProvider.decryptAUX(
+    ephemeralPublicKey <- Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[OctetKeyPair])
+      .toRight(KeyMissingEpkJWEHeader)
+
+    sharedSecrets <- CryptoErrorCollection.unfold {
+      okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
+        val recipientKey = recipient._2.toJWK
+        // TODO check point on curve
+        val key = recipient._2.toJWK
+
+        if (!key.getCurve().equals(ephemeralPublicKey.getCurve()))
+          Left(PointNotOnCurve("Curve of ephemeral public key does not match curve of private key"))
+        else
+          Try(
+            ECDH
+              .deriveSharedSecret(
+                ephemeralPublicKey, // Public Key
+                recipientKey, // Private Key
+              )
+          ).toEither match {
+            case Left(ex) => Left(SomeThrowable(ex))
+            case Right(z) => Right((recipient._1, z))
+          }
+      }
+    }
+
+    ret = myProvider.decryptAUX(
       header,
       sharedSecrets,
       recipients,
@@ -116,7 +126,7 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
       cipherText,
       authTag,
     )
-  }
+  } yield (ret)
 }
 
 object ECDH_AuthOKP extends ECDH_UtilsOKP {
@@ -126,30 +136,30 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
       header: AuthHeaderBuilder,
       clearText: Array[Byte],
-  ): EncryptedMessageGeneric = {
-    val curve = getCurve(okpRecipientsKeys)
-    val myProvider = ECDH_AuthCryptoProvider(curve)
+  ): Either[CryptoFailed, EncryptedMessageGeneric] = for {
+    curve <- getCurve(okpRecipientsKeys).map(_.toJWKCurve)
+    myProvider = ECDH_AuthCryptoProvider(curve)
 
     // Generate ephemeral X25519 key pair
-    val ephemeralPrivateKeyBytes: Array[Byte] =
+    ephemeralPrivateKeyBytes: Array[Byte] =
       com.google.crypto.tink.subtle.X25519.generatePrivateKey()
-    var ephemeralPublicKeyBytes: Array[Byte] =
+    ephemeralPublicKeyBytes: Array[Byte] =
       Try(com.google.crypto.tink.subtle.X25519.publicFromPrivate(ephemeralPrivateKeyBytes)).recover {
         case ex: java.security.InvalidKeyException =>
           // Should never happen since we just generated this private key
-          throw ex // new JOSEException(eex.getMessage(), ex);
+          throw ex // TODO
       }.get
 
-    val ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
+    ephemeralPrivateKey: OctetKeyPair = // new OctetKeyPairGenerator(getCurve()).generate();
       new OctetKeyPair.Builder(curve, Base64.encode(ephemeralPublicKeyBytes))
         .d(Base64.encode(ephemeralPrivateKeyBytes))
         .build();
-    val ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
-    val okpKeyEphemeral = ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].toOption.get // FIXME
+    ephemeralPublicKey: OctetKeyPair = ephemeralPrivateKey.toPublicJWK()
+    okpKeyEphemeral <- ephemeralPublicKey.toJSONString().fromJson[OKPPublicKey].left.map(CryptoFailToParse(_))
 
-    val updatedHeader = header.buildWithKey(okpKeyEphemeral)
+    updatedHeader = header.buildWithKey(okpKeyEphemeral)
 
-    val sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
+    sharedSecrets = okpRecipientsKeys.map { case (vmr, key) =>
       (
         vmr,
         ECDH1PU.deriveSenderZ(
@@ -160,8 +170,8 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
       )
     }
 
-    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
-  }
+    ret = myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  } yield (ret)
 
   def decrypt(
       sender: OKPKey,
@@ -171,35 +181,38 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
-  ) = {
-    val curve = getCurve(okpRecipientsKeys)
-    val myProvider = ECDH_AuthCryptoProvider(curve)
-
-    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral()
-
-    critPolicy.ensureHeaderPasses(header);
-
-    // Get ephemeral key from header
-    val ephemeralPublicKey: OctetKeyPair = Option(header.getEphemeralPublicKey)
-      .map(_.asInstanceOf[OctetKeyPair])
-      .getOrElse(throw new JOSEException("Missing ephemeral public key epk JWE header parameter"))
-
-    val sharedSecrets = okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
-      val recipientKey = recipient._2.toJWK
-      // TODO check point on curve
-
-      // if (!key.getCurve().equals(ephemeralKey.getCurve())) {
-      //   throw new JOSEException("Curve of ephemeral public key does not match curve of private key");
-      // }
-
-      val Z: SecretKey = ECDH1PU.deriveRecipientZ(
-        recipientKey,
-        sender.toJWK.toPublicJWK(),
-        ephemeralPublicKey
-      )
-      (recipient._1, Z)
+  ): Either[CryptoFailed, Array[Byte]] = for {
+    curve <- getCurve(okpRecipientsKeys).map(_.toJWKCurve)
+    myProvider = ECDH_AuthCryptoProvider(curve)
+    critPolicy: CriticalHeaderParamsDeferral = {
+      val aux = new CriticalHeaderParamsDeferral()
+      aux.ensureHeaderPasses(header);
+      aux
     }
 
-    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag);
-  }
+    // Get ephemeral key from header
+    ephemeralPublicKey: OctetKeyPair <- Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[OctetKeyPair])
+      .toRight(KeyMissingEpkJWEHeader)
+
+    sharedSecrets <- CryptoErrorCollection.unfold {
+      okpRecipientsKeys.map { case recipient: (VerificationMethodReferenced, OKPKey) =>
+        val recipientKey = recipient._2.toJWK
+        // TODO check point on curve
+
+        Try(
+          ECDH1PU.deriveRecipientZ(
+            recipientKey,
+            sender.toJWK.toPublicJWK(),
+            ephemeralPublicKey
+          )
+        ).toEither match {
+          case Left(ex) => Left(SomeThrowable(ex))
+          case Right(z) => Right((recipient._1, z))
+        }
+      }
+    }
+
+    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+  } yield (ret)
 }

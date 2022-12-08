@@ -1,6 +1,5 @@
 package fmgp.crypto
 
-import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.crypto.impl.ECDH
 import com.nimbusds.jose.crypto.impl.ECDH1PU
 import com.nimbusds.jose.crypto.impl.ECDH1PUCryptoProvider
@@ -26,17 +25,21 @@ import scala.collection.JavaConverters._
 
 import java.util.Collections
 import javax.crypto.SecretKey
+import fmgp.crypto.error._
 
 trait ECDH_UtilsEC {
-
-  protected def getCurve(ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)]) =
+  protected def getCurve(
+      ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)]
+  ): Either[CurveError, Curve] =
     ecRecipientsKeys.collect(_._2.getCurve).toSet match {
       case theCurve if theCurve.size == 1 =>
-        assert(Curve.ecCurveSet.contains(theCurve.head), "Curve not expected") // FIXME ERROR
-        theCurve.head.toJWKCurve
-      case _ => ??? // FIXME ERROR
+        if (Curve.ecCurveSet.contains(theCurve.head)) Right(theCurve.head)
+        else Left(WrongCurve(theCurve.head, Curve.okpCurveSet))
+      case multiCurves if multiCurves.size > 1 =>
+        Left(MultiCurvesTypes(multiCurves, Curve.okpCurveSet))
+      case zero if zero.size == 0 =>
+        Left(MissingCurve(Curve.okpCurveSet))
     }
-
 }
 
 object ECDH_AnonEC extends ECDH_UtilsEC {
@@ -49,25 +52,25 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       header: AnonHeaderBuilder,
       clearText: Array[Byte],
-  ): EncryptedMessageGeneric = { // FIXME
-    val curve = getCurve(ecRecipientsKeys)
-    val myProvider = new ECDH_AnonCryptoProvider(curve)
+  ): Either[CryptoFailed, EncryptedMessageGeneric] = for {
+    curve <- getCurve(ecRecipientsKeys).map(_.toJWKCurve)
+    myProvider = new ECDH_AnonCryptoProvider(curve)
 
     // Generate ephemeral EC key pair
-    val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
-    val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
-    val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
-    val ecKeyEphemeral = ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].toOption.get // FIXME
+    ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
+    ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
+    ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
+    ecKeyEphemeral <- ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].left.map(CryptoFailToParse(_))
 
-    val updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
+    updatedHeader = header.buildWithKey(epk = ecKeyEphemeral)
 
-    val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
+    sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
       val use_the_defualt_JCA_Provider = null
       (vmr, ECDH.deriveSharedSecret(key.toJWK.toECPublicKey(), ephemeralPrivateKey, use_the_defualt_JCA_Provider))
     }
 
-    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
-  }
+    ret = myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  } yield (ret)
 
   def decrypt(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
@@ -76,35 +79,42 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
-  ) = {
-    val curve = getCurve(ecRecipientsKeys)
-    val myProvider = new ECDH_AnonCryptoProvider(curve)
-
-    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
-    critPolicy.ensureHeaderPasses(header);
-
-    // Get ephemeral EC key
-    val ephemeralKey = Option(header.getEphemeralPublicKey)
-      .map(_.asInstanceOf[JWKECKey])
-      .getOrElse(throw new JOSEException("Missing ephemeral public EC key \"epk\" JWE header parameter"))
-
-    val sharedSecrets = ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
-      val recipientKey = recipient._2.toJWK
-      if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey())) {
-        throw new JOSEException("Invalid ephemeral public EC key: Point(s) not on the expected curve")
-      }
-
-      val use_the_defualt_JCA_Provider = null
-      val Z = ECDH.deriveSharedSecret(
-        ephemeralKey.toECPublicKey(),
-        recipientKey.toECPrivateKey(),
-        use_the_defualt_JCA_Provider
-      )
-      (recipient._1, Z)
+  ): Either[CryptoFailed, Array[Byte]] = for {
+    curve <- getCurve(ecRecipientsKeys).map(_.toJWKCurve)
+    myProvider = new ECDH_AnonCryptoProvider(curve)
+    critPolicy: CriticalHeaderParamsDeferral = {
+      val aux = new CriticalHeaderParamsDeferral()
+      aux.ensureHeaderPasses(header)
+      aux
     }
 
-    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
-  }
+    // Get ephemeral EC key
+    ephemeralKey <- Option(header.getEphemeralPublicKey)
+      .map(_.asInstanceOf[JWKECKey])
+      .toRight(KeyMissingEpkJWEHeader)
+
+    sharedSecrets <- CryptoErrorCollection.unfold {
+      ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
+        val recipientKey = recipient._2.toJWK
+
+        if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey()))
+          Left(PointNotOnCurve("Curve of ephemeral public key does not match curve of private key"))
+        else
+          Try(
+            ECDH.deriveSharedSecret(
+              ephemeralKey.toECPublicKey(),
+              recipientKey.toECPrivateKey(),
+              null /*use_the_defualt_JCA_Provider*/
+            )
+          ).toEither match {
+            case Left(ex) => Left(SomeThrowable(ex))
+            case Right(z) => Right((recipient._1, z))
+          }
+      }
+    }
+
+    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+  } yield (ret)
 }
 
 object ECDH_AuthEC extends ECDH_UtilsEC {
@@ -114,20 +124,20 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       header: AuthHeaderBuilder,
       clearText: Array[Byte],
-  ): EncryptedMessageGeneric = {
-    val curve = getCurve(ecRecipientsKeys)
-    val myProvider = new ECDH_AuthCryptoProvider(curve)
+  ): Either[CryptoFailed, EncryptedMessageGeneric] = for {
+    curve <- getCurve(ecRecipientsKeys).map(_.toJWKCurve)
+    myProvider = new ECDH_AuthCryptoProvider(curve)
 
     // Generate ephemeral EC key pair on the same curve as the consumer's public key
-    val ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
-    val ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
-    val ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
-    val ecKeyEphemeral = ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].toOption.get // FIXME
+    ephemeralKeyPair: JWKECKey = new ECKeyGenerator(curve).generate()
+    ephemeralPublicKey = ephemeralKeyPair.toECPublicKey()
+    ephemeralPrivateKey = ephemeralKeyPair.toECPrivateKey()
+    ecKeyEphemeral <- ephemeralKeyPair.toJSONString().fromJson[ECPublicKey].left.map(CryptoFailToParse(_))
 
     // Add the ephemeral public EC key to the header
-    val updatedHeader = header.buildWithKey(ecKeyEphemeral)
+    updatedHeader = header.buildWithKey(ecKeyEphemeral)
 
-    val sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
+    sharedSecrets = ecRecipientsKeys.map { case (vmr, key) =>
       val use_the_defualt_JCA_Provider = null
       (
         vmr,
@@ -140,8 +150,8 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
       )
     }
 
-    myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
-  }
+    ret = myProvider.encryptAUX(updatedHeader, sharedSecrets, clearText)
+  } yield (ret)
 
   def decrypt(
       sender: ECKey,
@@ -151,34 +161,40 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
-  ) = {
-    val curve = getCurve(ecRecipientsKeys)
-    val myProvider = new ECDH_AuthCryptoProvider(curve)
-
-    val critPolicy: CriticalHeaderParamsDeferral = new CriticalHeaderParamsDeferral();
-    critPolicy.ensureHeaderPasses(header)
-
+  ): Either[CryptoFailed, Array[Byte]] = for {
+    curve <- getCurve(ecRecipientsKeys).map(_.toJWKCurve)
+    myProvider = new ECDH_AuthCryptoProvider(curve)
+    critPolicy: CriticalHeaderParamsDeferral = {
+      val aux = new CriticalHeaderParamsDeferral()
+      aux.ensureHeaderPasses(header)
+      aux
+    }
     // Get ephemeral EC key
-    val ephemeralKey = Option(header.getEphemeralPublicKey)
+    ephemeralKey <- Option(header.getEphemeralPublicKey)
       .map(_.asInstanceOf[JWKECKey])
-      .getOrElse(throw new JOSEException("Missing ephemeral public EC key \"epk\" JWE header parameter"))
+      .toRight(KeyMissingEpkJWEHeader)
 
-    val sharedSecrets = ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
-      val recipientKey = recipient._2.toJWK
-      if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey())) {
-        throw new JOSEException("Invalid ephemeral public EC key: Point(s) not on the expected curve")
+    sharedSecrets <- CryptoErrorCollection.unfold {
+      ecRecipientsKeys.map { case recipient: (VerificationMethodReferenced, ECKey) =>
+        val recipientKey = recipient._2.toJWK
+
+        if (!ECChecks.isPointOnCurve(ephemeralKey.toECPublicKey(), recipientKey.toECPrivateKey()))
+          Left(PointNotOnCurve("Curve of ephemeral public key does not match curve of private key"))
+        else
+          Try(
+            ECDH1PU.deriveRecipientZ(
+              recipientKey.toECPrivateKey,
+              sender.toJWK.toECPublicKey,
+              ephemeralKey.toECPublicKey,
+              null /*use_the_defualt_JCA_Provider*/
+            )
+          ).toEither match {
+            case Left(ex) => Left(SomeThrowable(ex))
+            case Right(z) => Right((recipient._1, z))
+          }
       }
-
-      val use_the_defualt_JCA_Provider = null
-      val Z: SecretKey = ECDH1PU.deriveRecipientZ(
-        recipientKey.toECPrivateKey,
-        sender.toJWK.toECPublicKey,
-        ephemeralKey.toECPublicKey,
-        use_the_defualt_JCA_Provider
-      )
-      (recipient._1, Z)
     }
 
-    myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag);
-  }
+    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+  } yield (ret)
 }

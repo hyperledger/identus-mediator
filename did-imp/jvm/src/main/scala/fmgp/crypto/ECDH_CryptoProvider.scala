@@ -30,14 +30,11 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
 
   override def supportedEllipticCurves(): java.util.Set[JWKCurve] = Set(curve).asJava
 
-  /** @throws JOSEException
-    *   //FIXME
-    */
   def encryptAUX(
       header: ProtectedHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
-  ): EncryptedMessageGeneric = {
+  ): EncryptedMessageGeneric = { // FIXME ERRORs
 
     val algMode: ECDH.AlgorithmMode = ECDH.resolveAlgorithmMode(header.getAlgorithm);
     assert(algMode == ECDH.AlgorithmMode.KW)
@@ -96,7 +93,6 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
 
     result.head
   }
-
 }
 
 /** Elliptic-curve Diffie–Hellman */
@@ -108,7 +104,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
       header: ProtectedHeader,
       sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
-  ): EncryptedMessageGeneric = {
+  ): EncryptedMessageGeneric = { // FIXME ERRORs
 
     val algMode: ECDH.AlgorithmMode = ECDH1PU.resolveAlgorithmMode(header.getAlgorithm())
     assert(algMode == ECDH.AlgorithmMode.KW)
