@@ -23,8 +23,8 @@ class PointOnCurveSuite extends ZSuite {
   test("Positive test for P_256") {
     val key = ex1_P_256.fromJson[ECPrivateKey].toOption.get
     val ret = PointOnCurve.isPointOnCurveP_256(
-      Base64(key.x).decodeToBigInteger(),
-      Base64(key.y).decodeToBigInteger()
+      Base64(key.x).decodeToBigInt,
+      Base64(key.y).decodeToBigInt
     )
     assert(ret)
   }
