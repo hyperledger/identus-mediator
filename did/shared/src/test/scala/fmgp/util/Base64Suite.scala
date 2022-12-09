@@ -19,12 +19,12 @@ class Base64Suite extends FunSuite {
 
   examples.foreach { case (input, expeted, expetedUrl) =>
     test("Check Base64 '" + input + "'") {
-      assertEquals(Base64.encode(input).decode, input, "encode and decode")
+      assertEquals(Base64.encode(input).decodeToString, input, "encode and decode")
       assertEquals(Base64.encode(input).urlBase64, expetedUrl, "to url")
       assertEquals(Base64.encode(input).basicBase64, expeted, "to base64")
 
-      assertEquals(Base64.fromBase64url(expetedUrl).decode, input, "from url")
-      assertEquals(Base64.fromBase64(expeted).decode, input, "from base64")
+      assertEquals(Base64.fromBase64url(expetedUrl).decodeToString, input, "from url")
+      assertEquals(Base64.fromBase64(expeted).decodeToString, input, "from base64")
     }
   }
 

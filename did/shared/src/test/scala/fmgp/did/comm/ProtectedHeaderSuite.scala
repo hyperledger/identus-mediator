@@ -48,37 +48,37 @@ class ProtectedHeaderSuite extends ZSuite {
     "eyJlcGsiOnsia3R5IjoiRUMiLCJjcnYiOiJQLTUyMSIsIngiOiJBYmxoeVVENUxYNE9zWDhGRTVaODRBX09CYThiOHdhVUhXSFExbTBnczhuSFVERDdySDlJRWRZbzJUSzFQYU5ha05aSk54a1FBWC1aUkxWa1BoNnV4eTJNIiwieSI6IkFQTjh6c0xEZGJpVjN0LTloWTJFQzFVZWEzTm5tMzFtNWowRmNiUWM0Y2ZWQmFNdzVCQ2VpcU9QWkljZTVMNjI4bnVORkxKR2szSjh6SVBPYUlLU0xmaTEifSwiYXB2IjoiR09lbzc2eW02TkNnOVdXTUVZZlcwZVZEVDU2Njh6RWhsMnVBSVctRS1IRSIsInR5cCI6ImFwcGxpY2F0aW9uL2RpZGNvbW0tZW5jcnlwdGVkK2pzb24iLCJlbmMiOiJYQzIwUCIsImFsZyI6IkVDREgtRVMrQTI1NktXIn0"
 
   test("Parse Header ex1") {
-    Base64.fromBase64url(ex1).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex1).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex1)
     }
   }
   test("Parse Header ex2") {
-    Base64.fromBase64url(ex2).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex2).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex2)
     }
   }
   test("Parse Header ex3") {
-    Base64.fromBase64url(ex3).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex3).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex3)
     }
   }
   test("Parse Header ex4") {
-    Base64.fromBase64url(ex4).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex4).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex4)
     }
   }
   test("Parse Header ex5") {
-    Base64.fromBase64url(ex5).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex5).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex5)
     }
   }
   test("Parse Header ex6") {
-    Base64.fromBase64url(ex6).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex6).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex6)
     }
@@ -93,7 +93,7 @@ class ProtectedHeaderSuite extends ZSuite {
   }
 
   test("Parse ANON/AUTH Header ex1 (ANON)") {
-    Base64.fromBase64url(ex1).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex1).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -101,7 +101,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex2 (ANON)") {
-    Base64.fromBase64url(ex2).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex2).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -109,7 +109,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex3 (ANON)") {
-    Base64.fromBase64url(ex3).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex3).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -117,7 +117,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex4 (AUTH)") {
-    Base64.fromBase64url(ex4).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex4).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AuthProtectedHeader])
@@ -125,7 +125,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex5 (AUTH)") {
-    Base64.fromBase64url(ex5).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex5).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AuthProtectedHeader])
@@ -133,7 +133,7 @@ class ProtectedHeaderSuite extends ZSuite {
     }
   }
   test("Parse ANON/AUTH Header ex6 (ANON)") {
-    Base64.fromBase64url(ex6).decode.fromJson[ProtectedHeader] match {
+    Base64.fromBase64url(ex6).decodeToString.fromJson[ProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj) =>
         assert(obj.isInstanceOf[AnonProtectedHeader])
@@ -142,26 +142,26 @@ class ProtectedHeaderSuite extends ZSuite {
   }
 
   test("Parse Header ex1 as ANON") {
-    Base64.fromBase64url(ex1).decode.fromJson[AnonProtectedHeader] match {
+    Base64.fromBase64url(ex1).decodeToString.fromJson[AnonProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex1)
     }
   }
   test("Parse Header ex1 as AUTH fail") {
-    Base64.fromBase64url(ex1).decode.fromJson[AuthProtectedHeader] match {
+    Base64.fromBase64url(ex1).decodeToString.fromJson[AuthProtectedHeader] match {
       case Left(error) => assertEquals(error, ".skid(missing)")
       case Right(obj)  => fail("parsing must fail")
     }
   }
 
   test("Parse Header ex4 as ANON fail") {
-    Base64.fromBase64url(ex4).decode.fromJson[AnonProtectedHeader] match {
+    Base64.fromBase64url(ex4).decodeToString.fromJson[AnonProtectedHeader] match {
       case Left(error) => assertEquals(error, "(Found field 'skid')")
       case Right(obj)  => fail("parsing must fail")
     }
   }
   test("Parse Header ex4 as AUTH") {
-    Base64.fromBase64url(ex4).decode.fromJson[AuthProtectedHeader] match {
+    Base64.fromBase64url(ex4).decodeToString.fromJson[AuthProtectedHeader] match {
       case Left(error) => fail(error)
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex4)
     }
