@@ -44,10 +44,6 @@ trait ECDH_UtilsEC {
 
 object ECDH_AnonEC extends ECDH_UtilsEC {
 
-  /** TODO return errors:
-    *   - com.nimbusds.jose.JOSEException: Invalid ephemeral public EC key: Point(s) not on the expected curve
-    *   - com.nimbusds.jose.JOSEException: Couldn't unwrap AES key: Integrity check failed
-    */
   def encrypt(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
       header: AnonHeaderBuilder,
