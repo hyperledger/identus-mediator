@@ -41,8 +41,8 @@ enum Curve: // TODO make it type safe!
   case `P-384` extends Curve
   case `P-521` extends Curve
   case secp256k1 extends Curve
-  case X25519 extends Curve
-  case Ed25519 extends Curve
+  case X25519 extends Curve //  used for key exchange
+  case Ed25519 extends Curve //  used for digital signatures
 
 // sealed trait ECCurve // Elliptic Curve
 type ECCurve = Curve.`P-256`.type | Curve.`P-384`.type | Curve.`P-521`.type | Curve.secp256k1.type
