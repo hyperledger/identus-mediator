@@ -3,6 +3,7 @@ package fmgp.crypto
 import zio.json._
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
+import fmgp.util.Base64
 
 enum JWAAlgorithm:
   case ES256K extends JWAAlgorithm
@@ -72,6 +73,15 @@ object Curve {
       case c: OKPCurve => c
     }
   }
+
+  extension (curve: ECCurve) {
+    inline def isPointOnCurve(x: BigInt, y: BigInt) = curve match
+      case Curve.`P-256`   => PointOnCurve.isPointOnCurveP_256(x, y)
+      case Curve.`P-384`   => PointOnCurve.isPointOnCurveP_384(x, y)
+      case Curve.`P-521`   => PointOnCurve.isPointOnCurveP_521(x, y)
+      case Curve.secp256k1 => PointOnCurve.isPointOnCurveSecp256k1(x, y)
+  }
+
   given decoder: JsonDecoder[Curve] = JsonDecoder.string.map(Curve.valueOf)
   given encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
 
@@ -93,6 +103,7 @@ sealed abstract class OKP_EC_Key extends JWKObj {
   def crv: Curve
   def kid: Option[String]
   def x: String
+  def xNumbre = Base64.fromBase64url(x).decodeToBigInt
 
   // TODO // Should I make this type safe? Will add another dimension of types, just to move the error to the parser.
   assert(
@@ -133,7 +144,9 @@ sealed abstract class OKPKey extends OKP_EC_Key {
 }
 sealed abstract class ECKey extends OKP_EC_Key {
   def y: String
+  def yNumbre = Base64.fromBase64url(y).decodeToBigInt
   def getCurve: ECCurve = crv.asECCurve
+  def isPointOnCurve = getCurve.isPointOnCurve(xNumbre, yNumbre)
 }
 
 sealed trait PublicKey extends OKP_EC_Key
