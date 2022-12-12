@@ -6,16 +6,18 @@ import org.didcommx.peerdid.core.PeerDIDUtils
 import org.didcommx.peerdid.*
 
 import com.nimbusds.jose.jwk.*
-import com.nimbusds.jose.jwk.gen.*
 import scala.jdk.CollectionConverters.*
 
 import fmgp.did._
+import fmgp.crypto._
+import fmgp.crypto.UtilsJVM._
 
 import zio.json._
+import fmgp.crypto.OKPPrivateKey
 
 final case class DidcommxPeerdid(
-    jwkForKeyAgreement: OctetKeyPair = new OctetKeyPairGenerator(Curve.X25519).generate(),
-    jwkForKeyAuthentication: OctetKeyPair = new OctetKeyPairGenerator(Curve.Ed25519).generate(),
+    jwkForKeyAgreement: OKPKey = KeyGenerator.newEd25519.toOption.get,
+    jwkForKeyAuthentication: OKPKey = KeyGenerator.newX25519.toOption.get,
     serviceEndpoint: Option[String] = None
 ) {
 
@@ -32,13 +34,13 @@ final case class DidcommxPeerdid(
 
   def keyAgreement = VerificationMaterialPeerDID[VerificationMethodTypeAgreement](
     VerificationMaterialFormatPeerDID.JWK,
-    jwkForKeyAgreement.toPublicJWK,
+    jwkForKeyAgreement.toJWK.toPublicJWK,
     VerificationMethodTypeAgreement.JSON_WEB_KEY_2020.INSTANCE
   )
 
   def keyAuthentication = VerificationMaterialPeerDID[VerificationMethodTypeAuthentication](
     VerificationMaterialFormatPeerDID.JWK,
-    jwkForKeyAuthentication.toPublicJWK,
+    jwkForKeyAuthentication.toJWK.toPublicJWK,
     VerificationMethodTypeAuthentication.JSON_WEB_KEY_2020.INSTANCE
   )
 
@@ -49,12 +51,12 @@ final case class DidcommxPeerdid(
     val secretKeyAgreement = new Secret(
       s"${did.string}#$keyIdAgreement",
       VerificationMethodType.JSON_WEB_KEY_2020,
-      new VerificationMaterial(VerificationMaterialFormat.JWK, jwkForKeyAgreement.toJSONString)
+      new VerificationMaterial(VerificationMaterialFormat.JWK, jwkForKeyAgreement.toJWK.toJSONString)
     )
     val secretKeyAuthentication = new Secret(
       s"${did.string}#$keyIdAuthentication",
       VerificationMethodType.JSON_WEB_KEY_2020,
-      new VerificationMaterial(VerificationMaterialFormat.JWK, jwkForKeyAuthentication.toJSONString)
+      new VerificationMaterial(VerificationMaterialFormat.JWK, jwkForKeyAuthentication.toJWK.toJSONString)
     )
 
     new SecretResolverInMemory(

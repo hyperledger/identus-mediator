@@ -299,7 +299,9 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72" % Test,
     libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1" % Test,
   )
+  .jsConfigure(scalaJSBundlerConfigure)
   .dependsOn(did, multiformats)
+  .dependsOn(didImp % "test->test") // To generate keys for tests
 
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)

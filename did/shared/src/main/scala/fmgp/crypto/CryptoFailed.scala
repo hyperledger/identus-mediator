@@ -14,6 +14,8 @@ package error {
   // ### Error Crypto ###
   // ####################
   sealed trait CryptoFailed extends DidFail
+  case class FailToGenerateKey(throwable: Throwable) extends CryptoFailed
+
   case object CryptoNotImplementedError extends CryptoFailed
   case object UnknownError extends CryptoFailed
   case class SomeThrowable(throwable: Throwable) extends CryptoFailed
