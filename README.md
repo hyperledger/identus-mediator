@@ -3,16 +3,28 @@
 A Scala/ScalaJS library for DID and DIDcomm.
 The one of the main goals of this library is to make DID Comm v2 **type safety** and easy to use.
 
-- Decentralized Identifiers (DIDs) v1.0 - W3C Proposed Recommendation 03 August 2021 [LINK GitHub](https://w3c.github.io/did-core/) or [LINK W3C](https://www.w3.org/TR/did-core/)
-- DID Comm - <https://identity.foundation/didcomm-messaging/spec/>
-- DID Comm protocols - <https://didcomm.org/search/?page=1>
-- DID Comm - Wallet and Credential Interaction (WACI) - https://identity.foundation/waci-didcomm/
-
 
 [![CI](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml)
 [![Scala Steward](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml)
  - **CI** automate builds and tests all pushes to the master branch also as all PRs created.
  - **Scala Steward** automate the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
+
+
+**More documentation:**
+- [LICENSE](LICENSE) - Apache License, Version 2.0
+- [demo](demo/README.md) - How to build, test and deploy the Demo. The Demo is a server with (webapp) client.  
+- [webapp module](webapp/README.md) - How to build, develop and run localy.
+- [multiformats module](multiformats/README.md) -(Implemente notes and an considerations (of TODOs) if we want to use as the independent Library.
+- [docs](docs/) - [WIP/TODO] Base of the library documentation website.
+  <!-- - [docs/readme.md](docs/readme.md) - TODO -->
+
+**External documentation / Links:**
+- Decentralized Identifiers (DIDs) v1.0 - W3C Proposed Recommendation 03 August 2021 [LINK GitHub](https://w3c.github.io/did-core/) or [LINK W3C](https://www.w3.org/TR/did-core/)
+- DID Comm - <https://identity.foundation/didcomm-messaging/spec/>
+- DID Comm protocols - <https://didcomm.org/search/?page=1>
+- DID Comm - Wallet and Credential Interaction (WACI) - https://identity.foundation/waci-didcomm/
+- Future Work (maybe):
+  - DID Credentials -> [Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
 ## Benefits of type safety
 
 - It would help prevent errors by ensuring that only valid DIDs are used, and that the library does not attempt to perform any invalid operations on them. This could help ensure that the library functions correctly and reliably.
@@ -83,14 +95,6 @@ NOTES:
 - The `did-imp-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
 - `did-resolver-web` & `did-resolver-peer` are implementations of the respective did methods.
 
-## build and run app (open chrome)
-
-`sbt>` `webapp/fastOptJS::webpack`
-
-open `file:///home/fabio/workspace/ScalaDID/webapp/index-fastopt.html#/`
-
-google-chrome-stable --disable-web-security --user-data-dir="/tmp/chrome_tmp" --new-window file:///home/fabio/workspace/ScalaDID/webapp/index-fastopt.html#/
-
 ## Test coverage
 
 1. `sbt clean coverage testJVM` - Run test
@@ -128,14 +132,15 @@ The `XC20P` used for Anoncrypt but is optional.
 You can read the [JavaScript JOSE Proposal](<https://hackmd.io/@IyhpRay4QVC_ozugDsQAQg/S1QlYJN0d>) from DIF (Decentralized Identity Foundation).
 Also the discussion on the `jose` npm Library <https://github.com/panva/jose/discussions/237>
 
-### Future Work
+## Troubleshooting
 
-DID Credentials -> [Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
+- On Node v17 you need use the legacy openssl:
 
-## Troubleshooting (Node v17)
-
-Error `Error: error:0308010C:digital envelope routines::unsupported`
-export NODE_OPTIONS=--openssl-legacy-provider
+  - Error: `error:0308010C:digital envelope routines::unsupported`
+  - Solution:
+    ```shell
+    export NODE_OPTIONS=--openssl-legacy-provider
+    ```
 # Pseudo-Random
 
 https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
