@@ -5,4 +5,8 @@ WORKDIR /app
 
 EXPOSE 8080
 
-ENTRYPOINT [ "java", "-Dport=8080", "-Xmx150m", "-jar", "app.jar" ]
+ENTRYPOINT [ "java", "-Dport=8080", "-XX:+UseContainerSupport", "-jar", "app.jar" ]
+#-Xmx100m
+#-Xss256k
+#-XX:MaxMetaspaceSize=N
+#-XX:+UseContainerSupport
