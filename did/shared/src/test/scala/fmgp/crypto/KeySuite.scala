@@ -8,6 +8,18 @@ import zio.json.ast.Json
 /** didJVM/testOnly fmgp.crypto.KeySuite */
 class KeySuite extends FunSuite {
 
+  test("parse & serialize KTY EC") {
+    assertEquals(KTY.EC.toJson, """"EC"""")
+    assertEquals(KTY.EC.toJson.fromJson[KTY], Right(KTY.EC))
+  }
+  test("parse & serialize KTY OKP") {
+    assertEquals(KTY.OKP.toJson, """"OKP"""")
+    assertEquals(KTY.OKP.toJson.fromJson[KTY], Right(KTY.OKP))
+  }
+  test("parse gibberish as KTY") {
+    assertEquals(""""gibberish"""".fromJson[KTY], Left("(enum case not found: gibberish)"))
+  }
+
   test("parse & serialize JWAAlgorithm ES256K") {
     assertEquals(JWAAlgorithm.ES256K.toJson, """"ES256K"""")
     assertEquals(JWAAlgorithm.ES256K.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.ES256K))
@@ -33,6 +45,10 @@ class KeySuite extends FunSuite {
     assertEquals(JWAAlgorithm.EdDSA.toJson.fromJson[JWAAlgorithm], Right(JWAAlgorithm.EdDSA))
   }
 
+  test("parse gibberish as JWAAlgorithm") {
+    assertEquals(""""gibberish"""".fromJson[JWAAlgorithm], Left("(enum case not found: gibberish)"))
+  }
+
   test("parse & serialize Curve P-256") {
     assertEquals(Curve.`P-256`.toJson, """"P-256"""")
     assertEquals(Curve.`P-256`.toJson.fromJson[Curve], Right(Curve.`P-256`))
@@ -51,6 +67,10 @@ class KeySuite extends FunSuite {
   test("parse & serialize Curve secp256k1") {
     assertEquals(Curve.secp256k1.toJson, """"secp256k1"""")
     assertEquals(Curve.secp256k1.toJson.fromJson[Curve], Right(Curve.secp256k1))
+  }
+
+  test("parse gibberish as Curve") {
+    assertEquals(""""gibberish"""".fromJson[Curve], Left("(enum case not found: gibberish)"))
   }
 
   test("parse & stringify PrivateKey") {

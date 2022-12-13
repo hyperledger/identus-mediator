@@ -3,7 +3,7 @@ package fmgp.crypto
 import zio.json._
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
-import fmgp.util.Base64
+import fmgp.util.{Base64, safeValueOf}
 
 enum JWAAlgorithm:
   case ES256K extends JWAAlgorithm
@@ -12,7 +12,7 @@ enum JWAAlgorithm:
   case ES512 extends JWAAlgorithm // TODO check https://identity.foundation/didcomm-messaging/spec/#algorithms
   case EdDSA extends JWAAlgorithm
 object JWAAlgorithm {
-  given decoder: JsonDecoder[JWAAlgorithm] = JsonDecoder.string.map(JWAAlgorithm.valueOf)
+  given decoder: JsonDecoder[JWAAlgorithm] = JsonDecoder.string.mapOrFail(e => safeValueOf(JWAAlgorithm.valueOf(e)))
   given encoder: JsonEncoder[JWAAlgorithm] = JsonEncoder.string.contramap((e: JWAAlgorithm) => e.toString)
 }
 
@@ -22,7 +22,7 @@ enum KTY:
   case OKP extends KTY // Edwards-curve Octet Key Pair
 
 object KTY {
-  given decoder: JsonDecoder[KTY] = JsonDecoder.string.map(KTY.valueOf)
+  given decoder: JsonDecoder[KTY] = JsonDecoder.string.mapOrFail(e => safeValueOf(KTY.valueOf(e)))
   given encoder: JsonEncoder[KTY] = JsonEncoder.string.contramap((e: KTY) => e.toString)
 
   given decoderEC: JsonDecoder[KTY.EC.type] = JsonDecoder.string.mapOrFail(str =>
@@ -82,7 +82,7 @@ object Curve {
       case Curve.secp256k1 => PointOnCurve.isPointOnCurveSecp256k1(x, y)
   }
 
-  given decoder: JsonDecoder[Curve] = JsonDecoder.string.map(Curve.valueOf)
+  given decoder: JsonDecoder[Curve] = JsonDecoder.string.mapOrFail(e => safeValueOf(Curve.valueOf(e)))
   given encoder: JsonEncoder[Curve] = JsonEncoder.string.contramap((e: Curve) => e.toString)
 
   val ecCurveSet = Set(Curve.`P-256`, Curve.`P-384`, Curve.`P-521`, Curve.secp256k1)

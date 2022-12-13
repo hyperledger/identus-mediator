@@ -5,7 +5,7 @@ import zio.json.ast._
 
 import fmgp.did._
 import fmgp.crypto.PublicKey
-import fmgp.util.Base64
+import fmgp.util.{Base64, safeValueOf}
 
 // class Base64JWEHeader(data: Base64) extends Selectable:
 //   val json = data.decode.fromJson[Json].toOption.get
@@ -123,7 +123,7 @@ enum ENCAlgorithm { // JWAAlgorithm
   case `A256CBC-HS512` extends ENCAlgorithm
 }
 object ENCAlgorithm {
-  given decoder: JsonDecoder[ENCAlgorithm] = JsonDecoder.string.map(ENCAlgorithm.valueOf)
+  given decoder: JsonDecoder[ENCAlgorithm] = JsonDecoder.string.mapOrFail(e => safeValueOf(ENCAlgorithm.valueOf(e)))
   given encoder: JsonEncoder[ENCAlgorithm] = JsonEncoder.string.contramap((e: ENCAlgorithm) => e.toString)
 }
 
@@ -133,6 +133,6 @@ enum KWAlgorithm {
   case `ECDH-1PU+A256KW` extends KWAlgorithm
 }
 object KWAlgorithm {
-  given decoder: JsonDecoder[KWAlgorithm] = JsonDecoder.string.map(KWAlgorithm.valueOf)
+  given decoder: JsonDecoder[KWAlgorithm] = JsonDecoder.string.mapOrFail(e => safeValueOf(KWAlgorithm.valueOf(e)))
   given encoder: JsonEncoder[KWAlgorithm] = JsonEncoder.string.contramap((e: KWAlgorithm) => e.toString)
 }

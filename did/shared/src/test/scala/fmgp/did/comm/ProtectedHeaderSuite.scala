@@ -23,6 +23,10 @@ class ProtectedHeaderSuite extends ZSuite {
     assertEquals(ENCAlgorithm.`A256CBC-HS512`.toJson, """"A256CBC-HS512"""")
     assertEquals(ENCAlgorithm.`A256CBC-HS512`.toJson.fromJson[ENCAlgorithm], Right(ENCAlgorithm.`A256CBC-HS512`))
   }
+  test("parse gibberish as ENCAlgorithm") {
+    assertEquals(""""gibberish"""".fromJson[ENCAlgorithm], Left("(enum case not found: gibberish)"))
+  }
+
   test("parse & serialize KWAlgorithm ECDH-ES+A256KW") {
     assertEquals(KWAlgorithm.`ECDH-ES+A256KW`.toJson, """"ECDH-ES+A256KW"""")
     assertEquals(KWAlgorithm.`ECDH-ES+A256KW`.toJson.fromJson[KWAlgorithm], Right(KWAlgorithm.`ECDH-ES+A256KW`))
@@ -30,6 +34,9 @@ class ProtectedHeaderSuite extends ZSuite {
   test("parse & serialize KWAlgorithm ECDH-1PU+A256KW") {
     assertEquals(KWAlgorithm.`ECDH-1PU+A256KW`.toJson, """"ECDH-1PU+A256KW"""")
     assertEquals(KWAlgorithm.`ECDH-1PU+A256KW`.toJson.fromJson[KWAlgorithm], Right(KWAlgorithm.`ECDH-1PU+A256KW`))
+  }
+  test("parse gibberish as KWAlgorithm") {
+    assertEquals(""""gibberish"""".fromJson[KWAlgorithm], Left("(enum case not found: gibberish)"))
   }
 
 //   val h1 =
