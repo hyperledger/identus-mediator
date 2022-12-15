@@ -12,7 +12,7 @@ object MyRouter {
   )
 
   case object HomePage extends Page("Home", "home")
-  // case object KeysPage extends Page("Keys", "key")
+  case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
   case object DIDcommPage extends Page("DIDComm", "visibility")
   case object MermaidPage extends Page("MermaidApp", "share")
@@ -23,7 +23,7 @@ object MyRouter {
 
   private val routes = List(
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
-    // Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
     // Route.static(DIDPage, root / "did" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DIDcommPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
     Route.static(MermaidPage, root / "mermaid" / endOfSegments, Router.localFragmentBasePath),

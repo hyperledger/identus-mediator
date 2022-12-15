@@ -35,14 +35,14 @@ object App {
 
   private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
     .collectStatic(HomePage)(DIDCommHome())
-    // .collectStatic(KeysPage)(KeysHome())
+    .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
     .collectStatic(DIDcommPage)(DIDCommHome())
     .collectStatic(MermaidPage)(MermaidApp())
 
   private val linkPages: List[Page] = List(
     HomePage,
-    // KeysPage,
+    KeysPage,
     // DIDPage,
     DIDcommPage,
     MermaidPage,
