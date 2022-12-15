@@ -38,7 +38,8 @@ import fmgp.did.resolver.peer._
       body = Map(
         "a" -> "1",
         "b" -> "2"
-      ) //  : Required[JSON_RFC7159],
+      ), //  : Required[JSON_RFC7159],
+      attachments = None
     )
     sign <- Operations.sign(msg)
     _ <- Console.printLine(s"sign msg: ${sign.toJson /*Pretty*/}")

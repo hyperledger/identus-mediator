@@ -60,6 +60,7 @@ trait PlaintextMessage extends Message {
   def body: Required[JSON_RFC7159]
 
   // FIXME def attachments: NotRequired[Seq[Attachment]]
+  def attachments: NotRequired[Seq[Json]]
 }
 
 object PlaintextMessage {

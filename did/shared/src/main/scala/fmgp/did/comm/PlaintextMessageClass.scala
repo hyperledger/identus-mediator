@@ -1,6 +1,7 @@
 package fmgp.did.comm
 
 import zio.json._
+import zio.json.ast.Json
 import fmgp.did._
 
 case class PlaintextMessageClass(
@@ -13,6 +14,7 @@ case class PlaintextMessageClass(
     expires_time: NotRequired[UTCEpoch],
     body: Required[JSON_RFC7159],
     // FIXME attachments: NotRequired[Seq[Attachment]]
+    attachments: NotRequired[Seq[Json]]
 ) extends PlaintextMessage
 
 object PlaintextMessageClass {
