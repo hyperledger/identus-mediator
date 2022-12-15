@@ -46,19 +46,19 @@ given Conversion[ProtectedHeader, JWEHeader] with
 
     x match {
       case AnonProtectedHeader(epk, apv, typ, enc, alg) =>
-        new JWEHeader.Builder(algorithm, encryptionMethod)
-          .`type`(JOSEObjectType(typ.typ))
+        val aux = new JWEHeader.Builder(algorithm, encryptionMethod)
           .agreementPartyVInfo(apv.base64)
           .ephemeralPublicKey(epk.toJWK)
-          .build()
+        typ.map(e => aux.`type`(JOSEObjectType(e.typ)))
+        aux.build()
       case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) =>
-        new JWEHeader.Builder(algorithm, encryptionMethod)
-          .`type`(JOSEObjectType(typ.typ))
+        val aux = new JWEHeader.Builder(algorithm, encryptionMethod)
           .agreementPartyVInfo(apv.base64)
           .ephemeralPublicKey(epk.toJWK)
           .senderKeyID(skid.value)
           .agreementPartyUInfo(apu.base64)
-          .build()
+        typ.map(e => aux.`type`(JOSEObjectType(e.typ)))
+        aux.build()
     }
   }
 

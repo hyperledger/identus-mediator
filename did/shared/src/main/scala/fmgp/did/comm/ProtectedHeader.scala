@@ -21,7 +21,7 @@ sealed trait ProtectedHeaderTMP {
   def apv: APV
   // def skid: Option[VerificationMethodReferenced] = None
   // def apu: Option[APU] = None
-  def typ: MediaTypes
+  def typ: Option[MediaTypes] // https://identity.foundation/didcomm-messaging/spec/#iana-media-types
   def enc: ENCAlgorithm
   def alg: KWAlgorithm
 }
@@ -31,7 +31,7 @@ case class AnonHeaderBuilder(
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
 ) extends ProtectedHeaderTMP {
-  def typ: MediaTypes = MediaTypes.ANONCRYPT
+  def typ: Option[MediaTypes] = Some(MediaTypes.ANONCRYPT)
   def buildWithKey(epk: PublicKey) = AnonProtectedHeader(epk, apv, typ, enc, alg)
 }
 
@@ -42,7 +42,7 @@ case class AuthHeaderBuilder(
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
 ) extends ProtectedHeaderTMP {
-  def typ: MediaTypes = MediaTypes.AUTHCRYPT
+  def typ: Option[MediaTypes] = Some(MediaTypes.AUTHCRYPT)
   def buildWithKey(epk: PublicKey) = AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg)
 }
 
@@ -59,7 +59,7 @@ sealed trait ProtectedHeader extends ProtectedHeaderTMP {
   def apv: APV
   // def skid: Option[VerificationMethodReferenced]
   // def apu: Option[APU]
-  def typ: MediaTypes
+  def typ: Option[MediaTypes]
   def enc: ENCAlgorithm
   def alg: KWAlgorithm
 }
@@ -83,7 +83,7 @@ object ProtectedHeader {
 case class AnonProtectedHeader(
     epk: PublicKey,
     apv: APV,
-    typ: MediaTypes = MediaTypes.ANONCRYPT,
+    typ: Option[MediaTypes] = Some(MediaTypes.ANONCRYPT),
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
 ) extends ProtectedHeader
@@ -107,7 +107,7 @@ case class AuthProtectedHeader(
     apv: APV,
     skid: VerificationMethodReferenced, // did:example:alice#key-p256-1
     apu: APU,
-    typ: MediaTypes = MediaTypes.AUTHCRYPT,
+    typ: Option[MediaTypes] = Some(MediaTypes.AUTHCRYPT),
     enc: ENCAlgorithm,
     alg: KWAlgorithm,
 ) extends ProtectedHeader
