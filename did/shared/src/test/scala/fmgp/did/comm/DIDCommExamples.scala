@@ -47,7 +47,8 @@ object DIDCommExamples {
     body = Map(
       "message_type_specific_attribute" -> "and its value",
       "another_attribute" -> "and its value"
-    )
+    ),
+    attachments = None
   )
 
   def attachment = """

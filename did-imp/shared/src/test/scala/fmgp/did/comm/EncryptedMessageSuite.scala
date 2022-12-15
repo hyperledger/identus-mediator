@@ -53,7 +53,8 @@ class EncryptedMessageSuite extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Map("messagespecificattribute" -> "and its value")
+    Map("messagespecificattribute" -> "and its value"),
+    None
   )
 
   def test_anonDecrypt(msg: String) =
@@ -215,7 +216,8 @@ class EncryptedMessageSuite extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Map("text" -> "Hey Bob")
+    Map("text" -> "Hey Bob"),
+    None
   )
 
   testZ("encrypt with ECDHES_X25519_A256CBCHS512".tag(fmgp.JsUnsupported)) { // FIXME ECDHES_X25519_XC20P

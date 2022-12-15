@@ -52,7 +52,8 @@ class EncryptedMessageSuite_Parse extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Map("messagespecificattribute" -> "and its value")
+    Map("messagespecificattribute" -> "and its value"),
+    None
   )
 
 }
