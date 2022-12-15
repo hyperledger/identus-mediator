@@ -54,6 +54,7 @@ trait DID {
 
   /** This is the full identifier */
   def string = s"$scheme:$namespace:$specificId"
+  def did = string
 }
 object DID {
   given Conversion[DID, DIDSubject] = did => DIDSubject(did.scheme + ":" + did.namespace + ":" + did.specificId)

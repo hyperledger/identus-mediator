@@ -98,8 +98,31 @@ object DIDPeer2 {
   case class ElementI(mb: Multibase) extends Element { def encode = "I" + mb }
   case class ElementD(mb: Multibase) extends Element { def encode = "D" + mb }
   case class ElementService(base64: C1_B64URL) extends Element { def encode = "S" + base64 } // TODO
+
+  object ElementService {
+    def apply(obj: DIDPeerServiceEncoded): ElementService = new ElementService(Base64.encode(obj.toJson).urlBase64)
+  }
+
   // case class Element(code: Purposecode, value: String) { def encode = "" + code + value }
   type C1_B64URL = String
+
+  def fromDID(did: DID): Either[String, DIDPeer2] = did.string match {
+    case DIDPeer.regexPeer2(all, str: _*) =>
+      val elements = all
+        .drop(1) // drop peer type number
+        .split('.')
+        .toSeq
+        .map {
+          case s if s.startsWith("A") => DIDPeer2.ElementA(Multibase(s.drop(1)))
+          case s if s.startsWith("E") => DIDPeer2.ElementE(Multibase(s.drop(1)))
+          case s if s.startsWith("V") => DIDPeer2.ElementV(Multibase(s.drop(1)))
+          case s if s.startsWith("I") => DIDPeer2.ElementI(Multibase(s.drop(1)))
+          case s if s.startsWith("D") => DIDPeer2.ElementD(Multibase(s.drop(1)))
+          case s if s.startsWith("S") => DIDPeer2.ElementService(s.drop(1)) // Base64
+        }
+      Right(DIDPeer2(elements))
+    case any if DIDPeer.regexPeer.matches(any) => Left(s"Not a did:peer:2... '$any'") // FIXME make Error type
+  }
 }
 
 object DIDPeer {
@@ -114,26 +137,13 @@ object DIDPeer {
   // #regexPeer2 = "^did:peer:(2((\\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\\.(S)[0-9a-zA-Z=]*)?))$".r
   def regexPeer2 = "^did:peer:2((\\.([AEVID])z([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\\.(S)([0-9a-zA-Z=]*))?)$".r
 
-  def apply(didSubject: DIDSubject): DIDPeer = fromDID(didSubject.toDID)
+  def apply(didSubject: DIDSubject): DIDPeer = fromDID(didSubject.toDID).toOption.get // FIXME!
 
-  def fromDID(did: DID) = did.string match {
-    case regexPeer0(all, z: "z", data) => DIDPeer0(all.drop(1))
-    case regexPeer1(all, z: "z", data) => DIDPeer1(all.drop(1))
-    case regexPeer2(all, str: _*) =>
-      val elements = all
-        .drop(1) // drop peer type number
-        .split('.')
-        .toSeq
-        .map {
-          case s if s.startsWith("A") => DIDPeer2.ElementA(Multibase(s.drop(1)))
-          case s if s.startsWith("E") => DIDPeer2.ElementE(Multibase(s.drop(1)))
-          case s if s.startsWith("V") => DIDPeer2.ElementV(Multibase(s.drop(1)))
-          case s if s.startsWith("I") => DIDPeer2.ElementI(Multibase(s.drop(1)))
-          case s if s.startsWith("D") => DIDPeer2.ElementD(Multibase(s.drop(1)))
-          case s if s.startsWith("S") => DIDPeer2.ElementService(s.drop(1)) // Base64
-        }
-      DIDPeer2(elements)
-    case any if regexPeer.matches(any) => ??? // TODO
+  def fromDID(did: DID): Either[String, DIDPeer] = did.string match {
+    case regexPeer0(all, z: "z", data) => Right(DIDPeer0(all.drop(1)))
+    case regexPeer1(all, z: "z", data) => Right(DIDPeer1(all.drop(1)))
+    case regexPeer2(all, str: _*)      => DIDPeer2.fromDID(did)
+    case any if regexPeer.matches(any) => Left(s"Not a did:peer '$any'") // FIXME make Error type
   }
 
   def decodeKey(data: String): String = {
