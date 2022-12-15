@@ -14,12 +14,19 @@ package error {
   // ### Error Crypto ###
   // ####################
   sealed trait CryptoFailed extends DidFail
-  case class FailToGenerateKey(throwable: Throwable) extends CryptoFailed
+  case class FailToGenerateKey(throwable: Throwable) extends CryptoFailed {
+    override def getMessage(): String = throwable.getClass.getName() + ":" + throwable.getMessage
+  }
 
   case object CryptoNotImplementedError extends CryptoFailed
   case object UnknownError extends CryptoFailed
-  case class SomeThrowable(throwable: Throwable) extends CryptoFailed
-  case class CryptoErrorCollection[E <: DidFail](errors: Seq[E]) extends CryptoFailed
+  case class SomeThrowable(throwable: Throwable) extends CryptoFailed {
+    override def getMessage(): String = throwable.getClass.getName() + ":" + throwable.getMessage
+  }
+  case class CryptoErrorCollection[E <: DidFail](errors: Seq[E]) extends CryptoFailed {
+    override def getMessage(): String =
+      s"CryptoErrorCollection(${errors.size}): ${errors.map(_.getMessage).mkString("; ")}"
+  }
   object CryptoErrorCollection {
     def unfold[E <: DidFail, A](x: Seq[Either[E, A]]): Either[CryptoErrorCollection[E], Seq[A]] =
       x.partition(_.isLeft) match {
