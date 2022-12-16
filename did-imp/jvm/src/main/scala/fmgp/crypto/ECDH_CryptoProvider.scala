@@ -24,6 +24,8 @@ import fmgp.did.comm._
 import java.util.Collections
 import scala.collection.JavaConverters._
 import fmgp.util.Base64Obj
+import scala.util.Try
+import fmgp.crypto.error._
 
 /** Elliptic-curve Diffie–Hellman */
 case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvider(curve) {
@@ -78,20 +80,30 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
       iv: IV,
       cipherText: CipherText,
       authTag: TAG,
-  ): Array[Byte] = {
+  ): Either[CryptoFailed, Array[Byte]] = {
 
-    val result = sharedSecrets.map { case (vmr, secretKey) =>
+    val tmp = sharedSecrets.map { case (vmr, secretKey) =>
       recipients
         .find(recipient => recipient.vmr == vmr)
         .map(_.encryptedKey)
         .map(encryptedKey =>
-          decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+          Try(
+            decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+          ).toEither.left
+            .map {
+              case ex: com.nimbusds.jose.JOSEException if ex.getMessage == "MAC check failed" => MACCheckFailed
+              case ex: com.nimbusds.jose.JOSEException                                        => SomeThrowable(ex)
+            }
         )
     }.flatten
 
-    assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")
-
-    result.head
+    CryptoErrorCollection.unfold(tmp).flatMap { result =>
+      if (result.tail.forall(_.sameElements(result.head)))
+        result.headOption match
+          case Some(value) => Right(value)
+          case None        => Left(ZeroResults)
+      else Left(MultiDifferentResults)
+    }
   }
 }
 
@@ -148,20 +160,31 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
       iv: IV,
       cipherText: CipherText,
       authTag: TAG
-  ) = {
+  ): Either[CryptoFailed, Array[Byte]] = {
 
-    val result = sharedSecrets.map { case (vmr, secretKey) =>
+    val tmp = sharedSecrets.map { case (vmr, secretKey) =>
       recipients
         .find(recipient => recipient.vmr == vmr)
         .map(_.encryptedKey)
         .map(encryptedKey =>
-          decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+          Try(
+            decryptWithZ(header, secretKey, encryptedKey, iv.base64, cipherText.base64, authTag.base64)
+          ).toEither.left
+            .map {
+              case ex: com.nimbusds.jose.JOSEException if ex.getMessage == "MAC check failed" => MACCheckFailed
+              case ex: com.nimbusds.jose.JOSEException                                        => SomeThrowable(ex)
+            }
         )
     }.flatten
-    // META DATA
-    assert(result.tail.forall(_.sameElements(result.head)), "FIXME DECRYPT multi (diferent) stuff")
 
-    result.head
+    CryptoErrorCollection.unfold(tmp).flatMap { result =>
+      if (result.tail.forall(_.sameElements(result.head)))
+        result.headOption match
+          case Some(value) => Right(value)
+          case None        => Left(ZeroResults)
+      else Left(MultiDifferentResults)
+    }
+
   }
 
 }

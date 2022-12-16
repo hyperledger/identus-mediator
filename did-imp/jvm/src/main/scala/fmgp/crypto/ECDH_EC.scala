@@ -109,7 +109,7 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
       }
     }
 
-    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+    ret <- myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
   } yield (ret)
 }
 
@@ -191,6 +191,6 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
       }
     }
 
-    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+    ret <- myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
   } yield (ret)
 }

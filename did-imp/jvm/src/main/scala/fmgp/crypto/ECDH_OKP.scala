@@ -118,7 +118,7 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
       }
     }
 
-    ret = myProvider.decryptAUX(
+    ret <- myProvider.decryptAUX(
       header,
       sharedSecrets,
       recipients,
@@ -213,6 +213,7 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
       }
     }
 
-    ret = myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+    ret <- myProvider.decryptAUX(header, sharedSecrets, recipients, iv, cipherText, authTag)
+
   } yield (ret)
 }
