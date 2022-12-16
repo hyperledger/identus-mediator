@@ -14,6 +14,7 @@ class MediaTypesSuite extends ZSuite {
     assertEquals(PLAINTEXT.toJson, "\"application/didcomm-plain+json\"")
     assertEquals(SIGNED.toJson, "\"application/didcomm-signed+json\"")
     assertEquals(ENCRYPTED.toJson, "\"application/didcomm-encrypted+json\"")
+    assertEquals(ENCRYPTED.toJson, """"application/didcomm-encrypted+json"""")
     assertEquals(ANONCRYPT.toJson, "\"application/didcomm-encrypted+json\"")
     assertEquals(AUTHCRYPT.toJson, "\"application/didcomm-encrypted+json\"")
     assertEquals(ANONCRYPT_SIGN.toJson, "\"application/didcomm-encrypted+json\"")

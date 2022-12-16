@@ -204,6 +204,36 @@ class EncryptedMessageSuite extends ZSuite {
 
   }
 
+  /** try to decrypt encrypted message from didcommx ECDH1PU_X25519_A256CBCHS512 */
+  testZ(
+    "decrypt fail on MAC check because of invalid json on the protected header"
+      .tag(fmgp.JsUnsupported)
+  ) {
+    (
+      """[{"kid":"did:example:bob2#key-agreement-1","kty":"OKP","d":"b9NnuOCB0hm7YGNvaE9DMhwH_wjZA1-gWD6dA0JWdL0","crv":"X25519","x":"GDTrI66K0pFfO54tlCSvfjjNapIs44dzpneBgyx0S3E"}]"""
+        .fromJson[KeyStore],
+      """{"ciphertext":"zrvdso-XRAMcvl7oj_L4XRyn9J-iOEhJxUJ6U3QPFzn7o276K0Lh-HIz-4PKK6-xPxtjoK8ozs54ri4yOuHyGBlU-cN0czkC_q4FsFeciSJtCGq5jyJjMwaVnkk6eW5R16B5-DdT1E5Fxx1RRfjMExIwxjpR5mL-itrmSNsXLHmvjJ_3tk2Y7IkfnbHksV1YOqoqnx_RkeCQTGp2PBh86s2WRKE5Oms-37yc2BOc9wT0O086J7EXTDNfknRbe_dxshXsjzU2C5FngPOTHVJUww7ibEfsOLfSXYA77Lfl4jssnl_mU_2RMNE92oLQoe5OUkWbBxlqcIuFXhdXK9gyllrkgYJIm0fzJg1I32EuG7hFsqO9Z5RbmVBPEXuz8RXull-dXDhuJe0ODHo_I58pZw","protected":"eyJlcGsiOnsia3R5IjoiT0tQIiwiY3J2IjoiWDI1NTE5IiwieCI6Ii1DSEVwT1NURXRFd3cwaHhUa1F3SEZEM1AyUG16NndGWjg3SGJPYy1yeDQifSwiYXB2IjoiU1FOcVg3dEVpRHJZMmVtbGxheS03Mm5PcjYtTTRNQzdFT3hnVVh2bWwwZyIsInNraWQiOiJkaWQ6ZXhhbXBsZTphbGljZSNrZXktYWdyZWVtZW50LTEiLCJhcHUiOiJaR2xrT21WNFlXMXdiR1U2WVd4cFkyVWphMlY1TFdGbmNtVmxiV1Z1ZEMweCIsInR5cCI6ImFwcGxpY2F0aW9uXC9kaWRjb21tLWVuY3J5cHRlZCtqc29uIiwiZW5jIjoiQTI1NkNCQy1IUzUxMiIsImFsZyI6IkVDREgtMVBVK0EyNTZLVyJ9","recipients":[{"encrypted_key":"IE3bdoPZiZmCzjVOMRBB-vBn8wv5G8Tl1DrGFuV_RIEGkCeaizPT6_NKgPtTkw03XOo3LIEC_sLx2H1_xY94FU5Cv8ZsjGEA","header":{"kid":"did:example:bob2#key-agreement-1"}}],"tag":"T8pUKhmU6tj7PA63il0wXRuNJ43r5trPXPqEnhC2POk","iv":"jOc2YXvuqX7pZ3fva4pm5g"}"""
+        .fromJson[EncryptedMessage]
+    ) match {
+      case (Right(ks), Right(message)) =>
+        val senderKey =
+          """{"kid":"did:example:alice","kty":"OKP","crv":"X25519","x":"avH0O2Y4tqLAq8y9zpianr8ajii5m4F_mICrzNlatXs"}"""
+            .fromJson[OKPPublicKey]
+            .toOption
+            .get
+
+        val recipientKidsKeys = message.recipients.map { r =>
+          val vmr = r.header.kid
+          val key = ks.keys.find(e => e.kid.contains(vmr.value)).get
+          (vmr, key)
+        }
+
+        val effect = authDecrypt(senderKey, recipientKidsKeys, message)
+        effect.flip.map(e => assert(e.isInstanceOf[MACCheckFailed.type])) // Must fail!
+      case data => ZIO.dieMessage(data.toString)
+    }
+  }
+
   // ###############
   // ### encrypt ###
   // ###############

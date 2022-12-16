@@ -173,4 +173,16 @@ class ProtectedHeaderSuite extends ZSuite {
       case Right(obj)  => assertEquals(Base64.encode(obj.toJson).urlBase64, ex4)
     }
   }
+
+  test("Parse a Header from didcommx that have invalid json and encode it again (will be different)") {
+    val didcommxExample =
+      "eyJlcGsiOnsia3R5IjoiT0tQIiwiY3J2IjoiWDI1NTE5IiwieCI6IkF1Tm9RU25TQzAxNzhqS1JhczlnS2NDVGhEcEg1QktPY3BYTUVUa1J4SG8ifSwiYXB2IjoiYUZwNmt0dWN5bnBIZGlYSEJTbVFWdk5sSEFfTk1uVnZ6MGZkeVpMVWgwVSIsInNraWQiOiJkaWQ6cGVlcjoyLkV6NkxTcUFNdHk5REg2dm5yMzI2WGh2WTRhaHZNVU1obkVYdHd5anN4U2dxVEJ6TmMuVno2TWtwYWFqOURRNmpzN2VXOWpIN3pRRTUyTTZBNjdYRTNjRXpRc1Y4c25YRFNqSyM2TFNxQU10eTlESDZ2bnIzMjZYaHZZNGFodk1VTWhuRVh0d3lqc3hTZ3FUQnpOYyIsImFwdSI6IlpHbGtPbkJsWlhJNk1pNUZlalpNVTNGQlRYUjVPVVJJTm5adWNqTXlObGhvZGxrMFlXaDJUVlZOYUc1RldIUjNlV3B6ZUZObmNWUkNlazVqTGxaNk5rMXJjR0ZoYWpsRVVUWnFjemRsVnpscVNEZDZVVVUxTWswMlFUWTNXRVV6WTBWNlVYTldPSE51V0VSVGFrc2pOa3hUY1VGTmRIazVSRWcyZG01eU16STJXR2gyV1RSaGFIWk5WVTFvYmtWWWRIZDVhbk40VTJkeFZFSjZUbU0iLCJ0eXAiOiJhcHBsaWNhdGlvblwvZGlkY29tbS1lbmNyeXB0ZWQranNvbiIsImVuYyI6IkEyNTZDQkMtSFM1MTIiLCJhbGciOiJFQ0RILTFQVStBMjU2S1cifQ"
+    Base64.fromBase64url(didcommxExample).decodeToString.fromJson[ProtectedHeader] match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assert(obj.isInstanceOf[AuthProtectedHeader])
+        assertNotEquals(obj.toJson, Base64.fromBase64url(didcommxExample).decodeToString) // NOTE this does not match
+        assertNotEquals(Base64.encode(obj.toJson).urlBase64, didcommxExample)
+    }
+  }
 }
