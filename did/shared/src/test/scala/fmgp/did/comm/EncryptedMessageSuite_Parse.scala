@@ -23,7 +23,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
   }
 
   test("Example parse encryptedMessage_ECDH1PU_X25519_A256CBCHS512") {
-    val ret = EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512.fromJson[EncryptedMessageGeneric]
+    val ret = EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512.fromJson[EncryptedMessage]
     ret match {
       case Left(error) => fail(error)
       case Right(obj)  => // ok
@@ -32,7 +32,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
 
   EncryptedMessageExamples.allEncryptedMessage.zipWithIndex.foreach((example, index) =>
     test(s"Example parse Encrypted Messages (index $index)") {
-      val ret = example.fromJson[EncryptedMessageGeneric]
+      val ret = example.fromJson[EncryptedMessage]
       ret match {
         case Left(error) => fail(error)
         case Right(obj)  => assert(!obj.recipients.isEmpty)
