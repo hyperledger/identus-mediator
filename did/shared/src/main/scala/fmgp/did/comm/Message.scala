@@ -12,9 +12,9 @@ sealed trait Message
 
 object Message {
   given decoder: JsonDecoder[Message] =
-    PlaintextMessageClass.decoder.map(e => e: Message) <>
-      SignedMessage.decoder.map(e => e: Message) <>
-      EncryptedMessageGeneric.decoder.map(e => e: Message)
+    PlaintextMessageClass.decoder.widen[Message] <>
+      SignedMessage.decoder.widen[Message] <>
+      EncryptedMessageGeneric.decoder.widen[Message]
 
   given encoder: JsonEncoder[Message] = new JsonEncoder[Message] {
     override def unsafeEncode(b: Message, indent: Option[Int], out: zio.json.internal.Write): Unit = {
@@ -59,8 +59,7 @@ trait PlaintextMessage extends Message {
   /** application-level data inside a JSON */
   def body: Required[JSON_RFC7159]
 
-  // FIXME def attachments: NotRequired[Seq[Attachment]]
-  def attachments: NotRequired[Seq[Json]]
+  def attachments: NotRequired[Seq[Attachment]]
 }
 
 object PlaintextMessage {
@@ -70,56 +69,6 @@ object PlaintextMessage {
   given encoder: JsonEncoder[PlaintextMessage] = PlaintextMessageClass.encoder.contramap(
     _ match { case msg: PlaintextMessageClass => msg }
   )
-}
-
-trait Attachment {
-  def id: String
-
-  /** A human-readable description of the content. */
-  def description: String
-
-  def filename: String
-  def media_type: String
-  def format: String
-  def lastmod_time: String
-
-  def data: AttachmentData
-
-  /** Mostly relevant when content is included by reference instead of by value. Lets the receiver guess how expensive
-    * it will be, in time, bandwidth, and storage, to fully fetch the attachment.
-    */
-  def byte_count: String
-}
-
-/** A JSON object that gives access to the actual content of the attachment.
-  *
-  * This MUST contain at least one of the following subfields, and enough of them to allow access to the data:
-  */
-trait AttachmentData {
-
-  /** OPTIONAL. A JWS in detached content mode, where the payload field of the JWS maps to base64 or to something
-    * fetchable via links. This allows attachments to be signed. The signature need not come from the author of the
-    * message.
-    */
-  def jws: String
-
-  /** OPTIONAL. The hash of the content encoded in multi-hash format. Used as an integrity check for the attachment, and
-    * MUST be used if the data is referenced via the links data attribute.
-    */
-  def hash: String
-
-  /** OPTIONAL. A list of zero or more locations at which the content may be fetched. This allows content to be attached
-    * by reference instead of by value.
-    */
-  def links: String
-
-  /** OPTIONAL. Base64url-encoded data, when representing arbitrary content inline instead of via links. */
-  def base64: String
-
-  /** OPTIONAL. Directly embedded JSON data, when representing content inline instead of via links, and when the content
-    * is natively conveyable as JSON.
-    */
-  def json: String
 }
 
 enum ContentEncryptionAlgorithms {

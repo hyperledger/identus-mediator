@@ -13,8 +13,7 @@ case class PlaintextMessageClass(
     created_time: NotRequired[UTCEpoch],
     expires_time: NotRequired[UTCEpoch],
     body: Required[JSON_RFC7159],
-    // FIXME attachments: NotRequired[Seq[Attachment]]
-    attachments: NotRequired[Seq[Json]]
+    attachments: NotRequired[Seq[Attachment]]
 ) extends PlaintextMessage
 
 object PlaintextMessageClass {
