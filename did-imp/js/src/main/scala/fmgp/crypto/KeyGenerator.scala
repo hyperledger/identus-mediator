@@ -24,10 +24,10 @@ object KeyGenerator {
 // key = null;
 
   def newX25519: Either[FailToGenerateKey, OKPPrivateKey] = Left(
-    FailToGenerateKey(new RuntimeException("TODO FIXME"))
+    FailToGenerateKey(CryptoNotImplementedError)
   ) // FIXME
   def newEd25519: Either[FailToGenerateKey, OKPPrivateKey] = Left(
-    FailToGenerateKey(new RuntimeException("TODO FIXME"))
+    FailToGenerateKey(CryptoNotImplementedError)
   ) // FIXME
 
   // https://github.com/panva/jose/blob/main/docs/functions/key_generate_key_pair.generateKeyPair.md
@@ -37,7 +37,7 @@ object KeyGenerator {
         // .fromPromiseJS(generateKeyPair("PS256")) //PS384
         .fromPromiseJS(generateKeyPair("ES256K"))
         .catchAll { case ex =>
-          ZIO.fail(FailToGenerateKey(ex))
+          ZIO.fail(FailToGenerateKey(SomeThrowable(ex)))
         // Like scala.scalajs.js.JavaScriptException: JOSENotSupported: Invalid or unsupported JWK "alg" (Algorithm) Parameter value
         }
       publicKey = pair
@@ -50,12 +50,12 @@ object KeyGenerator {
       _ <- Console
         .printLine(publicKey)
         .catchAll { case ex =>
-          ZIO.fail(FailToGenerateKey(ex))
+          ZIO.fail(FailToGenerateKey(SomeThrowable(ex)))
         }
-      ret: OKPPrivateKey <- ZIO.fail(FailToGenerateKey(new RuntimeException("TODO FIXME")))
+      ret: OKPPrivateKey <- ZIO.fail(FailToGenerateKey(CryptoNotImplementedError))
     } yield (ret)
   }
 
   def makeEd25519: IO[FailToGenerateKey, OKPPrivateKey] =
-    ZIO.fail(FailToGenerateKey(new RuntimeException("TODO FIXME")))
+    ZIO.fail(FailToGenerateKey(CryptoNotImplementedError))
 }

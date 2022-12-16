@@ -15,7 +15,7 @@ object KeyGenerator {
   def newX25519: Either[FailToGenerateKey, OKPPrivateKey] = Try {
     new OctetKeyPairGenerator(Curve.X25519).generate.toJSONString()
   }.toEither.left
-    .map { case e => FailToGenerateKey(e) }
+    .map { case e => FailToGenerateKey(SomeThrowable(e)) }
     .flatMap {
       _.fromJson[OKPPrivateKey].left
         .map(strError => FailToGenerateKey(FailToParse(strError)))
@@ -24,7 +24,7 @@ object KeyGenerator {
   def newEd25519: Either[FailToGenerateKey, OKPPrivateKey] = Try {
     new OctetKeyPairGenerator(Curve.Ed25519).generate.toJSONString()
   }.toEither.left
-    .map { case e => FailToGenerateKey(e) }
+    .map { case e => FailToGenerateKey(SomeThrowable(e)) }
     .flatMap {
       _.fromJson[OKPPrivateKey].left
         .map(strError => FailToGenerateKey(FailToParse(strError)))

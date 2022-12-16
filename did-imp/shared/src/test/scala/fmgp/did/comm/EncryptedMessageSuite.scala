@@ -10,6 +10,7 @@ import zio._
 import zio.json._
 import zio.json.ast.JsonCursor
 import zio.json.ast.Json
+import fmgp.crypto.error.MACCheckFailed
 
 /* didImpJVM/testOnly fmgp.did.comm.EncryptedMessageSuite */
 class EncryptedMessageSuite extends ZSuite {
@@ -24,7 +25,7 @@ class EncryptedMessageSuite extends ZSuite {
   }
 
   test("Example parse encryptedMessage_ECDH1PU_X25519_A256CBCHS512") {
-    val ret = EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512.fromJson[EncryptedMessageGeneric]
+    val ret = EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512.fromJson[EncryptedMessage]
     ret match {
       case Left(error) => fail(error)
       case Right(obj)  => // ok
@@ -33,7 +34,7 @@ class EncryptedMessageSuite extends ZSuite {
 
   EncryptedMessageExamples.allEncryptedMessage.zipWithIndex.foreach((example, index) =>
     test(s"Example parse Encrypted Messages (index $index)") {
-      val ret = example.fromJson[EncryptedMessageGeneric]
+      val ret = example.fromJson[EncryptedMessage]
       ret match {
         case Left(error) => fail(error)
         case Right(obj)  => assert(!obj.recipients.isEmpty)
@@ -58,7 +59,7 @@ class EncryptedMessageSuite extends ZSuite {
   )
 
   def test_anonDecrypt(msg: String) =
-    (DIDCommExamples.recipientSecrets.fromJson[KeyStore], msg.fromJson[EncryptedMessageGeneric]) match {
+    (DIDCommExamples.recipientSecrets.fromJson[KeyStore], msg.fromJson[EncryptedMessage]) match {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
 
@@ -89,7 +90,7 @@ class EncryptedMessageSuite extends ZSuite {
     (
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_ECDH1PU_X25519_A256CBCHS512
-        .fromJson[EncryptedMessageGeneric]
+        .fromJson[EncryptedMessage]
     ) match {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
@@ -112,7 +113,7 @@ class EncryptedMessageSuite extends ZSuite {
   testZ("decrypt encryptedMessage_EdDSA_ECDH1PU_P521_A256CBCHS512".tag(fmgp.JsUnsupported)) {
     (
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
-      EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_P521_A256CBCHS512.fromJson[EncryptedMessageGeneric]
+      EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_P521_A256CBCHS512.fromJson[EncryptedMessage]
     ) match {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
@@ -153,7 +154,7 @@ class EncryptedMessageSuite extends ZSuite {
     (
       DIDCommExamples.recipientSecrets.fromJson[KeyStore],
       EncryptedMessageExamples.encryptedMessage_EdDSA_ECDH1PU_X25519_A256CBCHS512__ECDHES_X25519_XC20P
-        .fromJson[EncryptedMessageGeneric]
+        .fromJson[EncryptedMessage]
     ) match {
       case (Right(ks), Right(message)) =>
         assertEquals(ks.keys.size, 9)
@@ -172,10 +173,9 @@ class EncryptedMessageSuite extends ZSuite {
               .map(key => (recipient.header.kid, key))
           }.flatten
           data2 <- anonDecrypt(recipientKidsKeys1, message)
-          // message2 <- ZIO.fromEither(data2.fromJson[EncryptedMessageGeneric])
           message2 = {
-            assert(data2.isInstanceOf[EncryptedMessageGeneric])
-            data2.asInstanceOf[EncryptedMessageGeneric]
+            assert(data2.isInstanceOf[EncryptedMessage])
+            data2.asInstanceOf[EncryptedMessage]
           }
           // {"epk":{"kty":"EC","crv":"P-521",
           //         "x":"ASvgMsQUnY_bj9aYhpm-pS4YU6pQ2BQh3quiBKQJkoIQpIkTsMu-E2EsZyoNHwWj4fhyyOkoL_4v-P3joigCIYAl",
