@@ -206,7 +206,7 @@ class EncryptedMessageSuite extends ZSuite {
 
   /** try to decrypt encrypted message from didcommx ECDH1PU_X25519_A256CBCHS512 */
   testZ(
-    "decrypt fail on MAC check because of invalid json on the protected header"
+    "decrypt does not fail MAC check if the protected header was with a backslash before a slash or (unexpected JSON order of keys)"
       .tag(fmgp.JsUnsupported)
   ) {
     (
@@ -228,8 +228,12 @@ class EncryptedMessageSuite extends ZSuite {
           (vmr, key)
         }
 
-        val effect = authDecrypt(senderKey, recipientKidsKeys, message)
-        effect.flip.map(e => assert(e.isInstanceOf[MACCheckFailed.type])) // Must fail!
+        for {
+          data <- authDecrypt(senderKey, recipientKidsKeys, message)
+        } yield assert(data.isInstanceOf[PlaintextMessage])
+      // val effect = authDecrypt(senderKey, recipientKidsKeys, message)
+      // effect.flip.map(e => assert(e.isInstanceOf[MACCheckFailed.type]))
+
       case data => ZIO.dieMessage(data.toString)
     }
   }

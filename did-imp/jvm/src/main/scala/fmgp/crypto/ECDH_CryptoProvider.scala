@@ -37,6 +37,7 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
       sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
   ): EncryptedMessageGeneric = { // FIXME ERRORs
+    import UtilsJVM.unsafe.given
 
     val algMode: ECDH.AlgorithmMode = ECDH.resolveAlgorithmMode(header.getAlgorithm);
     assert(algMode == ECDH.AlgorithmMode.KW)
@@ -74,7 +75,7 @@ case class ECDH_AnonCryptoProvider(val curve: JWKCurve) extends ECDHCryptoProvid
   }
 
   def decryptAUX(
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
       iv: IV,
@@ -117,6 +118,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
       sharedSecrets: Seq[(VerificationMethodReferenced, javax.crypto.SecretKey)],
       clearText: Array[Byte]
   ): EncryptedMessageGeneric = { // FIXME ERRORs
+    import UtilsJVM.unsafe.given
 
     val algMode: ECDH.AlgorithmMode = ECDH1PU.resolveAlgorithmMode(header.getAlgorithm())
     assert(algMode == ECDH.AlgorithmMode.KW)
@@ -154,7 +156,7 @@ case class ECDH_AuthCryptoProvider(val curve: JWKCurve) extends ECDH1PUCryptoPro
   }
 
   def decryptAUX(
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       sharedSecrets: Seq[(VerificationMethodReferenced, SecretKey)],
       recipients: Seq[JWERecipient],
       iv: IV,

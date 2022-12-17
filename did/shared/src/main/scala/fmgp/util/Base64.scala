@@ -67,11 +67,7 @@ object Base64Obj {
 
   given encoder[T](using jsonEncoder: JsonEncoder[T]): JsonEncoder[Base64Obj[T]] =
     Base64.encoder.contramap[Base64Obj[T]] {
-      case Base64Obj(_, Some(original)) =>
-        println("HERE")
-        original
-      case Base64Obj(obj, None) =>
-        println("HERE2")
-        Base64.encode(obj.toJson)
+      case Base64Obj(_, Some(original)) => original
+      case Base64Obj(obj, None)         => Base64.encode(obj.toJson)
     }
 }

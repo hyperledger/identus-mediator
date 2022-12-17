@@ -15,7 +15,7 @@ object ECDH {
 
   def anonDecryptEC(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
@@ -34,7 +34,7 @@ object ECDH {
   def authDecryptEC(
       sender: ECKey,
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
@@ -51,7 +51,7 @@ object ECDH {
 
   def anonDecryptOKP(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
@@ -70,7 +70,7 @@ object ECDH {
   def authDecryptOKP(
       sender: OKPKey,
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,

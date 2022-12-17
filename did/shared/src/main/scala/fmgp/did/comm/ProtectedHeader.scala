@@ -6,6 +6,7 @@ import zio.json.ast._
 import fmgp.did._
 import fmgp.crypto.PublicKey
 import fmgp.util.{Base64, safeValueOf}
+import fmgp.util.Base64Obj
 
 // class Base64JWEHeader(data: Base64) extends Selectable:
 //   val json = data.decode.fromJson[Json].toOption.get
@@ -63,8 +64,9 @@ sealed trait ProtectedHeader extends ProtectedHeaderTMP {
   def enc: ENCAlgorithm
   def alg: KWAlgorithm
 }
-
+type ProtectedHeaderBase64 = Base64Obj[ProtectedHeader]
 object ProtectedHeader {
+
   given decoder: JsonDecoder[ProtectedHeader] = Json.Obj.decoder.mapOrFail { originalAst =>
     originalAst.get(JsonCursor.field("skid")) match {
       case Left(value) /* "No such field: 'skid' */ => AnonProtectedHeader.decoder.decodeJson(originalAst.toJson)

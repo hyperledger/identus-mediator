@@ -70,7 +70,7 @@ object ECDH_AnonEC extends ECDH_UtilsEC {
 
   def decrypt(
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
@@ -152,7 +152,7 @@ object ECDH_AuthEC extends ECDH_UtilsEC {
   def decrypt(
       sender: ECKey,
       ecRecipientsKeys: Seq[(VerificationMethodReferenced, ECKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,

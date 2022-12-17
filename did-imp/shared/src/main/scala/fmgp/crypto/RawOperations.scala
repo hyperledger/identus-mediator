@@ -131,7 +131,7 @@ object RawOperations extends CryptoOperations {
       msg: EncryptedMessage
   ): IO[DidFail, Message] = {
 
-    def header = msg.`protected`.obj
+    def header = msg.`protected`
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val kids = msg.recipients.map(_.header.kid.value)
@@ -169,7 +169,7 @@ object RawOperations extends CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
   ): IO[DidFail, Message] = {
-    def header = msg.`protected`.obj
+    def header = msg.`protected`
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val jweRecipient =
@@ -239,7 +239,11 @@ object RawOperations extends CryptoOperations {
           .flatMap(ret =>
             ZIO.fromEither(ret match {
               case Left(error: CryptoFailed) => Left(error)
-              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+              case Right(data: Array[Byte]) =>
+                String(data)
+                  .fromJson[Message]
+                  .left
+                  .map(info => FailToParse(s"After decoding to parse into a Message because: $info"))
             })
           )
     }

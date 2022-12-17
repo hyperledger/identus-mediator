@@ -78,7 +78,7 @@ object ECDH_AnonOKP extends ECDH_UtilsOKP {
 
   def decrypt(
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)],
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
@@ -176,7 +176,7 @@ object ECDH_AuthOKP extends ECDH_UtilsOKP {
   def decrypt(
       sender: OKPKey,
       okpRecipientsKeys: Seq[(VerificationMethodReferenced, OKPKey)], // TODO no empty seq
-      header: ProtectedHeader,
+      header: ProtectedHeaderBase64,
       recipients: Seq[JWERecipient],
       iv: IV,
       cipherText: CipherText,
