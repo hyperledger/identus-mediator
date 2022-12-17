@@ -51,13 +51,27 @@ object Base64:
     def decodeToBigInt = BigInt(1, bytes.decode)
     def decodeToHex = bytes.decode.map("%02X".format(_)).mkString
 
-case class Base64Obj[T](obj: T) {
+/** Base64Obj keep the original base64 encoder (useful to preserve data for doing MAC checks) */
+case class Base64Obj[T](obj: T, original: Option[Base64] = None) {
   def base64url(using jsonEncoder: JsonEncoder[T]): String = Base64.encode(obj.toJson).urlBase64
 }
 object Base64Obj {
   given decoder[T](using jsonDecoder: JsonDecoder[T]): JsonDecoder[Base64Obj[T]] =
-    Base64.decoder.mapOrFail(e => e.decodeToString.fromJson[T].map(Base64Obj(_)))
+    Base64.decoder.mapOrFail { original =>
+      original.decodeToString
+        .fromJson[T]
+        .map(
+          Base64Obj(_, Some(original)) // Store the original
+        )
+    }
 
   given encoder[T](using jsonEncoder: JsonEncoder[T]): JsonEncoder[Base64Obj[T]] =
-    Base64.encoder.contramap[Base64Obj[T]](e => Base64.encode(e.obj.toJson))
+    Base64.encoder.contramap[Base64Obj[T]] {
+      case Base64Obj(_, Some(original)) =>
+        println("HERE")
+        original
+      case Base64Obj(obj, None) =>
+        println("HERE2")
+        Base64.encode(obj.toJson)
+    }
 }

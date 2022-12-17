@@ -31,12 +31,4 @@ class JWMSuiteJVM extends FunSuite {
     assert(ecPublicJWK.verify(SignedMessageExample.exampleSignatureES256K_obj, JWAAlgorithm.ES256K))
   }
 
-  // TODO REMOVE
-  // test("sign and verify plaintextMessage using JWKCruve") {
-  //   val jwk: JWKCruve = JWKExamples.senderSecp256k1.fromJson[JWKCruve].toOption.get
-  //   val jwsObject = jwk.sign(DIDCommExamples.plaintextMessageObj)
-  //   assert(jwk.verify(jwsObject))
-  //   assert(jwk.verify(JWMExample.example))
-  // }
-
 }

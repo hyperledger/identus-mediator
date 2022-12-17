@@ -46,7 +46,27 @@ class Base64Suite extends FunSuite {
 
     expected.fromJson[Base64Obj[A]] match {
       case Left(error)  => fail(error)
-      case Right(value) => assertEquals(value, obj)
+      case Right(value) => assertEquals(value.obj, obj.obj)
     }
   }
+
+  test("Keep origin encoding (do not change the order of encoded JSON)") {
+    val obj = Base64Obj(A(B("xx", 123)))
+    val expected1 = """"eyJiIjp7InkiOjEyMywieCI6Inh4In19"""" // {"b":{"y":123,"x":"xx"}}
+    expected1.fromJson[Base64Obj[A]] match {
+      case Left(error) => fail(error)
+      case Right(value) =>
+        assertEquals(value.obj, obj.obj)
+        assertEquals(value.toJson, expected1)
+    }
+
+    val expected2 = """"eyJiIjp7IngiOiJ4eCIsInkiOjEyM319"""" // {"b":{"x":"xx","y":123}}
+    expected2.fromJson[Base64Obj[A]] match {
+      case Left(error) => fail(error)
+      case Right(value) =>
+        assertEquals(value.obj, obj.obj)
+        assertEquals(value.toJson, expected2)
+    }
+  }
+
 }
