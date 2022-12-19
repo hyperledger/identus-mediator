@@ -5,6 +5,7 @@ package fmgp.crypto //FIXME
 package error {
 
   sealed trait DidFail // extends Exception with Product with Serializable
+  case class DidException(error: FailToParse) extends Exception(error.error) // with DidFail
 
   case class FailToParse(error: String) extends DidFail
 

@@ -137,7 +137,7 @@ object RawOperations extends CryptoOperations {
     val kids = msg.recipients.map(_.header.kid.value)
     val allKeysUsedOnMsg = recipientKidsKeys.filterNot(e => kids.contains(e._1))
 
-    allKeysUsedOnMsg.head._2 match {
+    allKeysUsedOnMsg.head._2 match { // FIXME header
       case ecKey: ECKey =>
         val jweRecipient =
           msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))

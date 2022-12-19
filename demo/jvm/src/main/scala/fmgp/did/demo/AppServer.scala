@@ -3,17 +3,18 @@ package fmgp.did.demo
 import zio._
 import zio.json._
 import zio.http._
-import zio.http.model.Method
+import zio.http.model._
 import zio.http.socket.{WebSocketChannelEvent, WebSocketFrame}
 
 import fmgp.did._
-import fmgp.did.comm.MediaTypes
+import fmgp.crypto.error._
+import fmgp.did.comm._
 
-import zio.http.model.Status
 import scala.io.Source
-import zio.http.model._
 
-/** curl localhost:8080/test
+/** demoJVM/runMain fmgp.did.demo.AppServer
+  *
+  * curl localhost:8080/hello
   *
   * wscat -c ws://localhost:8080/ws
   *
@@ -40,9 +41,20 @@ object AppServer extends ZIOAppDefault {
     case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP"))
     case Method.GET -> !! / "ws"    => socket.toSocketApp.toResponse
     case req @ Method.POST -> !! if req.headersAsList.exists { h =>
-          h.key == "content-type" && (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+          h.key == "content-type" &&
+          (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
         } =>
-      req.body.asString.map(str => Response.text("str"))
+      for {
+        data <- req.body.asString
+        msg <- ZIO.fromEither(
+          data
+            .fromJson[Message]
+            .left
+            .map(error => DidException(FailToParse(error)))
+        )
+        _ <- ZIO.log(msg.toJsonPretty)
+      } yield Response.text(msg.toJson)
+
     case Method.POST -> !! =>
       ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
     case Method.GET -> !! / "resolver" / did =>
