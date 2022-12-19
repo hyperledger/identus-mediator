@@ -323,7 +323,7 @@ lazy val webapp = project
   .settings(name := "fmgp-webapp")
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
-  .dependsOn(did.js)
+  .dependsOn(did.js, didExample.js)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, /*D.zioStreams.value,*/ D.zioJson.value),
@@ -339,9 +339,12 @@ lazy val webapp = project
     },
   )
 
+lazy val didExample = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-example"))
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
+
 lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
-  .configure(publishConfigure)
   .settings(
     name := "did-demo",
     libraryDependencies += D.munit.value,
@@ -367,7 +370,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Assets / WebKeys.packagePrefix := "public/",
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
-  .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didExample)
   .enablePlugins(WebScalaJSBundlerPlugin)
 
 ThisBuild / assemblyMergeStrategy := {

@@ -3,9 +3,10 @@ package fmgp.did.demo
 import zio._
 import zio.Console._
 import zio.json._
+import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.comm._
-import fmgp.crypto._
+import fmgp.did.example._
 import fmgp.did.resolver.peer._
 // object DemoMain extends ZIOAppDefault
 @main def DemoMain() = {

@@ -10,35 +10,13 @@ import zio._
 import zio.json._
 
 import fmgp.did._
+import fmgp.did.example._
 
 object DIDCommHome {
 
-  val aliceDID = DIDDocumentClass(
-    id = DIDSubject("did:dns:alice"),
-    keyAgreement = Some(
-      Set(
-        VerificationMethodEmbeddedMultibase(
-          id = "did:dns:alice#aaaaaaaaaaaaaaaaaaaaaaaaa",
-          controller = DIDSubject("did:dns:alice"),
-          `type` = "X25519KeyAgreementKey2019",
-          publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
-        )
-      )
-    )
-  )
-  val bobDID = DIDDocumentClass(
-    id = DIDSubject("did:dns:bob"),
-    keyAgreement = Some(
-      Set(
-        VerificationMethodEmbeddedMultibase(
-          id = "did:dns:bob#bbbbbbbbbbbbbbbbbbbbbbbbb",
-          controller = DIDSubject("did:dns:bob"),
-          `type` = "X25519KeyAgreementKey2019",
-          publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
-        )
-      )
-    )
-  )
+  val mediatorDID = AgentEX0.did.document
+  val aliceDID = AgentEX1.did.document
+  val bobDID = AgentEX2.did.document
 
   val aliceDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(aliceDID))
   val bobDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(bobDID))

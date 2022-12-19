@@ -1,4 +1,4 @@
-package fmgp.did.demo
+package fmgp.did.example
 
 import zio._
 import zio.json._
