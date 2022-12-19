@@ -4,105 +4,90 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.resolver.peer.DIDPeer
-import fmgp.crypto.OKPPrivateKey
-import fmgp.crypto.PrivateKey
+import fmgp.did.resolver.peer._
+import fmgp.crypto._
 
-object AgentEX0 extends ExDID0 {
+/** didExampleJVM/console
+  *
+  * import fmgp.did.example._
+  */
+object Agent0Mediators { // https://localhost:8080/
+  // "did:peer:2.Ez6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4.Vz6MkhNpHBCUgBgkCbiM4zMjrbfgGowwEuEchmzf6J5W3av8E"
 
-  val agent: Agent = new Agent {
-    def id: DID = did
-    def keys: Seq[PrivateKey] = Seq(
-      keyAuthentication.copy(kid = Some(did.string + "#6MkhNpHBCUgBgkCbiM4zMjrbfgGowwEuEchmzf6J5W3av8E")),
-      keyAgreement.copy(kid = Some(did.string + "#6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4")),
-    )
-  }
+  val agent = DIDPeer2.makeAgent(
+    Seq(keyAgreement, keyAuthentication),
+    Seq(DIDPeerServiceEncoded("https://localhost:8080/"))
+  )
   def agentLayer: ULayer[Agent] = ZLayer.succeed(agent)
+  def keyAgreement =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.X25519,
+      d = "b6JxUFsuwKPkOUAvU4FXEYzC7oKhzwNOM1aWyfvHP7k",
+      x = "wyJl5uFCb4OXE_KuRePrM92z6aPfk8PXBHIpg1rG528",
+      kid = None
+    )
+  def keyAuthentication =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.Ed25519,
+      d = "i6gfpmHFrSHbwAa7gI-bnOL0gMyePZ6Pe1xN-TDPMO4",
+      x = "K2-apfExODENs4ZGlZ2xh8DSq4vkCqG3fgS3Ofwslv8",
+      kid = None
+    )
 
 }
 
-trait ExDID0 { // https://localhost:9090/
-  val did = DIDPeer(
-    DIDSubject(
-      "did:peer:2.Ez6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4.Vz6MkhNpHBCUgBgkCbiM4zMjrbfgGowwEuEchmzf6J5W3av8E.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo5MDkwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
-    )
+//curl -X POST localhost:8080 -H 'content-type: application/didcomm-encrypted+json' -d '{"ciphertext":"Fi2jLme4UH_9ShS-krILTIFp9DQh5WLZKDbrWUvTUBN_eUZVfzu8UpwQ4_uiLfyOmEETQyUaw4Gar11c6xn9B4H3cBxKs6OiyndUKmqnNQdZnPZ1gxEDGY5Vv6_NArOr6s14Ae2b9-R9RJuMnhw1movBlZrQ8dH00jK1AgaPk73P9Bj6SH37xn4F139-VuVlcB-XL2O5NLE9lG-P05IUFoswxQuk8irFilG45dA4xBzuTl83er2w1DqH--2Cg08XCXOOFdCwL8NwbLwWNTCNRJl7nZ9BhON_PkkQZEojiUYuEC5VBLWV7SwmZp4HnvSaISXn7RXBdqWukBytSe1SaOSaDGuYdOJH9FlHXy41JXxd4GxtLTmpmPIp0qRUb9rGN0hkz8zb-rX6jrpn5DDRSJVmDNuTr-qgwLxNv9ZkTCrdH4QzTILJnOcpGKZMrtzy2SulFQhSztig52ERqEVxIUDL79YlzehYG2PhiNudLy_-7zt94usohl9YpZQVDqLlbKa-x3pRYRKQJkKuw32_A6VLg54Ral5lXBgkF-llUkP6YxI9wpaLUGFMwm5W7W5AD__N33XmQcIiYWkrfJbfLVIv30cbDXvRsiRjnZWSTb6YwrUNdn7qs0riPqHVG3zk0YfldG7Ee-EbTVTk1b6tAkYAyevQGseSYcFha9SyLCrLQ6xSEjVZ7fgrVtQO-n6dbiZityLDA59w3ietNDzjePysImmRcudWd5ok79abnn3zs9eENU9DDI8FL8LdqbhtYG-MUKICkR0foYPsOUmxxacdy5O6AhdA4XTAvAig6QoF83wFMtRcDKiE5O38d_1XWNIx_XXt8DNIQFbWOJJ-z8h2qebcJDXQEUs0CFMEdX-zqfXulTz6JgHCwWMnBqG8N5ichGYJ-T-R3CaJ3_WGwcqPYIHBaYT8cbtJVEVfTlg0T6dGt7kJPO1P9TS6MVBCIbFSJysEAV1-xHqyPh9ZFCfTrC87mVnC01izyKYgY8ybCcxr3UWm40u2H8NG8APHyJmjgwxun29eI_EJ02iC_-PAa_6kgjw9sfkLk08e96vWsvoaqLen-JdtYTtSoObqwQWk405Xv75UCvU4hT1ydnFeMONTHVtjrLV3jGGVpCSlJHYyvN9VRVCTFOrMJ4iL-OgQjk04kFMECRMO6uFRHho0nhR1Nvlj5BaaZuqIOFSAuGm5hYjFYuHiQaFCboYzpEd4mVw0lFtJRcZWlmVx_q_YGNazv4kure5Wo0NBzcAPlUxYMMhXaMau7M8qutK-yBXxXFZnLxdly10dOmyNTHjREvHUzqAbjltr1n5V0_rbF69FxF8E_WUO8pDlz9A63VaU_EdLuBJ0jgZ3Bhe3zDcDNKVL7fDfKIA2xoMH1BdbSxKCJ7rel6ohe1bNO8v_S6mva149lM-i9WlgywtGIeriZvt24cAwmVD2REu44IRQm6o92ARAWTAjEff00JN7LiXzAfw_XskRnut9sc1mZIFw0dh7lhdkLhOh-DGb1MDkCf86_G9R5U2xFNGxRPfJ_-T9m442sgyRoEZmJsPmn0rUaLlljmyuMaf7TCW7f_6X1lc9elhyKU9At4oMDqZ2IPA4iyoAYIcxlWYWAZRwoBMC2ZT8aQxThii5J8h85dIXAzVbUbSOU17k9YfyR08Afd7Jpj6xOi3PfwDztIatDtefwOrOaWmDt2p6yvx22E68X7yn9mZOuR2KY_5ksbuJsKcrXVI0zk8r8cAIlfiGLOnIXlGvaB2fkf2dw3B-wc7iTy4IUlU7U58XmBrAk-RekSIAVgKNn-iUQGuq_fHAJi1aeAnN_1WR8QE-1d8EWIiw6a08vfWE0p-Pw33V-b-vW2jrnMpg9U93liY1lQFDjdyGV-2rNZw-rB7ei3AOaD0jgWNVO2ABknz4Lu7qnh8d3bs-nRMlkU1yxQnFtBPqXiT5_prVz70ow_XKVa-5MdBdLP-SwXFSbIkubG1FmZr2maIQQBTQ37q6FNBV2Rn_K-yGvvV5OrEM72bOoJmbebilrxlsJ0-6GG1Lt9Qa2mSserStg2oxs62niCJsCrOM9KlTfQatNM8FtFlEmz9nCuLm6cmM6Ulv7mdqwj0fxbUf2PjkMs2CbpUHyr7P0BJkfqkm8bcBYAK1IevF8J3RZBjt9ulGPYdHOJtkx6jk8k44wkDacL4gsbUhondwmRTl1fXp2olXX5j6saXFlVrPQ-r1q-ZB2cPDh6JFYpMJfswWLDZ8b2FznBhhTZhkIWJ6EbJS_qHjc-RfoLVVVA_MguitVunOPFm58OH6HT9Tk6y4Hk3z-E0pIubm4vLqvF7H8M-ThAv7f49xGP7Fdd0rnadRdImDw6Tt6PjZRPKOvR3V1FL5XK-alZISuwT6HMEGvnDGi0e6MJTd-FPSvEyUaW_7CIILP0K27834tTgmiNtDeIuV-KuxI2tE-Tgrr1Gd9u2cmz5NywcVOvgRzYP39aqs0nE3OipKjIl6N84lGn5GV4CDy8Mlmh3_DU0Y2yhkzw6hPPZxiSzxnjZ0dLHolUUZlREbTt6S5UaTIU6S4QpLEcLajur4eZ6usFLTiOVmeZetglls-2R06MhaHGzzLPgaS7zBfFd9cCkxS9UWm3Z6i9uz-7GrbcCQbmCiqMWp-1iCSVwqSqPcEB_PRNsbOVrixQIo7ZTcNqlqLsgBK_1A0gpQoOXbqiwDTsdxwFMehp9Cr1g2S-aw0UNSj8ujvfA_9zSBJvxZq9hxNMJx-qSrk4T9XlhTBDV-Z8uBGojaDfKM4hXtFpnoZ1zeGaiUBuQxugYT12-lKkp0WXxn6yyqBkWpyt0uxpZmQkVUN_7rGKlc7FymyX1mRt3ftFLTnwohls704aqo6Dtg2m9Rd0xeiPca9gVGQEQDzm2ZCmYMgBlJl760wBejNguR3X_xb-t9ex_KuicgT8k9-NyaJSVI0UKKLFatQXsLA-yAGeiRe_A2HfVrkBwbzjR056AaNYo-EEdMprXBa-gY8WR-L-iB0qLu7tsoHQze6Qsp-HJx2tvKjSnHu23oxs876ngA9bhE932d0ALT4nOV0uPEMrTFxevOEecpWtt6MG973ixc4RtZ6-OL-AS_QJ32_VkB9qaN-88mfF9WVEHtAgmhixVz93ohAfFl6lNadsMZJweHI73KB5oGDtSMZR21QQ1IcZNMtGmG1EiSvkIf7gYua8rQylKuiWGdnioCpYnxO2Wq4knyW2SMOP4KTDBs610GZkDcvblc62s0sOP15D4GX0J2Pk96JPWb_SkqZkcKgHYjoD0-HzZ9nnonnwkqp8gQRrXzFO1lF0vXjRTvHtQtmi8FY4vjQPeL7VILteoMA4HW8b5zzwn6BdsjDYbGfvdqYQykDaYU_zt-_obpDYsErNzNP-1pcZ0llCnpHdaK-xDjdA-xPPMyJmYB4Zc3Ut073o3TsQFrOcYmlN6d40A5x5F7JaOxpao7iomvWk1sq9gGIzXxXGCUqc7utVHPmWhc4ADUHPUHH-n5G0LdlbkdziNEICkMwAsL7rLIbLHLR5cK4GhYqO2PgpObhkwpcRG5OeqtopFUnv-it5-z4TmqwDUdzP3XH3rGlfzDIHX5xDNG6dBbCykcWWyptCxvUsT_oAnKiZAfR7xscn5PMIT5dgxTupzkzlot84wvoGgOq8CB-ClDmrHjzw4XO6iXUKQp6r3Tu34KYs8ttrS-9GF3H1EdQy7IoMBwCdPTd9v74hTIo3F9y8s2VL3KWuwVK_jI5sW5s75_AyqfN7I7l2KlgxgchJcrdNwuv3Q6rDRAsQ7CaixTlrKPsnX6RfkjLkf3vsMJDxGzKWzQ70Ae3PAfTxT0BRhxajweZiRA8pXDYW2cf-1QCKD4V_zrxScPZ3jtQguAVUBnQxDEDnxC3kwKRSU4rNtlcfU8dmHrRgP7ChKJxMqyLkOkHXQWChYlqq1qtksLgy3iOVrgnU5RGJzL9EH3-sBEA20PeRGHV81w_WYsF1qckvJ0p9xmt03Rkc6I2UpRSbPxZrkgdBLV3cGWKdwsVSWj54X2Df07u1_CZi7TDxNJMX-KRsoTd4owuEOP_PTBkGAuv20Rh9vN-Li9UvE2qQlRL5HwRe8JH4mV-JB8YbtEJN-rKF3swmtobmzlbV01zZG3BpZmBshHJ3DpmeRYfQFps8O04maWG8Q-zqvfDwe3GHNSTz2r4kx1vj0p8Tx09-d5ldSuo80Oak4qyr9PuEXAMDpi1_A3DtBGkBwGo8sfRoqX0GHqXgO61EChyhg8DmEHm1mSm0WhjieF2zyEu-zHgRtHFOiRnRn7-lgBzmhbpDRfGC9DwsxGIr6hR3YL11affDtDfmXyUD9fb3iayLJCqeaLt9m8d3UwDDrtK0a_dGhXryF9vLfjXMyKZO4HFeU1YY2FAgO_m_XpzelXF3ZSFf99VsI3BWm9YWiZ0S4DK7eLKQq6ohRXwMmfb_QuJELsqjJFzYKJpjfUOwS3mgAa8PGZEi9yy0Q-eb3EidUQMfcLIr2xrAp1gq46aqPgy6v2d47m8SPPvtwdHJDsUaR-rZhYVSva0ZbRUuFwATMcZvsoI4euHzwXvhj8Tbfb3bg9wIPC3w3c3K6ptVfyl3usP5MSW6OxTYlhqJ1e4l3CBm5bnmaoaVuBN9L62slHzxhvx5jWhfx-zjgUw8owKABxUW9ZQ9-pjLNDpexWvdl8LNNU3GXj-wDiYjIhiXAra344MjYE8DZuOTHL0VtHe1diygLt46WGnM841eZcg-YqZaBPZsHJT3NPR-cyc1sUeLrC_5oIzQS8Yi2C4YcYTQ96rQv8Mlx70MxZKPE_fm6RGP7v2EHH9hzD6w2MIdpFl_CIUM7yJZ4b2d-XraQZ34zdnTZAuRoEeC0UATCmBLH0qnZ6Mi-uepXvKBgy8VglLkqwMBi19FGc49p6TLB412PNq3p7vxdu86D_NYout-XJcoSxZEl_h3uhDJzdF3VPJjGbKIZs52fFROiYedSqD8jQZH2zUJvFXlbil8Vo-Jq4Jpbkn6z4nCwn-GVQJs_QfknR-lFVrA2gCYGLr0y6EQC-S8PO24naFiqWWfXCLAwuQ-ExiQJ2plTP7BQtYrj0AlqO6KZG8l2fan0tsjm6rztY7rPPJJj0gB5JAAguUGtWnHSAU8Knsb3bP7TybW6q8fRz_AOEv-mYSVTUwtkvh6yBLi3kVBIUrhdqfGU7cI-yoicRWu_Z4Cb0pYiwjpRfHyVBnFQICIKPPHQThVrpuSdcOK-BkVc85vlqS8zA-MXF3QBOgCE0pQB114nsncvw4T1WfzniDahMg6VQ3eTWtcYYj30m7SNuSOuu4u7yI8asDBkAM_NPVBl-x1Mhh8CQMiMHZG_dlVA7-RNlAFSshn_0vcInrRTwJ_lyKZLcuaaakabx4R7prY5WknOU28hw0hafFDuNblIwuEcLGE6YTaevatUAVdzDlE1AhFZV9d6jEQ5Bxc-yP-Fge3nGGE-lnezby8LVcG5X0bQzYmr8XtCaQJnGVgfOCISwaQhVtgVbXd2uGc2AvRLOAo6BH0Qrz55RQWc1iOhUX9jzwg06j4HBxpxAZ6MHThtN1lGrEtVmycDsg6pXeI4aLy4pWPqaqnQ_oOP9O6kaIk4Exvizni-tqqCpnLgfc4kAfHBgow","protected":"eyJlcGsiOnsia3R5IjoiT0tQIiwiY3J2IjoiWDI1NTE5IiwieCI6InlnbnhONHY4QXZZWjFPbTZhVmdRUlp3eWM5UGRNT3ZMZmd3Uk1YVHhjMW8ifSwiYXB2IjoiMlVTQkdqWG9PaWkzbFA5cjBGRERvTjlZTEkxbjZPNDAzTzZTbHcteHZVayIsInNraWQiOiJkaWQ6cGVlcjoyLkV6NkxTa0t3MW1va1puRWlFbkFLQ0tRQzl0NVlLaGExZGl2M1VmRVRDOUZBc1R1YjEuVno2TWtwSlVjZDJ6VHM1c3VyWHBWUjRETGVnd0V6MXBUSlBMcXRUaFVIWmdXQzI0UCM2TFNrS3cxbW9rWm5FaUVuQUtDS1FDOXQ1WUtoYTFkaXYzVWZFVEM5RkFzVHViMSIsImFwdSI6IlpHbGtPbkJsWlhJNk1pNUZlalpNVTJ0TGR6RnRiMnRhYmtWcFJXNUJTME5MVVVNNWREVlpTMmhoTVdScGRqTlZaa1ZVUXpsR1FYTlVkV0l4TGxaNk5rMXJjRXBWWTJReWVsUnpOWE4xY2xod1ZsSTBSRXhsWjNkRmVqRndWRXBRVEhGMFZHaFZTRnBuVjBNeU5GQWpOa3hUYTB0M01XMXZhMXB1UldsRmJrRkxRMHRSUXpsME5WbExhR0V4WkdsMk0xVm1SVlJET1VaQmMxUjFZakUiLCJ0eXAiOiJhcHBsaWNhdGlvblwvZGlkY29tbS1lbmNyeXB0ZWQranNvbiIsImVuYyI6IkEyNTZDQkMtSFM1MTIiLCJhbGciOiJFQ0RILTFQVStBMjU2S1cifQ","recipients":[{"encrypted_key":"ydirq3D3UiQ4jF2eWigdDNeNGEyNYxvnW8n8nqxmi_KjotdWhM1klF59beFIQlgerXJRVnG1ywfaDUR1wckZd4SfeUCPbSwd","header":{"kid":"did:peer:2.Ez6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4.Vz6MkhNpHBCUgBgkCbiM4zMjrbfgGowwEuEchmzf6J5W3av8E.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6OTA5MC8iLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19#6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4"}}],"tag":"BjWBrTT19UsW430RJUzZOUPbjudZsNk9TyIi2dBOMAY","iv":"UdSyBhbSxadCBGhaG6f1JQ"}'
+object Agent1Mediators {
+  // "did:peer:2.Ez6LSdeknAoZHfA2QWsvbRbh5UZ1NPHP38NjBDdHrrhACJUgh.Vz6MkeTY54nNujTFzUQH6DuERrqXjwKe1dbKDa7nzFS8GNPq1"
+  val agent = DIDPeer2.makeAgent(
+    Seq(keyAgreement, keyAuthentication),
+    Seq(DIDPeerServiceEncoded(Agent0Mediators.agent.id))
   )
-  val keyAgreement =
-    """{"kty":"OKP","d":"b6JxUFsuwKPkOUAvU4FXEYzC7oKhzwNOM1aWyfvHP7k","crv":"X25519","x":"wyJl5uFCb4OXE_KuRePrM92z6aPfk8PXBHIpg1rG528"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
-  val keyAuthentication =
-    """{"kty":"OKP","d":"i6gfpmHFrSHbwAa7gI-bnOL0gMyePZ6Pe1xN-TDPMO4","crv":"Ed25519","x":"K2-apfExODENs4ZGlZ2xh8DSq4vkCqG3fgS3Ofwslv8"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
-}
 
-object Agents {
-  def layerEX0: ULayer[AgentEX0.type] = ZLayer.succeed(AgentEX0)
-  def layerEX1: ULayer[AgentEX1.type] = ZLayer.succeed(AgentEX1)
-  def layerEX2: ULayer[AgentEX2.type] = ZLayer.succeed(AgentEX2)
-}
-
-object AgentEX1 extends ExDID1 {
-  val agent: Agent = new Agent {
-    def id: DID = did
-    def keys: Seq[PrivateKey] = Seq(
-      keyAuthentication.copy(kid = Some(did.string + "#6MkeTY54nNujTFzUQH6DuERrqXjwKe1dbKDa7nzFS8GNPq1"))
+  def agentLayer: ULayer[Agent] = ZLayer.succeed(agent)
+  def keyAgreement =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.X25519,
+      d = "ZwV0ySU6tXxQlAzw8ji79H8bdeve6vGzruG_SYJen5Q",
+      x = "HVo4aqtv6pL660P_4yBWQtVZLQrw0kqhzzKPyaI1-EI",
+      kid = None
     )
-  }
-  // def layer: ULayer[AgentEX1.type] = ZLayer.succeed(this)
-//   Exception occurred while executing macro expansion.
-// java.lang.RuntimeException: TYPEREPR, UNSUPPORTED: class dotty.tools.dotc.core.Types$CachedThisType - ThisType(TypeRef(ThisType(TypeRef(NoPrefix,module class demo)),module class AgentEX1$))
-// 	at izumi.reflect.dottyreflection.Inspector.inspectTypeRepr(Inspector.scala:89)
-// 	at izumi.reflect.dottyreflection.Inspector.buildTypeRef(Inspector.scala:18)
-// 	at izumi.reflect.dottyreflection.TypeInspections$.apply(TypeInspections.scala:9)
-// 	at izumi.reflect.dottyreflection.Inspect$.inspectAny(Inspect.scala:15)
+  def keyAuthentication =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.Ed25519,
+      d = "4OQpka1tpCMhz-oNpeobkmDg2NiD4JIisH5WBB1etMM",
+      x = "ABIeuNr5_0rfwXGC2dgCd8Ab8AqfcB3DGrDwk70PJtA",
+      kid = None
+    )
+
 }
 
-trait ExDID1 { // https://localhost:9091/
-  val did = DIDPeer(
-    DIDSubject(
-      "did:peer:2.Ez6LSdeknAoZHfA2QWsvbRbh5UZ1NPHP38NjBDdHrrhACJUgh.Vz6MkeTY54nNujTFzUQH6DuERrqXjwKe1dbKDa7nzFS8GNPq1.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6OTA5MS8iLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19"
-    )
+object Agent2Mediators {
+  // "did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.Vz6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF"
+  val agent = DIDPeer2.makeAgent(
+    Seq(keyAgreement, keyAuthentication),
+    Seq(DIDPeerServiceEncoded(Agent1Mediators.agent.id))
   )
-  val keyAgreement =
-    """{"kty":"OKP","d":"ZwV0ySU6tXxQlAzw8ji79H8bdeve6vGzruG_SYJen5Q","crv":"X25519","x":"HVo4aqtv6pL660P_4yBWQtVZLQrw0kqhzzKPyaI1-EI"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
-  val keyAuthentication =
-    """{"kty":"OKP","d":"4OQpka1tpCMhz-oNpeobkmDg2NiD4JIisH5WBB1etMM","crv":"Ed25519","x":"ABIeuNr5_0rfwXGC2dgCd8Ab8AqfcB3DGrDwk70PJtA"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
-}
-
-object AgentEX2 extends ExDID2 {
-  val agent: Agent = new Agent {
-    def id: DID = did
-    def keys: Seq[PrivateKey] = Seq(
-      keyAuthentication.copy(kid = Some(did.string + "#6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF"))
+  def agentLayer: ULayer[Agent] = ZLayer.succeed(agent)
+  def keyAgreement =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.X25519,
+      d = "9yAs1ddRaUq4d7_HfLw2VSj1oW2kirb2wALmPXrRuZA",
+      x = "xfvZlkAnuNpssHOR2As4kUJ8zEPbowOIU5VbhBsYoGo-EI",
+      kid = None
     )
-  }
-  // def layer: ULayer[AgentEX2.type] = ZLayer.succeed(this)
-}
-
-trait ExDID2 { // https://localhost:9092/
-  val did = DIDPeer(
-    DIDSubject(
-      "did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.Vz6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6OTA5My8iLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19"
+  def keyAuthentication =
+    OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.Ed25519,
+      d = "-yjzvLY5dhFEuIsQcebEejbLbl3b8ICR7b2y2_HqFns",
+      x = "vfzzx6IIWdBI7J4eEPHuxaXGErhH3QXnRSQd0d_yn0Y",
+      kid = None
     )
-  )
-  val keyAgreement =
-    """{"kty":"OKP","d":"9yAs1ddRaUq4d7_HfLw2VSj1oW2kirb2wALmPXrRuZA","crv":"X25519","x":"xfvZlkAnuNpssHOR2As4kUJ8zEPbowOIU5VbhBsYoGo"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
-  val keyAuthentication =
-    """{"kty":"OKP","d":"-yjzvLY5dhFEuIsQcebEejbLbl3b8ICR7b2y2_HqFns","crv":"Ed25519","x":"vfzzx6IIWdBI7J4eEPHuxaXGErhH3QXnRSQd0d_yn0Y"}"""
-      .fromJson[OKPPrivateKey]
-      .toOption
-      .get // TODO get
+
 }

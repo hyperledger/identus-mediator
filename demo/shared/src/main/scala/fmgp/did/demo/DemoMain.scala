@@ -10,24 +10,16 @@ import fmgp.did.example._
 import fmgp.did.resolver.peer._
 // object DemoMain extends ZIOAppDefault
 @main def DemoMain() = {
-  import AgentEX0._
+  import Agent0Mediators._
   val program = for {
-    _ <- Console.printLine(
-      """██████╗ ██╗██████╗     ██████╗ ███████╗███╗   ███╗ ██████╗ 
-        |██╔══██╗██║██╔══██╗    ██╔══██╗██╔════╝████╗ ████║██╔═══██╗
-        |██║  ██║██║██║  ██║    ██║  ██║█████╗  ██╔████╔██║██║   ██║
-        |██║  ██║██║██║  ██║    ██║  ██║██╔══╝  ██║╚██╔╝██║██║   ██║
-        |██████╔╝██║██████╔╝    ██████╔╝███████╗██║ ╚═╝ ██║╚██████╔╝
-        |╚═════╝ ╚═╝╚═════╝     ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝ """.stripMargin
-    )
-    _ <- Console.printLine(s"Did: $did")
-    _ <- Console.printLine(s"Agreement Key: $keyAgreement")
+    _ <- Console.printLine(s"Did: ${agent.id.string}")
+    _ <- Console.printLine(s"Agreement Key: ${keyAgreement}")
     _ <- Console.printLine(s"Authentication Key: $keyAuthentication")
-    didDoc <- DidPeerResolver.didDocument(did)
+    didDoc <- DidPeerResolver.didDocument(agent.id)
     _ <- Console.printLine(s"DID Document: ${didDoc.toJson /*Pretty*/}")
-    me <- ZIO.service[Agent]
-    a1 <- ZIO.service[AgentEX1.type]
-    a2 <- ZIO.service[AgentEX2.type]
+    me = agent
+    a1 = Agent1Mediators.agent
+    a2 = Agent2Mediators.agent
     msg: PlaintextMessage = PlaintextMessageClass(
       id = "1",
       `type` = "type",
@@ -61,9 +53,7 @@ import fmgp.did.resolver.peer._
       .run(
         program.provide(
           operations ++
-            AgentEX0.agentLayer ++
-            Agents.layerEX1 ++
-            Agents.layerEX2 ++
+            Agent0Mediators.agentLayer ++
             resolvers
         )
       )

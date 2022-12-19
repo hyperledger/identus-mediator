@@ -58,5 +58,6 @@ case class DIDPeerServiceEncoded(
 object DIDPeerServiceEncoded {
   given decoder: JsonDecoder[DIDPeerServiceEncoded] = DeriveJsonDecoder.gen[DIDPeerServiceEncoded]
   given encoder: JsonEncoder[DIDPeerServiceEncoded] = DeriveJsonEncoder.gen[DIDPeerServiceEncoded]
-  def apply(endpoint: String) = new DIDPeerServiceEncoded(s = endpoint)
+  def apply(endpoint: String): DIDPeerServiceEncoded = new DIDPeerServiceEncoded(s = endpoint)
+  def apply(did: DID): DIDPeerServiceEncoded = new DIDPeerServiceEncoded(s = did.string)
 }

@@ -108,6 +108,12 @@ object DIDPeer2 {
   def apply(keys: Seq[PrivateKey], service: Seq[DIDPeerServiceEncoded] = Seq.empty): DIDPeer2 =
     DIDPeer2(keys.map(keyToElement(_)) ++ service.map(ElementService(_)))
 
+  def makeAgent(keySeq: Seq[PrivateKey], service: Seq[DIDPeerServiceEncoded] = Seq.empty): DIDPeer.AgentDIDPeer =
+    new DIDPeer.AgentDIDPeer {
+      val id: DIDPeer2 = apply(keySeq, service)
+      val keys: Seq[PrivateKey] = keySeq.map(k => keyKidAbsolute(k, id))
+    }
+
   def keyToElement(key: PrivateKey) = key match {
     case key @ OKPPrivateKey(kty, Curve.X25519, d, x, kid) =>
       DIDPeer2.ElementE(
@@ -126,6 +132,18 @@ object DIDPeer2 {
     case key @ OKPPrivateKey(kty, crv, d, x, kid) => ??? // ERROR!
     case ECPrivateKey(kty, crv, d, x, y, kid)     => ??? // TODO
   }
+
+  def keyKidAbsolute(key: PrivateKey, did: DIDPeer) = key match
+    case k @ OKPPrivateKey(kty, crv, d, x, kid) =>
+      k.copy(kid = Some(did.did + "#" + keyToElement(k).encode.drop(2))) // FIXME .drop(2) 'Sz'
+    case k @ ECPrivateKey(kty, crv, d, x, y, kid) =>
+      k.copy(kid = Some(did.did + "#" + keyToElement(k).encode.drop(2))) // FIXME .drop(2) 'Sz'
+
+  def keyKidRelative(key: PrivateKey) = key match
+    case k @ OKPPrivateKey(kty, crv, d, x, kid) =>
+      k.copy(kid = Some(keyToElement(k).encode.drop(2))) // FIXME .drop(2) 'Sz'
+    case k @ ECPrivateKey(kty, crv, d, x, y, kid) =>
+      k.copy(kid = Some(keyToElement(k).encode.drop(2))) // FIXME .drop(2) 'Sz'
 
   def fromDID(did: DID): Either[String, DIDPeer2] = did.string match {
     case DIDPeer.regexPeer2(all, str: _*) =>
@@ -150,7 +168,9 @@ object DIDPeer2 {
 object DIDPeer {
   type Array46_BASE58BTC = String // TODO  "46*BASE58BTC"
 
-  def transform = 'z'
+  trait AgentDIDPeer extends Agent {
+    override def id: DIDPeer
+  }
 
   def regexPeer =
     "^did:peer:(([01](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))|(2((\\.[AEVID](z)([1-9a-km-zA-HJ-NP-Z]{46,47}))+(\\.(S)[0-9a-zA-Z=]*)?)))$".r

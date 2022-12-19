@@ -14,9 +14,9 @@ import fmgp.did.example._
 
 object DIDCommHome {
 
-  val mediatorDID = AgentEX0.did.document
-  val aliceDID = AgentEX1.did.document
-  val bobDID = AgentEX2.did.document
+  val mediatorDID = Agent0Mediators.agent.id.document
+  val aliceDID = Agent1Mediators.agent.id.document
+  val bobDID = Agent2Mediators.agent.id.document
 
   val aliceDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(aliceDID))
   val bobDIDVar: Var[Option[DIDDocument]] = Var(initial = Some(bobDID))
