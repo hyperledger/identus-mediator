@@ -3,6 +3,7 @@ package fmgp.did.resolver.peer
 import munit._
 import zio._
 import zio.json._
+import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.resolver.peer._
 import fmgp.multibase._
@@ -83,6 +84,37 @@ class DIDPeerSuite extends ZSuite {
           Some(did.document.toJsonPretty),
           myExampleDIDDocument.fromJson[Json].map(_.toJsonPretty).toOption
         )
+  }
+
+  test("Create DIDPeer apply keys") {
+    val keyAgreement = OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.X25519,
+      d = "9yAs1ddRaUq4d7_HfLw2VSj1oW2kirb2wALmPXrRuZA",
+      x = "xfvZlkAnuNpssHOR2As4kUJ8zEPbowOIU5VbhBsYoGo",
+      kid = None // : Option[String]
+    )
+
+    val keyAuthentication = OKPPrivateKey(
+      kty = KTY.OKP,
+      crv = Curve.Ed25519,
+      d = "-yjzvLY5dhFEuIsQcebEejbLbl3b8ICR7b2y2_HqFns",
+      x = "vfzzx6IIWdBI7J4eEPHuxaXGErhH3QXnRSQd0d_yn0Y",
+      kid = None // : Option[String]
+    )
+
+    val obj =
+      DIDPeer2(Seq(keyAgreement, keyAuthentication), Seq(DIDPeerServiceEncoded("http://localhost:8080")))
+
+    assertEquals(
+      obj,
+      DIDPeer(
+        DIDSubject(
+          "did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.Vz6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+        )
+      )
+    )
+
   }
 
   // testZ("DidPeerResolver.didDocument") {

@@ -4,12 +4,11 @@ import zio._
 import fmgp.did._
 import fmgp.util._
 import fmgp.multibase._
+import fmgp.crypto._
 import fmgp.crypto.error.DidMethodNotSupported
-import fmgp.crypto.OKPPublicKey
-import fmgp.crypto.KTY
-import fmgp.crypto.Curve
 import zio.json._
 import javax.lang.model.element.Element
+import fmgp.multibase.Base.Base58BTC
 
 /** DID Peer
   *
@@ -106,6 +105,28 @@ object DIDPeer2 {
   // case class Element(code: Purposecode, value: String) { def encode = "" + code + value }
   type C1_B64URL = String
 
+  def apply(keys: Seq[PrivateKey], service: Seq[DIDPeerServiceEncoded] = Seq.empty): DIDPeer2 =
+    DIDPeer2(keys.map(keyToElement(_)) ++ service.map(ElementService(_)))
+
+  def keyToElement(key: PrivateKey) = key match {
+    case key @ OKPPrivateKey(kty, Curve.X25519, d, x, kid) =>
+      DIDPeer2.ElementE(
+        Multibase.encode(
+          Base58BTC,
+          Array(-20.toByte, 1.toByte).map(_.toByte) ++ Base64(key.x).decode // TODO refactoring
+        )
+      )
+    case key @ OKPPrivateKey(kty, Curve.Ed25519, d, x, kid) =>
+      DIDPeer2.ElementV(
+        Multibase.encode(
+          Base58BTC,
+          Array(-19.toByte, 1.toByte).map(_.toByte) ++ Base64(key.x).decode // TODO refactoring
+        )
+      )
+    case key @ OKPPrivateKey(kty, crv, d, x, kid) => ??? // ERROR!
+    case ECPrivateKey(kty, crv, d, x, y, kid)     => ??? // TODO
+  }
+
   def fromDID(did: DID): Either[String, DIDPeer2] = did.string match {
     case DIDPeer.regexPeer2(all, str: _*) =>
       val elements = all
@@ -123,6 +144,7 @@ object DIDPeer2 {
       Right(DIDPeer2(elements))
     case any if DIDPeer.regexPeer.matches(any) => Left(s"Not a did:peer:2... '$any'") // FIXME make Error type
   }
+
 }
 
 object DIDPeer {
