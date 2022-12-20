@@ -8,7 +8,6 @@ import fmgp.crypto._
 
 import zio._
 import zio.json._
-import zio.json.ast.JsonCursor
 import zio.json.ast.Json
 
 class EncryptedMessageSuite_Parse extends ZSuite {
@@ -52,7 +51,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Map("messagespecificattribute" -> "and its value"),
+    Json.Obj("messagespecificattribute" -> Json.Str("and its value")),
     None
   )
 

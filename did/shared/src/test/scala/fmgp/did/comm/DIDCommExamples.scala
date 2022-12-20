@@ -2,6 +2,7 @@ package fmgp.did.comm
 
 import fmgp.crypto.JWKExamples
 import fmgp.did.DIDSubject
+import zio.json.ast.Json
 
 object DIDCommExamples {
 
@@ -44,9 +45,9 @@ object DIDCommExamples {
     thid = None,
     created_time = Some(1516269022L),
     expires_time = Some(1516385931L),
-    body = Map(
-      "message_type_specific_attribute" -> "and its value",
-      "another_attribute" -> "and its value"
+    body = Json.Obj(
+      "message_type_specific_attribute" -> Json.Str("and its value"),
+      "another_attribute" -> Json.Str("and its value")
     ),
     attachments = None
   )
