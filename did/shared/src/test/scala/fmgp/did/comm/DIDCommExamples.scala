@@ -39,7 +39,7 @@ object DIDCommExamples {
 """.stripMargin
   val plaintextMessageObj = PlaintextMessageClass(
     id = "1234567890",
-    `type` = "<message-type-uri>",
+    `type` = PIURI("<message-type-uri>"),
     from = Some(DIDSubject("did:example:alice")),
     to = Some(Set(DIDSubject("did:example:bob"))),
     thid = None,

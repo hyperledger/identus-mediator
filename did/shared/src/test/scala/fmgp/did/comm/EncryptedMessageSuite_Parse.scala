@@ -17,7 +17,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
     ret match {
       case Left(error) => fail(error)
       case Right(obj) =>
-        assertEquals(obj.`type`, "https://example.com/protocols/lets_do_lunch/1.0/proposal")
+        assertEquals(obj.`type`, PIURI("https://example.com/protocols/lets_do_lunch/1.0/proposal"))
     }
   }
 
@@ -45,7 +45,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
 
   val expeted = PlaintextMessageClass(
     "1234567890",
-    "http://example.com/protocols/lets_do_lunch/1.0/proposal",
+    PIURI("http://example.com/protocols/lets_do_lunch/1.0/proposal"),
     Some(Set(DIDSubject("did:example:bob"))),
     Some(DIDSubject("did:example:alice")),
     None,

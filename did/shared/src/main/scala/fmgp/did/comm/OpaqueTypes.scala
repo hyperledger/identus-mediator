@@ -62,3 +62,10 @@ object APU:
 
   given decoder: JsonDecoder[APU] = JsonDecoder.string.map(APU(_))
   given encoder: JsonEncoder[APU] = JsonEncoder.string.contramap[APU](_.value)
+
+opaque type PIURI = String
+object PIURI:
+  def apply(value: String): PIURI = value
+  extension (piuri: PIURI) def value: String = piuri
+  given decoder: JsonDecoder[PIURI] = JsonDecoder.string.map(PIURI(_))
+  given encoder: JsonEncoder[PIURI] = JsonEncoder.string.contramap[PIURI](_.value)

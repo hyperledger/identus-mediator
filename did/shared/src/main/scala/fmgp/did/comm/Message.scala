@@ -38,7 +38,7 @@ trait PlaintextMessage extends Message {
   def id: Required[String]
 
   /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
-  def `type`: Required[String]
+  def `type`: PIURI
 
   def to: NotRequired[Set[DIDSubject]]
 

@@ -6,7 +6,7 @@ import fmgp.did._
 
 case class PlaintextMessageClass(
     id: Required[String],
-    `type`: Required[String],
+    `type`: PIURI,
     to: NotRequired[Set[DIDSubject]],
     from: NotRequired[DIDSubject],
     thid: NotRequired[String],
