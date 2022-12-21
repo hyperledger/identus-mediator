@@ -3,12 +3,13 @@ package fmgp.did.demo
 import zio._
 import zio.Console._
 import zio.json._
+import zio.json.ast.Json
 import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.example._
 import fmgp.did.resolver.peer._
-// object DemoMain extends ZIOAppDefault
+
 @main def DemoMain() = {
   import Agent0Mediators._
   val program = for {
@@ -28,9 +29,9 @@ import fmgp.did.resolver.peer._
       thid = None, // NotRequired[String],
       created_time = None, // NotRequired[UTCEpoch],
       expires_time = None, // NotRequired[UTCEpoch],
-      body = Map(
-        "a" -> "1",
-        "b" -> "2"
+      body = Json.Obj(
+        "a" -> Json.Str("1"),
+        "b" -> Json.Str("2")
       ), //  : Required[JSON_RFC7159],
       attachments = None
     )

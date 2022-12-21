@@ -107,7 +107,7 @@ object SignedMessage {
   given encoder: JsonEncoder[SignedMessage] = DeriveJsonEncoder.gen[SignedMessage]
 }
 
-case class JWMSignatureObj(`protected`: String, signature: String, header: Option[JWMHeader] = None)
+case class JWMSignatureObj(`protected`: JWM_PROTECTED, signature: JWM_SIGNATURE, header: Option[JWMHeader] = None)
 object JWMSignatureObj {
   given decoder: JsonDecoder[JWMSignatureObj] = DeriveJsonDecoder.gen[JWMSignatureObj]
   given encoder: JsonEncoder[JWMSignatureObj] = DeriveJsonEncoder.gen[JWMSignatureObj]

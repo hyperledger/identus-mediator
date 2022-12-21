@@ -37,12 +37,6 @@ object Attachment {
 //** https://www.rfc-editor.org/rfc/rfc7515#appendix-F */
 type JWS_WithOutPayload = Json //TODO
 
-sealed trait AttachmentData
-case class AttachmentDataJWS(jws: JWS_WithOutPayload) extends AttachmentData
-case class AttachmentDataLinks(links: String, hash: Required[String]) extends AttachmentData
-case class AttachmentDataBase64(base64: Base64 /*, hash: NotRequired[String]*/ ) extends AttachmentData
-case class AttachmentDataJson(json: Json /*, hash: NotRequired[String]*/ ) extends AttachmentData
-
 /** A JSON object that gives access to the actual content of the attachment.
   *
   * This MUST contain at least one of the following subfields, and enough of them to allow access to the data:
@@ -63,22 +57,31 @@ case class AttachmentDataJson(json: Json /*, hash: NotRequired[String]*/ ) exten
   *   OPTIONAL. Directly embedded JSON data, when representing content inline instead of via links, and when the content
   *   is natively conveyable as JSON.
   */
+sealed trait AttachmentData
+case class AttachmentDataJWS(jws: JWS_WithOutPayload, links: Option[Seq[String]]) extends AttachmentData
+case class AttachmentDataLinks(links: Seq[String], hash: Required[String]) extends AttachmentData
+case class AttachmentDataBase64(base64: Base64) extends AttachmentData
+case class AttachmentDataJson(json: Json) extends AttachmentData
+
+/** This class is not intended to be used. (Is just a fallback to be fully compatible with the specification) */
 case class AttachmentDataAny(
     jws: Option[JWS_WithOutPayload],
     hash: Option[String],
-    links: Option[String],
+    links: Option[Seq[String]],
     base64: Option[Base64],
-    json: Option[Seq[Json]],
-) //extends AttachmentData
+    json: Option[Json],
+) extends AttachmentData
 
 object AttachmentData {
   given decoder: JsonDecoder[AttachmentData] =
-    AttachmentDataLinks.decoder.widen[AttachmentData] <>
-      AttachmentDataBase64.decoder.widen[AttachmentData] <>
+    AttachmentDataBase64.decoder.widen[AttachmentData] <>
       AttachmentDataJson.decoder.widen[AttachmentData] <>
       AttachmentDataJWS.decoder
         .mapOrFail { e => if (e.jws == Json.Null) Left("jws can not be null") else Right(e) } // TODO JWS_WithOutPayload
-        .widen[AttachmentData]
+        .widen[AttachmentData] <>
+      AttachmentDataLinks.decoder.widen[AttachmentData] <> // Note Try to decode Links after try JWS to work properly
+      // TODO The code will not get here if we matches any other first!
+      AttachmentDataAny.decoder.widen[AttachmentData] // Works as a fallback.
 
   given encoder: JsonEncoder[AttachmentData] = new JsonEncoder[AttachmentData] {
     override def unsafeEncode(b: AttachmentData, indent: Option[Int], out: zio.json.internal.Write): Unit = b match
@@ -86,6 +89,7 @@ object AttachmentData {
       case obj: AttachmentDataLinks  => AttachmentDataLinks.encoder.unsafeEncode(obj, indent, out)
       case obj: AttachmentDataBase64 => AttachmentDataBase64.encoder.unsafeEncode(obj, indent, out)
       case obj: AttachmentDataJson   => AttachmentDataJson.encoder.unsafeEncode(obj, indent, out)
+      case obj: AttachmentDataAny    => AttachmentDataAny.encoder.unsafeEncode(obj, indent, out)
   }
 }
 object AttachmentDataJWS {
@@ -103,4 +107,8 @@ object AttachmentDataBase64 {
 object AttachmentDataJson {
   given decoder: JsonDecoder[AttachmentDataJson] = DeriveJsonDecoder.gen[AttachmentDataJson]
   given encoder: JsonEncoder[AttachmentDataJson] = DeriveJsonEncoder.gen[AttachmentDataJson]
+}
+object AttachmentDataAny {
+  given decoder: JsonDecoder[AttachmentDataAny] = DeriveJsonDecoder.gen[AttachmentDataAny]
+  given encoder: JsonEncoder[AttachmentDataAny] = DeriveJsonEncoder.gen[AttachmentDataAny]
 }
