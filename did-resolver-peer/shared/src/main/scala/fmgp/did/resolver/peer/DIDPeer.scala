@@ -96,14 +96,15 @@ object DIDPeer2 {
   case class ElementV(mb: Multibase) extends Element { def encode = "V" + mb }
   case class ElementI(mb: Multibase) extends Element { def encode = "I" + mb }
   case class ElementD(mb: Multibase) extends Element { def encode = "D" + mb }
-  case class ElementService(base64: C1_B64URL) extends Element { def encode = "S" + base64 } // TODO
+
+  type C1_B64URL = String
+  case class ElementService(base64: C1_B64URL) extends Element { def encode = "S" + base64 }
 
   object ElementService {
     def apply(obj: DIDPeerServiceEncoded): ElementService = new ElementService(Base64.encode(obj.toJson).urlBase64)
   }
 
   // case class Element(code: Purposecode, value: String) { def encode = "" + code + value }
-  type C1_B64URL = String
 
   def apply(keys: Seq[PrivateKey], service: Seq[DIDPeerServiceEncoded] = Seq.empty): DIDPeer2 =
     DIDPeer2(keys.map(keyToElement(_)) ++ service.map(ElementService(_)))

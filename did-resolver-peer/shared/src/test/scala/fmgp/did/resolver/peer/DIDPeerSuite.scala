@@ -94,7 +94,6 @@ class DIDPeerSuite extends ZSuite {
       x = "xfvZlkAnuNpssHOR2As4kUJ8zEPbowOIU5VbhBsYoGo",
       kid = None // : Option[String]
     )
-
     val keyAuthentication = OKPPrivateKey(
       kty = KTY.OKP,
       crv = Curve.Ed25519,
@@ -102,7 +101,6 @@ class DIDPeerSuite extends ZSuite {
       x = "vfzzx6IIWdBI7J4eEPHuxaXGErhH3QXnRSQd0d_yn0Y",
       kid = None // : Option[String]
     )
-
     val obj =
       DIDPeer2(Seq(keyAgreement, keyAuthentication), Seq(DIDPeerServiceEncoded("http://localhost:8080")))
 
@@ -114,18 +112,23 @@ class DIDPeerSuite extends ZSuite {
         )
       )
     )
-
   }
 
-  // testZ("DidPeerResolver.didDocument") {
+  test("Check service's Base64 - decode and encode (did must not change)") {
+    def testDid(s: String) = s"did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.S$s"
 
-  //   // val exDID = DIDSubject(DIDPeerExamples.ex4_peer2_did)
+    /** {"r":[],"s":"http://localhost:8080","a":["didcomm\/v2"],"t":"dm"} */
+    val service = "eyJyIjpbXSwicyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MCIsImEiOlsiZGlkY29tbVwvdjIiXSwidCI6ImRtIn0="
 
-  //   DIDPeer.fromDID(exDID)
-  //   for {
-  //     doc <- DidPeerResolver.didDocument(exDID)
-  //     _ = println(doc)
-  //   } yield ()
-  // }
+    /** Default {"t":"dm","s":"http://localhost:8080","r":[],"a":["didcomm/v2"]} */
+    val defaultService = "eyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+
+    DIDPeer(DIDSubject(testDid(service))) match
+      case DIDPeer0(encnumbasis) => fail("Wrong DIDPeer type")
+      case DIDPeer1(encnumbasis) => fail("Wrong DIDPeer type")
+      case obj @ DIDPeer2(elements) =>
+        assertEquals(obj.did, testDid(service))
+        assertNotEquals(obj.did, testDid(defaultService))
+  }
 
 }
