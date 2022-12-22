@@ -39,7 +39,10 @@ object AppServer extends ZIOAppDefault {
 
   val app: Http[Any, Throwable, Request, Response] = Http.collectZIO[Request] {
     case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP"))
-    case Method.GET -> !! / "ws"    => socket.toSocketApp.toResponse
+    case req @ Method.GET -> !! / "headers" =>
+      val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
+      ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n")))
+    case Method.GET -> !! / "ws" => socket.toSocketApp.toResponse
     case req @ Method.POST -> !! if req.headersAsList.exists { h =>
           h.key == "content-type" &&
           (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
