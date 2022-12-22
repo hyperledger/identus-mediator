@@ -11,7 +11,7 @@ class DIDCommSuite extends FunSuite {
     ret match {
       case Left(error) => fail(error)
       case Right(obj) =>
-        assertEquals(obj.id, "1234567890")
+        assertEquals(obj.id, MsgID("1234567890"))
         assertEquals(obj, DIDCommExamples.plaintextMessageObj)
     }
   }

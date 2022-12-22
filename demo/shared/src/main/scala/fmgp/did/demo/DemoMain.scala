@@ -22,7 +22,7 @@ import fmgp.did.resolver.peer._
     a1 = Agent1Mediators.agent
     a2 = Agent2Mediators.agent
     msg: PlaintextMessage = PlaintextMessageClass(
-      id = "1",
+      id = MsgID("1"),
       `type` = PIURI("type"),
       to = Some(Set(me.id)), // NotRequired[Set[DIDURLSyntax]],
       from = Some(me.id), // NotRequired[DIDURLSyntax],

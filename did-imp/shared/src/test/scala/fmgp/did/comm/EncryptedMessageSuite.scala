@@ -47,7 +47,7 @@ class EncryptedMessageSuite extends ZSuite {
   // ###############
 
   val expeted = PlaintextMessageClass(
-    "1234567890",
+    MsgID("1234567890"),
     PIURI("http://example.com/protocols/lets_do_lunch/1.0/proposal"),
     Some(Set(DIDSubject("did:example:bob"))),
     Some(DIDSubject("did:example:alice")),
@@ -243,7 +243,7 @@ class EncryptedMessageSuite extends ZSuite {
   // ###############
 
   val example2encrypt = PlaintextMessageClass(
-    "987654321",
+    MsgID("987654321"),
     PIURI("https://app.fmgp/protocols/chat/1.0/message"),
     Some(Set(DIDSubject("did:example:bob"))),
     Some(DIDSubject("did:example:alice")),

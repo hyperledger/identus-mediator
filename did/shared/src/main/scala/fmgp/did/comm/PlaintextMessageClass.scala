@@ -5,11 +5,11 @@ import zio.json.ast.Json
 import fmgp.did._
 
 case class PlaintextMessageClass(
-    id: Required[String],
+    id: Required[MsgID],
     `type`: PIURI,
     to: NotRequired[Set[DIDSubject]],
     from: NotRequired[DIDSubject],
-    thid: NotRequired[String],
+    thid: NotRequired[MsgID],
     created_time: NotRequired[UTCEpoch],
     expires_time: NotRequired[UTCEpoch],
     body: Required[JSON_RFC7159],

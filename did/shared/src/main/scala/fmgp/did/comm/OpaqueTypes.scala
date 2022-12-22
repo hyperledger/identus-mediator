@@ -69,3 +69,11 @@ object PIURI:
   extension (piuri: PIURI) def value: String = piuri
   given decoder: JsonDecoder[PIURI] = JsonDecoder.string.map(PIURI(_))
   given encoder: JsonEncoder[PIURI] = JsonEncoder.string.contramap[PIURI](_.value)
+
+opaque type MsgID = String
+object MsgID:
+  def apply(value: String): MsgID = value
+  def apply(): MsgID = java.util.UUID.randomUUID.toString() // Should be cross platform
+  extension (messageID: MsgID) def value: String = messageID
+  given decoder: JsonDecoder[MsgID] = JsonDecoder.string.map(MsgID(_))
+  given encoder: JsonEncoder[MsgID] = JsonEncoder.string.contramap[MsgID](_.value)

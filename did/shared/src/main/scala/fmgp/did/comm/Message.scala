@@ -35,7 +35,7 @@ object Message {
 trait PlaintextMessage extends Message {
 
   /** MUST be unique to the sender */
-  def id: Required[String]
+  def id: MsgID
 
   /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
   def `type`: PIURI
@@ -49,7 +49,7 @@ trait PlaintextMessage extends Message {
   def from: NotRequired[DIDSubject]
 
   /** Thread identifier */
-  def thid: NotRequired[String]
+  def thid: NotRequired[MsgID]
   // TODO def pthid: NotRequired[String] // "1e513ad4-48c9-444e-9e7e-5b8b45c5e325",
   // TODO def ack: NotRequired[Seq[String]] // ["1e513ad4-48c9-444e-9e7e-5b8b45c5e325"],
 
@@ -60,6 +60,9 @@ trait PlaintextMessage extends Message {
   def body: Required[JSON_RFC7159]
 
   def attachments: NotRequired[Seq[Attachment]]
+
+  // accept-lang: Seq[LanguageCodeIANA]
+  // lang: LanguageCodeIANA IANA’s language codes  // IANA’s language subtag registry.
 }
 
 object PlaintextMessage {
