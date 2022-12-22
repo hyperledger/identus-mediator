@@ -67,6 +67,7 @@ lazy val docs = project // new documentation project
 
 /** Versions */
 lazy val V = new {
+  val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M7" // "0.7.29"
@@ -96,6 +97,16 @@ lazy val V = new {
 
 /** Dependencies */
 lazy val D = new {
+
+  /** The [[java.security.SecureRandom]] is used by the [[java.util.UUID.randomUUID()]] method in [[MsgId]].
+    *
+    * See more https://github.com/scala-js/scala-js-java-securerandom
+    */
+  val scalajsJavaSecureRandom = Def.setting(
+    ("org.scala-js" %%% "scalajs-java-securerandom" % V.scalajsJavaSecureRandom)
+      .cross(CrossVersion.for3Use2_13)
+  )
+
   val dom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalajsDom)
 
   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
@@ -242,6 +253,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioJson.value,
     libraryDependencies += D.zioMunitTest.value,
   )
+  .jsSettings(libraryDependencies += D.scalajsJavaSecureRandom.value.cross(CrossVersion.for3Use2_13))
 
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
