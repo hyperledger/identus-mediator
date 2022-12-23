@@ -7,6 +7,21 @@ import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DIDPeerServiceEncoded
 
 object AgentProvider {
+  val allAgents = {
+    val obj = AgentProvider(prod = false, port = 8080)
+    Map(
+      "alice" -> obj.alice,
+      "bob" -> obj.bob,
+      "charlie" -> obj.charlie,
+      "dave" -> obj.dave,
+      "eve" -> obj.eve,
+      "frank" -> obj.frank,
+      "ivan" -> obj.ivan,
+      "pat" -> obj.pat,
+      "victor" -> obj.victor,
+    )
+  }
+
   def aliceLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.alice)
   def patLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.pat)
   def daveLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.dave)
