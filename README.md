@@ -12,6 +12,8 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 
 **More documentation:**
 - [LICENSE](LICENSE) - Apache License, Version 2.0
+- [did implementations](did-imp/README.md) = Notes and TODO list
+- [example](did-example/README.md) - just a set of DIDs for experiments.
 - [demo](demo/README.md) - How to build, test and deploy the Demo. The Demo is a server with (webapp) client.  
 - [webapp module](webapp/README.md) - How to build, develop and run localy.
 - [multiformats module](multiformats/README.md) -(Implemente notes and an considerations (of TODOs) if we want to use as the independent Library.
@@ -114,8 +116,25 @@ You should open the reports with your browser. The reports will be in each modul
 
 ### WIP
 
-- We are still working on API.
-- Routing https://didcomm.org/book/v2/routing
+- We are still working on core API.
+- Publish to maven
+  - scala-cli example
+    - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
+    - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
+  - docker with scala-cli
+- create module for protocols
+
+### TODO Protocols
+- `Routing`- https://didcomm.org/routing/2.0
+  - Also see https://didcomm.org/book/v2/routing
+- `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
+- `ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
+- `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+- `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
+- Create new protocol `PreSetValue`
+- Create new protocol `PseudoRandom`
+  - https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
+  - https://www.rfc-editor.org/rfc/rfc3797
 
 ### Limitations in JS ATM
 
@@ -168,7 +187,4 @@ So the user can do whatever he wants. _It still has the same vulnerabilities con
     ```shell
     export NODE_OPTIONS=--openssl-legacy-provider
     ```
-# Pseudo-Random
 
-https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
-https://www.rfc-editor.org/rfc/rfc3797
