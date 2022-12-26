@@ -7,6 +7,21 @@ import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DIDPeerServiceEncoded
 
 object AgentProvider {
+
+  /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
+    */
+  val usersGraph = """
+  |graph TD
+  |  Alice --> Pat[Pat\nprover]
+  |  Bob --> Dave
+  |  Bob --> Ivan[Ivan\nissuer]
+  |  Charlie --> Eve[Eve\neavesdropper]
+  |    Eve --> Frank
+  |    Eve --> Victor[Victor\nverifier]
+  |  Fabio
+  |  did
+  |""".stripMargin
+
   val allAgents = {
     val obj = AgentProvider(prod = false, port = 8080)
     Map(
@@ -46,20 +61,6 @@ object AgentProvider {
 }
 
 case class AgentProvider(prod: Boolean = true, port: Int = 8080) {
-
-  /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
-    */
-  val usersGraph = """
-  |graph TD
-  |  Alice --> Pat[Pat\nprover]
-  |  Bob --> Dave
-  |  Bob --> Ivan[Ivan\nissuer]
-  |  Charlie --> Eve[Eve\neavesdropper]
-  |    Eve --> Frank
-  |    Eve --> Victor[Victor\nverifier]
-  |  Fabio
-  |  did
-  |""".stripMargin
 
   def userURL(name: String) =
     if (prod) s"https://$name.did.fmgp.app/"

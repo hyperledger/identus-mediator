@@ -39,9 +39,13 @@ object KeysHome {
       div(
         p(
           "You can use folowing website to ",
-          a(href := "https://8gwifi.org/jwkfunctions.jsp", target := "_blank", "Generate Keys"),
+          a(href := "https://8gwifi.org/jwkfunctions.jsp", target := "_blank", "Generate test Keys"),
           ": X25519; Ed25519; P-256; P-384; P-521; P-256K (secp256k1)",
         ),
+        p(
+          "You can also use this website to ",
+          a(href := "https://mkjwk.org/", target := "_blank", "Generate test Keys"),
+        )
       ),
       div(
         input(

@@ -20,7 +20,7 @@ object OperationsClientRPC extends Operations {
 
   def makeOps(
       data: String,
-      url: String = "https://did.fmgp.app/ops" // "http://localhost:8080/ops" // FIXME url
+      url: String = "/ops"
   ): IO[SomeThrowable, String] = ZIO
     .fromPromiseJS(
       dom.fetch(url, new RequestInit { method = HttpMethod.POST; body = data })

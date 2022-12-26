@@ -101,7 +101,7 @@ object AppUtils {
       className("mdc-drawer mdc-drawer--modal"),
       div(
         className("mdc-drawer__header"),
-        h3(className("mdc-drawer__title"), "FMGP IPFS"),
+        h3(className("mdc-drawer__title"), "FMGP scala-did"),
         h6(className("mdc-drawer__subtitle"), "fabiomgpinheiro@gmail.com"),
       ),
       div(

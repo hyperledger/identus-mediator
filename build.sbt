@@ -187,8 +187,8 @@ lazy val scalaJSBundlerConfigure: Project => Project =
           .withModuleKind(ModuleKind.CommonJSModule) // ModuleKind.ESModule
           // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
           .withJSHeader(
-            """/* FMGP IPFS Example tool
-            | * https://github.com/FabioPinheiro/did
+            """/* FMGP scala-did examples and tool
+            | * https://github.com/FabioPinheiro/scala-did
             | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
             | */""".stripMargin.trim() + "\n"
           )

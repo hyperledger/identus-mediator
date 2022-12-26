@@ -19,7 +19,7 @@ object App {
         AppUtils.drawer(linkPages, MyRouter.router.$currentPage),
         AppUtils.drawerScrim,
         AppUtils.topBarHeader(MyRouter.router.$currentPage.map {
-          case p: HomePage.type => "FMGP IPFS example"
+          case p: HomePage.type => "scala-did"
           case p                => p.title
         }),
         com.raquo.laminar.api.L.main(
@@ -34,18 +34,18 @@ object App {
   }
 
   private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
-    .collectStatic(HomePage)(DIDCommHome())
+    .collectStatic(HomePage)(Home())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
     .collectStatic(DIDcommPage)(DIDCommHome())
-    .collectStatic(MermaidPage)(MermaidApp())
+    .collectStatic(DAppStorePage)(DAppStore())
 
   private val linkPages: List[Page] = List(
     HomePage,
     KeysPage,
     // DIDPage,
     DIDcommPage,
-    MermaidPage,
+    DAppStorePage,
   )
 
 }

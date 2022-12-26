@@ -15,7 +15,7 @@ object MyRouter {
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
   case object DIDcommPage extends Page("DIDComm", "visibility")
-  case object MermaidPage extends Page("MermaidApp", "share")
+  case object DAppStorePage extends Page("DAppStore", "share")
 
   given HomePageRW: ReadWriter[HomePage.type] = macroRW
 
@@ -26,7 +26,7 @@ object MyRouter {
     Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
     // Route.static(DIDPage, root / "did" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DIDcommPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
-    Route.static(MermaidPage, root / "mermaid" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(DAppStorePage, root / "dapp" / endOfSegments, Router.localFragmentBasePath),
   )
 
   val router = new Router[Page](
