@@ -108,11 +108,11 @@ NOTES:
 |2022-11-26|29.21 %|25.31 %|57.60 %|     81.58 %    |     27.50 %
 
 You should open the reports with your browser. The reports will be in each module `target/scala-<scala-version>/scoverage-report`
-- [all/aggregate](/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/target/scala-3.2.2-RC1/scoverage-report/index.html
-- [did](/did/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
-- [did-imp](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-imp/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
-- [did-resolver-web](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-web/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
-- [did-resolver-peer](/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-peer/jvm/target/scala-3.2.2-RC1/scoverage-report/index.html
+- [all/aggregate](/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/target/scala-3.2.2-RC2/scoverage-report/index.html
+- [did](/did/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
+- [did-imp](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-imp/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
+- [did-resolver-web](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-web/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
+- [did-resolver-peer](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-peer/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
 
 ### WIP
 
