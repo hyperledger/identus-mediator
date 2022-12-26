@@ -61,6 +61,11 @@ object AppServer extends ZIOAppDefault {
 
     case Method.POST -> !! =>
       ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+    case req @ Method.POST -> !! / "ops" =>
+      req.body.asString
+        .flatMap(e => OperationsServerRPC.ops(e))
+        .map(e => Response.text(e))
+        .debug
     case Method.GET -> !! / "resolver" / did =>
       DIDSubject.either(did) match
         case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest))
