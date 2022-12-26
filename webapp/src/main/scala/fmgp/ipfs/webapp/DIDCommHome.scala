@@ -49,12 +49,21 @@ object DIDCommHome {
       message
     )
     .map {
-      case (mFrom, None, msg)    => println(s"encryptedMessage Error: $value")
-      case (None, Some(to), msg) => println("To Sign it needs the 'from'")
+      case (mFrom, None, msg) =>
+        encryptedMessageVar.update(_ => None)
+      case (None, Some(to), msg) =>
+        val tmp = msg.toPlaintextMessage(None, Set(to.id)).toOption.get
+        val programAux = OperationsClientRPC.anonEncrypt(tmp)
+        val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
+        Unsafe.unsafe { implicit unsafe => // Run side efect
+          Runtime.default.unsafe.fork(
+            program.provideEnvironment(ZEnvironment(DidPeerResolver))
+          )
+        }
       case (Some(from), Some(to), msg) =>
         val tmp = msg.toPlaintextMessage(Some(from.id), Set(to.id)).toOption.get
         val programAux = OperationsClientRPC.authEncrypt(tmp)
-        val program = programAux.map(msg => encryptedMessageVar.update(e => Some(msg)))
+        val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
             program.provideEnvironment(ZEnvironment(from, DidPeerResolver))

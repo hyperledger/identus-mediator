@@ -36,7 +36,7 @@ java -jar /home/fabio/workspace/ScalaDID/demo/jvm/target/scala-3.2.2-RC2/scala-d
 
 ```shell
 NODE_OPTIONS=--openssl-legacy-provider sbt demoJVM/assembly
-flyctl deploy
+flyctl deploy ./demo/
 ```
 
 **[WIP] deploy by pushing docker image**
