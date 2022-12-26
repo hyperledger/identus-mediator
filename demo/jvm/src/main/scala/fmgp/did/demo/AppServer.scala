@@ -2,6 +2,7 @@ package fmgp.did.demo
 
 import zio._
 import zio.json._
+import zio.stream._
 import zio.http._
 import zio.http.model._
 import zio.http.socket.{WebSocketChannelEvent, WebSocketFrame}
@@ -71,7 +72,7 @@ object AppServer extends ZIOAppDefault {
     case Method.GET -> !! / "public" / path => {
       ZIO.succeed(
         Response(
-          body = Body.fromString(Source.fromResource(s"public/$path").getLines.mkString("\n")),
+          body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
           headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
         )
       )
