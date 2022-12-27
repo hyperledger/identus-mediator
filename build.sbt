@@ -209,7 +209,7 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
-    buildInfoPackage := "fmgp.ipfs",
+    buildInfoPackage := "fmgp",
     // buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
@@ -347,7 +347,7 @@ lazy val webapp = project
     stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.ipfs.webapp.App", "main")
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
     },
   )
 

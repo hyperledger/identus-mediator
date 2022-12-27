@@ -1,4 +1,4 @@
-package fmgp.ipfs.webapp
+package fmgp.webapp
 
 import org.scalajs.dom
 import com.raquo.laminar.api.L._

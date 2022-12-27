@@ -1,4 +1,4 @@
-package fmgp.ipfs.webapp
+package fmgp.webapp
 
 import com.raquo.laminar.api.L._
 // import fmgp.prism.MyKeys

@@ -1,4 +1,4 @@
-package fmgp.ipfs.webapp
+package fmgp.webapp
 
 import org.scalajs.dom
 import scala.scalajs.js

@@ -1,4 +1,4 @@
-package fmgp.ipfs.webapp
+package fmgp.webapp
 
 import scala.scalajs.js.JSConverters._
 
