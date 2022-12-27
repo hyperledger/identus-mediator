@@ -135,33 +135,33 @@ object RawOperations extends CryptoOperations {
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
     val kids = msg.recipients.map(_.header.kid.value)
-    val allKeysUsedOnMsg = recipientKidsKeys.filterNot(e => kids.contains(e._1))
+    recipientKidsKeys.filterNot(e => kids.contains(e._1)) match
+      case Seq() => ZIO.fail(MissingDecryptionKey(kids: _*))
+      case firstKey +: tail => {
+        firstKey._2 match
+          case ecKey: ECKey =>
+            val jweRecipient =
+              msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
+            val ecRecipientsKeys = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[ECPrivateKey])) // FIXME
+            val ret = ECDH
+              .anonDecryptEC(ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
+            ZIO.fromEither(ret match
+              case Left(error: CryptoFailed) => Left(error)
+              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            )
 
-    allKeysUsedOnMsg.head._2 match { // FIXME header
-      case ecKey: ECKey =>
-        val jweRecipient =
-          msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
-        val ecRecipientsKeys = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[ECPrivateKey])) // FIXME
-        val ret = ECDH
-          .anonDecryptEC(ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
-        ZIO.fromEither(ret match {
-          case Left(error: CryptoFailed) => Left(error)
-          case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
-        })
+          case okpKey: OKPKey =>
+            val fixme = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[OKPPrivateKey])) // FIXME
+            val jweRecipient =
+              msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
 
-      case okpKey: OKPKey =>
-        val fixme = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[OKPPrivateKey])) // FIXME
-        val jweRecipient =
-          msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
-
-        val ret = ECDH
-          .anonDecryptOKP(fixme, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
-        ZIO.fromEither(ret match {
-          case Left(error: CryptoFailed) => Left(error)
-          case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
-        })
-    }
-
+            val ret = ECDH
+              .anonDecryptOKP(fixme, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
+            ZIO.fromEither(ret match
+              case Left(error: CryptoFailed) => Left(error)
+              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            )
+      }
   }
 
   override def authDecrypt(
@@ -182,32 +182,32 @@ object RawOperations extends CryptoOperations {
             recipientKidsKeys
               .find(_._1.value == recipien.header.kid.value)
               .pipe {
-                case None                   => ZIO.succeed(Left(MissDecryptionKey(kid = recipien.header.kid.value)))
+                case None                   => ZIO.succeed(Left(MissingDecryptionKey(recipien.header.kid.value)))
                 case Some((id, key: ECKey)) => ZIO.succeed(Right((recipien.encrypted_key, id, key)))
                 case Some(_)                => ZIO.fail(WrongKeysTypeCombination)
               }
           }
           .map(e =>
             e.foldLeft(
-              IOR.Both[Seq[MissDecryptionKey], Seq[(Base64, VerificationMethodReferenced, ECKey)]](
-                Seq.empty,
-                Seq.empty
-              )
+              IOR.Both[
+                Option[MissingDecryptionKey],
+                Seq[(Base64, VerificationMethodReferenced, ECKey)]
+              ](None, Seq.empty)
             ) {
-              case (IOR.Both(a, b), Left(l))  => IOR.Both(a :+ l, b)
-              case (IOR.Both(a, b), Right(r)) => IOR.Both(a, b :+ r)
+              case (IOR.Both(None, b), Left(newEx))        => IOR.Both(Some(newEx), b)
+              case (IOR.Both(Some(oldEx), b), Left(newEx)) => IOR.Both(Some(oldEx + newEx), b)
+              case (IOR.Both(a, b), Right(r))              => IOR.Both(a, b :+ r)
             }
           )
           .map { case IOR.Both(warnings, encryptedKey_vmr_keys) =>
             val ecRecipientsKeys = encryptedKey_vmr_keys.map { case (encryptedKey, vmr, keys) => (vmr, keys) }
-
             ECDH.authDecryptEC(ecSenderKey, ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
           .flatMap(ret =>
-            ZIO.fromEither(ret match {
+            ZIO.fromEither(ret match
               case Left(error: CryptoFailed) => Left(error)
               case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
-            })
+            )
           )
       case okpSenderKey: OKPKey =>
         ZIO
@@ -215,20 +215,21 @@ object RawOperations extends CryptoOperations {
             recipientKidsKeys
               .find(_._1.value == recipien.header.kid.value)
               .pipe {
-                case None                    => ZIO.succeed(Left(MissDecryptionKey(kid = recipien.header.kid.value)))
+                case None                    => ZIO.succeed(Left(MissingDecryptionKey(kid = recipien.header.kid.value)))
                 case Some((id, key: OKPKey)) => ZIO.succeed(Right((recipien.encrypted_key, id, key)))
                 case Some(_)                 => ZIO.fail(WrongKeysTypeCombination)
               }
           }
           .map(e =>
             e.foldLeft(
-              IOR.Both[Seq[MissDecryptionKey], Seq[(Base64, VerificationMethodReferenced, OKPKey)]](
-                Seq.empty,
-                Seq.empty
-              )
+              IOR.Both[
+                Option[MissingDecryptionKey],
+                Seq[(Base64, VerificationMethodReferenced, OKPKey)]
+              ](None, Seq.empty)
             ) {
-              case (IOR.Both(a, b), Left(l))  => IOR.Both(a :+ l, b)
-              case (IOR.Both(a, b), Right(r)) => IOR.Both(a, b :+ r)
+              case (IOR.Both(None, b), Left(newEx))        => IOR.Both(Some(newEx), b)
+              case (IOR.Both(Some(oldEx), b), Left(newEx)) => IOR.Both(Some(oldEx + newEx), b)
+              case (IOR.Both(a, b), Right(r))              => IOR.Both(a, b :+ r)
             }
           )
           .map { case IOR.Both(warnings, encryptedKey_vmr_keys) =>
@@ -237,14 +238,14 @@ object RawOperations extends CryptoOperations {
             ECDH.authDecryptOKP(okpSenderKey, okpRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
           .flatMap(ret =>
-            ZIO.fromEither(ret match {
+            ZIO.fromEither(ret match
               case Left(error: CryptoFailed) => Left(error)
               case Right(data: Array[Byte]) =>
                 String(data)
                   .fromJson[Message]
                   .left
                   .map(info => FailToParse(s"After decoding to parse into a Message because: $info"))
-            })
+            )
           )
     }
   }

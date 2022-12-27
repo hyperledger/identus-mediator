@@ -9,10 +9,8 @@ package error {
   @jsonDiscriminator("type")
   sealed trait DidFail // extends Exception with Product with Serializable
   object DidFail {
-    given decoderDidFail: JsonDecoder[DidFail] = DeriveJsonDecoder.gen[DidFail]
-    given encodeDidFail: JsonEncoder[DidFail] = DeriveJsonEncoder.gen[DidFail]
-    given decoderCryptoFailed: JsonDecoder[CryptoFailed] = DeriveJsonDecoder.gen[CryptoFailed]
-    given encodeCryptoFailed: JsonEncoder[CryptoFailed] = DeriveJsonEncoder.gen[CryptoFailed]
+    given decoder: JsonDecoder[DidFail] = DeriveJsonDecoder.gen[DidFail]
+    given encoder: JsonEncoder[DidFail] = DeriveJsonEncoder.gen[DidFail]
   }
 
   case class DidException(error: FailToParse) extends Exception(error.error) // with DidFail
@@ -24,7 +22,13 @@ package error {
   // ####################
   // ### Error Crypto ###
   // ####################
+  @jsonDiscriminator("type")
   sealed trait CryptoFailed extends DidFail
+
+  object CryptoFailed {
+    given decoder: JsonDecoder[CryptoFailed] = DeriveJsonDecoder.gen[CryptoFailed]
+    given encoder: JsonEncoder[CryptoFailed] = DeriveJsonEncoder.gen[CryptoFailed]
+  }
 
   case class FailToGenerateKey(origin: DidFail) extends CryptoFailed
 
@@ -50,7 +54,13 @@ package error {
   case object KeyMissingEpkJWEHeader extends CryptoFailed // TODO make it time safe
 
   /* EX: Curve of public key does not match curve of private key */
+  @jsonDiscriminator("type")
   sealed trait CurveError extends CryptoFailed
+  object CurveError {
+    given decoder: JsonDecoder[CurveError] = DeriveJsonDecoder.gen[CurveError]
+    given encoder: JsonEncoder[CurveError] = DeriveJsonEncoder.gen[CurveError]
+  }
+
   case class WrongCurve(obtained: Curve, expected: Set[Curve]) extends CurveError
   case class MissingCurve(expected: Set[Curve]) extends CurveError
   case class MultiCurvesTypes(obtained: Set[Curve], expected: Set[Curve]) extends CurveError
@@ -62,15 +72,12 @@ package error {
   case object NoKeys extends CryptoFailed
   case class PointNotOnCurve(error: String) extends CryptoFailed
   case object IncompatibleKeys extends CryptoFailed
-  case object MissingDecryptionKey extends CryptoFailed
+  case class MissingDecryptionKey(kid: String*) extends CryptoFailed {
+    def `+`(ex: MissingDecryptionKey) = MissingDecryptionKey((kid ++ ex.kid): _*)
+  }
   case object SignatureVerificationFailed extends CryptoFailed
   case object MACCheckFailed extends CryptoFailed
   case object MultiDifferentResults extends CryptoFailed
   case object ZeroResults extends CryptoFailed
-
-  // Warn Crypto
-  sealed trait CryptoWarn // extends Product with Serializable // Exception with
-  case class MissDecryptionKey(kid: String) extends CryptoWarn
-  // case class UncatchWarning[E <: CryptoWarn](warn: E) extends CryptoFailed
 
 }
