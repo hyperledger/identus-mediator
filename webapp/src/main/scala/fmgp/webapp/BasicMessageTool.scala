@@ -15,14 +15,8 @@ import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import fmgp.did.resolver.peer.DIDPeer._
 import fmgp.did.resolver.peer.DidPeerResolver
-import com.raquo.airstream.ownership._
-object DIDCommHome {
 
-  val owner: ManualOwner = ManualOwner()
-
-  val dids = AgentProvider.allAgents.keys.toSeq.sorted :+ "<none>"
-  def getAgentName(mAgent: Option[Agent]): String =
-    mAgent.flatMap(agent => AgentProvider.allAgents.find(_._2.id == agent.id)).map(_._1).getOrElse("<none>")
+object BasicMessageTool {
 
   val fromAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
   val toAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
@@ -70,17 +64,16 @@ object DIDCommHome {
           )
         }
     }
-    .toObservable
-    .observe(owner)
+    .observe(App.owner)
 
   val rootElement = div(
-    code("DIDcomm Page"),
+    code("BasicMessage Page"),
     p(
       "FROM: ",
       select(
-        value <-- fromAgentVar.signal.map(getAgentName(_)),
+        value <-- fromAgentVar.signal.map(Global.getAgentName(_)),
         onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> fromAgentVar,
-        dids.map { step => option(value := step, step) } // "" to work around a bug?
+        Global.dids.map { step => option(value := step, step) } // "" to work around a bug?
       )
     ),
     pre(code(child.text <-- fromAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
@@ -88,9 +81,9 @@ object DIDCommHome {
     p(
       "TO: ",
       select(
-        value <-- toAgentVar.signal.map(getAgentName(_)),
+        value <-- toAgentVar.signal.map(Global.getAgentName(_)),
         onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> toAgentVar,
-        dids.map { step => option(value := step, step) } // "" to work around a bug?
+        Global.dids.map { step => option(value := step, step) } // "" to work around a bug?
       )
     ),
     pre(code(child.text <-- toAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),

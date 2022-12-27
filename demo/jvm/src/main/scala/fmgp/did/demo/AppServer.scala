@@ -39,10 +39,10 @@ object AppServer extends ZIOAppDefault {
     }
 
   val app: Http[Any, Throwable, Request, Response] = Http.collectZIO[Request] {
-    case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP"))
+    case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
     case req @ Method.GET -> !! / "headers" =>
       val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
-      ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n")))
+      ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
     case Method.GET -> !! / "ws" => socket.toSocketApp.toResponse
     case req @ Method.POST -> !! if req.headersAsList.exists { h =>
           h.key == "content-type" &&
@@ -60,7 +60,9 @@ object AppServer extends ZIOAppDefault {
       } yield Response.text(msg.toJson)
 
     case Method.POST -> !! =>
-      ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+      ZIO
+        .succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+        .debug
     case req @ Method.POST -> !! / "ops" =>
       req.body.asString
         .flatMap(e => OperationsServerRPC.ops(e))
@@ -68,11 +70,11 @@ object AppServer extends ZIOAppDefault {
         .debug
     case Method.GET -> !! / "resolver" / did =>
       DIDSubject.either(did) match
-        case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest))
-        case Right(value) => ZIO.succeed(Response.text("DID:" + value))
+        case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest)).debug
+        case Right(value) => ZIO.succeed(Response.text("DID:" + value)).debug
     case req @ Method.GET -> !! => {
       val data = Source.fromResource(s"public/index.html").mkString("")
-      ZIO.succeed(Response.html(data))
+      ZIO.succeed(Response.html(data)).debug
     }
     case Method.GET -> !! / "public" / path => {
       ZIO.succeed(

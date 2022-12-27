@@ -23,7 +23,8 @@ object Home {
   def apply(): HtmlElement = // rootElement
     div(
       p("DID Comm examples and tooling"),
-      p(b("Basic Message "), a(href := "/#/didcomm", "Generate BasicMessage")),
+      p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
+      p("Navigate to ", b("Basic Message "), MyRouter.navigateTo(MyRouter.BasicMessagePage)),
       br(),
       p("DIDs: "),
       div(child <-- statementVar.signal.map(e => getHtml(e)))

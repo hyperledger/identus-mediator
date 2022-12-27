@@ -14,7 +14,9 @@ object MyRouter {
   case object HomePage extends Page("Home", "home")
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
-  case object DIDcommPage extends Page("DIDComm", "visibility")
+  case object DecryptPage extends Page("Decrypt", "email")
+  case object BasicMessagePage extends Page("BasicMessage", "message")
+
   case object DAppStorePage extends Page("DAppStore", "share")
 
   given HomePageRW: ReadWriter[HomePage.type] = macroRW
@@ -25,7 +27,9 @@ object MyRouter {
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
     Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
     // Route.static(DIDPage, root / "did" / endOfSegments, Router.localFragmentBasePath),
-    Route.static(DIDcommPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(DecryptPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(BasicMessagePage, root / "basicmessage" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DAppStorePage, root / "dapp" / endOfSegments, Router.localFragmentBasePath),
   )
 

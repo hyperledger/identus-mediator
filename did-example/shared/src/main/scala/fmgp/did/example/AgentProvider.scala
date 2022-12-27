@@ -60,11 +60,11 @@ object AgentProvider {
     )
 }
 
-case class AgentProvider(prod: Boolean = true, port: Int = 8080) {
+case class AgentProvider(prod: Boolean = true, port: Int) {
 
   def userURL(name: String) =
     if (prod) s"https://$name.did.fmgp.app/"
-    else s"http://$name.did.fmgp.app:$port/"
+    else s"http://localhost:$port/"
 
   private def keyAgreement(d: String, x: String) =
     OKPPrivateKey(kty = KTY.OKP, crv = Curve.X25519, d = d, x = x, kid = None)

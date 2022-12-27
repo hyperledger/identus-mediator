@@ -15,6 +15,8 @@ object OpsInputRPC {
   given encoder: JsonEncoder[OpsInputRPC] = DeriveJsonEncoder.gen[OpsInputRPC]
 }
 object OpsOutputPRC {
+  import DidFail.decoder
+  import CryptoFailed.decoder
   given decoder: JsonDecoder[OpsOutputPRC] = DeriveJsonDecoder.gen[OpsOutputPRC]
   given encoder: JsonEncoder[OpsOutputPRC] = DeriveJsonEncoder.gen[OpsOutputPRC]
 }

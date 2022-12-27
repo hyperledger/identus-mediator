@@ -7,8 +7,12 @@ import com.raquo.laminar.api.L._
 import com.raquo.waypoint._
 
 import MyRouter._
+import com.raquo.airstream.ownership.ManualOwner
 
 object App {
+
+  val owner: ManualOwner = ManualOwner()
+
   def main( /*args: Array[String]*/ ): Unit = {
 
     // This div, its id and contents are defined in index-fastopt.html and index-fullopt.html files
@@ -37,14 +41,16 @@ object App {
     .collectStatic(HomePage)(Home())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
-    .collectStatic(DIDcommPage)(DIDCommHome())
+    .collectStatic(DecryptPage)(DecryptTool())
+    .collectStatic(BasicMessagePage)(BasicMessageTool())
     .collectStatic(DAppStorePage)(DAppStore())
 
   private val linkPages: List[Page] = List(
     HomePage,
     KeysPage,
     // DIDPage,
-    DIDcommPage,
+    DecryptPage,
+    BasicMessagePage,
     DAppStorePage,
   )
 

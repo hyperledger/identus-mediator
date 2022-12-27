@@ -1,19 +1,18 @@
-package fmgp.crypto //FIXME
+package fmgp.crypto
 
-// sealed abstract class
-// object CryptoFail {
 import zio.json._
 
 package error {
 
-  @jsonDiscriminator("type")
+  case class DidException(error: FailToParse) extends Exception(error.error) // with DidFail
+
+  @jsonDiscriminator("typeOfDidFail")
   sealed trait DidFail // extends Exception with Product with Serializable
   object DidFail {
+    import CryptoFailed.given
     given decoder: JsonDecoder[DidFail] = DeriveJsonDecoder.gen[DidFail]
     given encoder: JsonEncoder[DidFail] = DeriveJsonEncoder.gen[DidFail]
   }
-
-  case class DidException(error: FailToParse) extends Exception(error.error) // with DidFail
 
   case class FailToParse(error: String) extends DidFail
 
@@ -22,10 +21,11 @@ package error {
   // ####################
   // ### Error Crypto ###
   // ####################
-  @jsonDiscriminator("type")
+  @jsonDiscriminator("typeOfCryptoFailed")
   sealed trait CryptoFailed extends DidFail
 
   object CryptoFailed {
+    // import CurveError.given
     given decoder: JsonDecoder[CryptoFailed] = DeriveJsonDecoder.gen[CryptoFailed]
     given encoder: JsonEncoder[CryptoFailed] = DeriveJsonEncoder.gen[CryptoFailed]
   }
@@ -54,12 +54,13 @@ package error {
   case object KeyMissingEpkJWEHeader extends CryptoFailed // TODO make it time safe
 
   /* EX: Curve of public key does not match curve of private key */
-  @jsonDiscriminator("type")
+  @jsonDiscriminator("typeOfCurveError")
   sealed trait CurveError extends CryptoFailed
   object CurveError {
     given decoder: JsonDecoder[CurveError] = DeriveJsonDecoder.gen[CurveError]
     given encoder: JsonEncoder[CurveError] = DeriveJsonEncoder.gen[CurveError]
   }
+  // type CurveError = CryptoFailed
 
   case class WrongCurve(obtained: Curve, expected: Set[Curve]) extends CurveError
   case class MissingCurve(expected: Set[Curve]) extends CurveError
