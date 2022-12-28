@@ -39,8 +39,7 @@ final case class BasicMessage(
   def toPlaintextMessage(from: Option[DIDSubject], to: Set[DIDSubject]): Either[String, PlaintextMessage] =
     BasicMessage
       .Body(content)
-      .toJsonAST
-      .flatMap(_.as[JSON_RFC7159])
+      .toJSON_RFC7159
       .map(body =>
         PlaintextMessageClass(
           id = id,
@@ -57,14 +56,17 @@ final case class BasicMessage(
 object BasicMessage {
   def piuri = PIURI("https://didcomm.org/basicmessage/2.0/message")
 
-  protected final case class Body(content: String)
+  protected final case class Body(content: String) {
+    def toJSON_RFC7159: Either[String, JSON_RFC7159] =
+      this.toJsonAST.flatMap(_.as[JSON_RFC7159])
+  }
   object Body {
     given decoder: JsonDecoder[Body] = DeriveJsonDecoder.gen[Body]
     given encoder: JsonEncoder[Body] = DeriveJsonEncoder.gen[Body]
   }
 
   def fromPlaintextMessage(msg: PlaintextMessage): Either[String, BasicMessage] = {
-    if (msg.`type` != BasicMessage.piuri)
+    if (msg.`type` != piuri)
       Left(s"No able to create BasicMessage from a Message of the type '${msg.`type`}'")
     else
       msg.body.as[Body].map { body =>
