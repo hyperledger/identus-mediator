@@ -40,6 +40,7 @@ final case class BasicMessage(
     BasicMessage
       .Body(content)
       .toJsonAST
+      .flatMap(_.as[JSON_RFC7159])
       .map(body =>
         PlaintextMessageClass(
           id = id,

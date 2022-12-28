@@ -56,7 +56,10 @@ trait PlaintextMessage extends Message {
   def created_time: NotRequired[UTCEpoch]
   def expires_time: NotRequired[UTCEpoch]
 
-  /** application-level data inside a JSON */
+  /** application-level data inside a JSON
+    *
+    * This attribute MUST be present, even if empty. It MUST be a JSON object conforming to RFC 7159.
+    */
   def body: Required[JSON_RFC7159]
 
   def attachments: NotRequired[Seq[Attachment]]
