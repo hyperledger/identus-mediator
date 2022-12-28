@@ -45,13 +45,10 @@ final case class BasicMessage(
         PlaintextMessageClass(
           id = id,
           `type` = `type`,
-          to = Some(to), // NotRequired[Set[DIDSubject]],
-          from = from, // NotRequired[DIDSubject],
-          thid = None, // NotRequired[MsgID],
-          created_time = created_time, // NotRequired[UTCEpoch],
-          expires_time = None, // NotRequired[UTCEpoch],
-          body = body, // Required[JSON_RFC7159],
-          attachments = None, // NotRequired[Seq[Attachment]]
+          to = Some(to),
+          from = from,
+          created_time = created_time,
+          body = body,
           // FIXME lang: NotRequired[String] = lang,
         )
       )
