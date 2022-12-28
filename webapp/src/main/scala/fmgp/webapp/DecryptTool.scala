@@ -58,17 +58,16 @@ object DecryptTool {
       .observe(App.owner)
 
   val rootElement = div(
-    code("DIDcomm Page"),
+    code("DecryptTool Page"),
     p(
       "Agent: ",
       select(
         value <-- agentVar.signal.map(Global.getAgentName(_)),
         onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> agentVar,
-        Global.dids.map { step => option(value := step, step) } // "" to work around a bug?
+        Global.dids.map { step => option(value := step, step) }
       )
     ),
     pre(code(child.text <-- agentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
-    pre(code(child.text <-- agentVar.signal.map(_.map(e => e.id.document.toJsonPretty).getOrElse("--")))),
     p("Encrypted Message Data:"),
     input(
       placeholder("<EncryptedMessage>"),

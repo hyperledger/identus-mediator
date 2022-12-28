@@ -23,7 +23,7 @@ object DIDSubject {
     }
   given Conversion[DIDSubject, DID] = _.toDID
 
-  def apply(s: String): DIDSubject = s // TODO use maybe instead of apply
+  def apply(s: String): DIDSubject = s // unsave TODO use maybe instead of apply
   def either(s: String): Either[FailToParse, DIDSubject] =
     if (pattern.matches(s)) Right(DIDSubject(s)) else Left(FailToParse(s"NOT a DID! '$s'"))
 

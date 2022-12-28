@@ -73,7 +73,7 @@ object BasicMessageTool {
       select(
         value <-- fromAgentVar.signal.map(Global.getAgentName(_)),
         onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> fromAgentVar,
-        Global.dids.map { step => option(value := step, step) } // "" to work around a bug?
+        Global.dids.map { step => option(value := step, step) }
       )
     ),
     pre(code(child.text <-- fromAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
@@ -83,7 +83,7 @@ object BasicMessageTool {
       select(
         value <-- toAgentVar.signal.map(Global.getAgentName(_)),
         onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> toAgentVar,
-        Global.dids.map { step => option(value := step, step) } // "" to work around a bug?
+        Global.dids.map { step => option(value := step, step) }
       )
     ),
     pre(code(child.text <-- toAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),

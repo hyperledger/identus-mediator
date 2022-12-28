@@ -23,6 +23,7 @@ object Home {
   def apply(): HtmlElement = // rootElement
     div(
       p("DID Comm examples and tooling"),
+      p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage)),
       p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
       p("Navigate to ", b("Basic Message "), MyRouter.navigateTo(MyRouter.BasicMessagePage)),
       br(),
