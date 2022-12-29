@@ -44,6 +44,7 @@ object App {
     .collectStatic(ResolverPage)(ResolverTool())
     .collectStatic(DecryptPage)(DecryptTool())
     .collectStatic(BasicMessagePage)(BasicMessageTool())
+    .collectStatic(TrustPingPage)(TrustPingTool())
     .collectStatic(DAppStorePage)(DAppStore())
 
   private val linkPages: List[Page] = List(
@@ -53,6 +54,7 @@ object App {
     ResolverPage,
     DecryptPage,
     BasicMessagePage,
+    TrustPingPage,
     DAppStorePage,
   )
 

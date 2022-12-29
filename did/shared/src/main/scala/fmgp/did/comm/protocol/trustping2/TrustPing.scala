@@ -27,6 +27,9 @@ sealed trait TrustPing {
   def id: MsgID
   def to: DID
   def response_requested: Boolean // default is false
+
+  // utils
+  def toPlaintextMessage: Either[String, PlaintextMessage]
 }
 
 object TrustPing {
@@ -48,16 +51,16 @@ object TrustPing {
         case firstTo +: tail =>
           msg.body.as[Body].flatMap {
             case Body(None) | Body(Some(false)) =>
-              Right(new TrustPingWithOutResponse(id = msg.id, to = firstTo, from = msg.from.map(e => e)))
+              Right(new TrustPingWithOutRequestedResponse(id = msg.id, to = firstTo, from = msg.from.map(e => e)))
             case Body(Some(true)) =>
               msg.from match
                 case None => Left(s"'$piuri' MUST have field 'from' with one element if response_requested is true")
-                case Some(from) => Right(new TrustPingWithResponse(id = msg.id, from = from, to = firstTo))
+                case Some(from) => Right(new TrustPingWithRequestedResponse(id = msg.id, from = from, to = firstTo))
           }
 
 }
 
-final case class TrustPingWithResponse(
+final case class TrustPingWithRequestedResponse(
     id: MsgID = MsgID(),
     from: DID,
     to: DID,
@@ -81,7 +84,7 @@ final case class TrustPingWithResponse(
   def makeRespond = TrustPingResponse(thid = id)
 }
 
-final case class TrustPingWithOutResponse(
+final case class TrustPingWithOutRequestedResponse(
     id: MsgID = MsgID(),
     from: Option[DID],
     to: DID,

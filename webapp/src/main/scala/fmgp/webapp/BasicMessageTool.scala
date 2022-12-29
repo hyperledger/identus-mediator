@@ -36,7 +36,7 @@ object BasicMessageTool {
         case (mFrom, None, msg)     => Left("Missing the 'TO'")
       }
 
-  val encryptedMessage = Signal
+  val job = Signal
     .combine(
       fromAgentVar,
       toAgentVar,

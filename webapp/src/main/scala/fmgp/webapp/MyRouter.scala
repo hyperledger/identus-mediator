@@ -17,6 +17,7 @@ object MyRouter {
   case object ResolverPage extends Page("Resolver", "dns")
   case object DecryptPage extends Page("Decrypt", "email")
   case object BasicMessagePage extends Page("BasicMessage", "message")
+  case object TrustPingPage extends Page("TrustPing", "network_ping")
 
   case object DAppStorePage extends Page("DAppStore", "share")
 
@@ -32,6 +33,7 @@ object MyRouter {
     Route.static(DecryptPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(BasicMessagePage, root / "basicmessage" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(TrustPingPage, root / "trustping" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DAppStorePage, root / "dapp" / endOfSegments, Router.localFragmentBasePath),
   )
 
