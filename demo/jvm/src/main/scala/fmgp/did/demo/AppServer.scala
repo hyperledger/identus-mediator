@@ -5,7 +5,7 @@ import zio.json._
 import zio.stream._
 import zio.http._
 import zio.http.model._
-import zio.http.socket.{WebSocketChannelEvent, WebSocketFrame}
+import zio.http.socket._
 
 import fmgp.did._
 import fmgp.crypto.error._
@@ -26,66 +26,72 @@ import scala.io.Source
   */
 object AppServer extends ZIOAppDefault {
 
-  private val socket: Http[Any, Throwable, WebSocketChannelEvent, Unit] =
-    Http.collectZIO[WebSocketChannelEvent] {
-      case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text("FOO"))) =>
-        ch.writeAndFlush(WebSocketFrame.text("BAR"))
+  val app: Http[Hub[String] & Ref[DIDSocketManager], Throwable, Request, Response] = Http
+    .collectZIO[Request] {
+      case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
+      case req @ Method.POST -> !! / "socket" / id =>
+        for {
+          hub <- ZIO.service[Hub[String]]
+          sm <- ZIO.service[Ref[DIDSocketManager]].flatMap(_.get)
+          ret <- sm.ids
+            .get(DIDSubject(id))
+            .flatMap(socketID => sm.sockets.get(socketID).map(e => (socketID, e))) match {
+            case None =>
+              req.body.asString.flatMap(e => hub.publish(s"socket missing for $id"))
+                *> ZIO.succeed(Response.text(s"socket missing"))
+            case Some((socketID, channel)) =>
+              req.body.asString.flatMap(e => channel.socketOutHub.publish(e))
+                *> ZIO.succeed(Response.text(s"message sended"))
+          }
+        } yield (ret)
+      case req @ Method.GET -> !! / "headers" =>
+        val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
+        ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
+      case Method.GET -> !! / "ws" => DIDSocketManager.socketApp.toResponse
+      case req @ Method.POST -> !! if req.headersAsList.exists { h =>
+            h.key == "content-type" &&
+            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+          } =>
+        for {
+          data <- req.body.asString
+          msg <- ZIO.fromEither(
+            data
+              .fromJson[Message]
+              .left
+              .map(error => DidException(FailToParse(error)))
+          )
+          _ <- ZIO.log(msg.toJsonPretty)
+        } yield Response.text(msg.toJson)
 
-      case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text("BAR"))) =>
-        ch.writeAndFlush(WebSocketFrame.text("FOO"))
-
-      case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-        ch.write(WebSocketFrame.text("ws:" + text)).repeatN(0) *> ch.flush
+      case Method.POST -> !! =>
+        ZIO
+          .succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+          .debug
+      case req @ Method.POST -> !! / "ops" =>
+        req.body.asString
+          .flatMap(e => OperationsServerRPC.ops(e))
+          .map(e => Response.text(e))
+          .debug
+      case Method.GET -> !! / "resolver" / did =>
+        DIDSubject.either(did) match
+          case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest)).debug
+          case Right(value) => ZIO.succeed(Response.text("DID:" + value)).debug
+      case req @ Method.GET -> !! => { // html.Html.fromDomElement()
+        val data = Source.fromResource(s"public/index.html").mkString("")
+        ZIO.succeed(Response.html(data)).debug
+      }
+    }
+    ++ {
+      Http.fromResource(s"public/fmgp-webapp-fastopt-bundle.js").when {
+        case Method.GET -> !! / "public" / path => true
+        // Response(
+        //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
+        //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
+        // )
+        case _ => false
+      }
     }
 
-  val app: Http[Any, Throwable, Request, Response] = Http.collectZIO[Request] {
-    case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
-    case req @ Method.GET -> !! / "headers" =>
-      val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
-      ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
-    case Method.GET -> !! / "ws" => socket.toSocketApp.toResponse
-    case req @ Method.POST -> !! if req.headersAsList.exists { h =>
-          h.key == "content-type" &&
-          (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
-        } =>
-      for {
-        data <- req.body.asString
-        msg <- ZIO.fromEither(
-          data
-            .fromJson[Message]
-            .left
-            .map(error => DidException(FailToParse(error)))
-        )
-        _ <- ZIO.log(msg.toJsonPretty)
-      } yield Response.text(msg.toJson)
-
-    case Method.POST -> !! =>
-      ZIO
-        .succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
-        .debug
-    case req @ Method.POST -> !! / "ops" =>
-      req.body.asString
-        .flatMap(e => OperationsServerRPC.ops(e))
-        .map(e => Response.text(e))
-        .debug
-    case Method.GET -> !! / "resolver" / did =>
-      DIDSubject.either(did) match
-        case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest)).debug
-        case Right(value) => ZIO.succeed(Response.text("DID:" + value)).debug
-    case req @ Method.GET -> !! => {
-      val data = Source.fromResource(s"public/index.html").mkString("")
-      ZIO.succeed(Response.html(data)).debug
-    }
-    case Method.GET -> !! / "public" / path => {
-      ZIO.succeed(
-        Response(
-          body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-          headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-        )
-      )
-    }
-
-  }
   override val run = for {
     _ <- Console.printLine(
       """██████╗ ██╗██████╗     ██████╗ ███████╗███╗   ███╗ ██████╗ 
@@ -97,6 +103,8 @@ object AppServer extends ZIOAppDefault {
         |Yet another server simpler server to demo DID Comm v2.
         |Vist: https://github.com/FabioPinheiro/scala-did""".stripMargin
     )
+    myHub <- Hub.sliding[String](5)
+    _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => Console.printLine("HUB: " + str))).fork
     port <- System
       .property("PORT")
       .flatMap {
@@ -110,7 +118,17 @@ object AppServer extends ZIOAppDefault {
       val config = ServerConfig(address = new java.net.InetSocketAddress(port))
       ServerConfig.live(config)(using Trace.empty) >>> Server.live
     }
-    _ <- Server.serve(app).provide(server)
+
+    inboundHub <- Hub.bounded[String](5)
+    ref <- Ref.make(DIDSocketManager("alice.did.fmgp.app"))
+    myServer <- Server
+      .serve(app)
+      // .provideSomeLayer(DIDSocketManager.aliceLayer)
+      .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub).add(ref) }
+      .provide(server)
+      .fork
+    _ <- Console.printLine(s"Server Started")
+    _ <- myServer.join *> Console.printLine(s"Server End")
   } yield ()
 
 }
