@@ -27,7 +27,11 @@ object DIDSubject {
   def either(s: String): Either[FailToParse, DIDSubject] =
     if (pattern.matches(s)) Right(DIDSubject(s)) else Left(FailToParse(s"NOT a DID! '$s'"))
 
-  implicit val decoder: JsonDecoder[DIDSubject] = JsonDecoder.string.map(s => DIDSubject(s))
-  implicit val encoder: JsonEncoder[DIDSubject] = JsonEncoder.string.contramap(e => e.value)
+  given decoder: JsonDecoder[DIDSubject] = JsonDecoder.string.map(s => DIDSubject(s))
+  given encoder: JsonEncoder[DIDSubject] = JsonEncoder.string.contramap(e => e.value)
+
+  // These given are useful if we use the DIDSubject as a Key (ex: Map[DIDSubject , Value])
+  given JsonFieldDecoder[DIDSubject] = JsonFieldDecoder.string.map(s => DIDSubject(s))
+  given JsonFieldEncoder[DIDSubject] = JsonFieldEncoder.string.contramap(e => e.value)
 
 }

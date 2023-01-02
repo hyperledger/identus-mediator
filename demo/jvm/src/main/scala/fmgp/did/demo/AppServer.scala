@@ -29,19 +29,28 @@ object AppServer extends ZIOAppDefault {
   val app: Http[Hub[String] & Ref[DIDSocketManager], Throwable, Request, Response] = Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
+      case req @ Method.GET -> !! / "socket" =>
+        for {
+          sm <- ZIO.service[Ref[DIDSocketManager]].flatMap(_.get)
+          ret <- ZIO.succeed(Response.text(sm.toJsonPretty))
+        } yield (ret)
       case req @ Method.POST -> !! / "socket" / id =>
         for {
           hub <- ZIO.service[Hub[String]]
           sm <- ZIO.service[Ref[DIDSocketManager]].flatMap(_.get)
           ret <- sm.ids
             .get(DIDSubject(id))
-            .flatMap(socketID => sm.sockets.get(socketID).map(e => (socketID, e))) match {
-            case None =>
+            .toSeq
+            .flatMap { socketsID =>
+              socketsID.flatMap(id => sm.sockets.get(id).map(e => (id, e))).toSeq
+            } match {
+            case Seq() =>
               req.body.asString.flatMap(e => hub.publish(s"socket missing for $id"))
                 *> ZIO.succeed(Response.text(s"socket missing"))
-            case Some((socketID, channel)) =>
-              req.body.asString.flatMap(e => channel.socketOutHub.publish(e))
-                *> ZIO.succeed(Response.text(s"message sended"))
+            case seq =>
+              ZIO.foreach(seq) { (socketID, channel) =>
+                req.body.asString.flatMap(e => channel.socketOutHub.publish(e))
+              } *> ZIO.succeed(Response.text(s"message sended"))
           }
         } yield (ret)
       case req @ Method.GET -> !! / "headers" =>
