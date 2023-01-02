@@ -169,6 +169,9 @@ trait EncryptedMessage extends Message {
   def recipients: Seq[Recipient]
   def tag: TAG
   def iv: IV
+
+  // extra
+  def recipientsDID = recipients.map(_.recipientDID).toSet
 }
 
 // trait AnonEncryptedMessage //TODO and make EncryptedMessage a sealed trait
@@ -193,13 +196,17 @@ extension (c: EncryptedMessage) {
 case class Recipient(
     encrypted_key: Base64,
     header: RecipientHeader,
-)
+) {
+  def recipientDID: DID = header.did
+}
 object Recipient {
   given decoder: JsonDecoder[Recipient] = DeriveJsonDecoder.gen[Recipient]
   given encoder: JsonEncoder[Recipient] = DeriveJsonEncoder.gen[Recipient]
 }
 
-case class RecipientHeader(kid: VerificationMethodReferenced)
+case class RecipientHeader(kid: VerificationMethodReferenced) {
+  def did = kid.did
+}
 object RecipientHeader {
   given decoder: JsonDecoder[RecipientHeader] = DeriveJsonDecoder.gen[RecipientHeader]
   given encoder: JsonEncoder[RecipientHeader] = DeriveJsonEncoder.gen[RecipientHeader]

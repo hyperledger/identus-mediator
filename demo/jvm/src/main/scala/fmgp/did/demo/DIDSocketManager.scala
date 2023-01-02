@@ -7,6 +7,7 @@ import zio.http.socket._
 import zio.stream._
 
 import fmgp.did._
+import fmgp.did.comm._
 
 type SocketID = String
 case class MyChannel(id: SocketID, socketOutHub: Hub[String])
@@ -43,6 +44,16 @@ object DIDSocketManager {
     } yield ()
 
   def newMessage(channel: Channel[WebSocketFrame], data: String) =
+    for {
+      socketManager <- ZIO.service[Ref[DIDSocketManager]]
+      id = channel.id
+      mMessage = data.fromJson[EncryptedMessage]
+      _ <- mMessage match
+        case Left(value)    => ZIO.logError(s"Data is not a EncryptedMessage: $value")
+        case Right(message) => Console.printLine("Message's recipients: " + message.recipientsDID.mkString(","))
+    } yield ()
+
+  def newMessageText(channel: Channel[WebSocketFrame], data: String) =
     for {
       socketManager <- ZIO.service[Ref[DIDSocketManager]]
       id = channel.id
