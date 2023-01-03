@@ -2,6 +2,7 @@ package fmgp.did.comm
 
 import zio.json._
 import fmgp.did._
+import fmgp.did.comm.extension._
 import fmgp.util._
 import fmgp.crypto.OKP_EC_Key
 import zio.json.ast.Json
@@ -64,8 +65,15 @@ trait PlaintextMessage extends Message {
 
   def attachments: NotRequired[Seq[Attachment]]
 
-  // accept-lang: Seq[LanguageCodeIANA]
-  // lang: LanguageCodeIANA IANA’s language codes  // IANA’s language subtag registry.
+  // Extension: https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/l10n/main.md
+  def `accept-lang`: NotRequired[Seq[LanguageCodeIANA]]
+  def lang: NotRequired[LanguageCodeIANA] // IANA’s language codes  // IANA’s language subtag registry.
+  def l10n: NotRequired[L10n]
+
+  // Extension: https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/advanced_sequencing/main.md
+  def sender_order: NotRequired[SenderOrder]
+  def sent_count: NotRequired[SentCount]
+  def received_orders: NotRequired[Seq[ReceivedOrdersElement]]
 }
 
 object PlaintextMessage {
