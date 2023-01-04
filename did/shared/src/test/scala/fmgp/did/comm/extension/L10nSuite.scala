@@ -15,8 +15,8 @@ class L10nSuite extends ZSuite {
     |  "lang": "en",
     |  "l10n": {
     |    "inline": [
-    |      {"fr", "comment", "C'est échec et mat, mon pote."}
-    |      {"es", "comment", "Eso es jaque mate, amigo"}
+    |      ["fr", "comment", "C'est échec et mat, mon pote."],
+    |      ["es", "comment", "Eso es jaque mate, amigo"]
     |    ]
     |  },
     |  "body": {

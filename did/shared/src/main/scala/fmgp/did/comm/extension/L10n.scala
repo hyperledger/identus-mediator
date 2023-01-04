@@ -14,8 +14,20 @@ object L10n {
 
 case class L10nInline(lang: LanguageCodeIANA, field: JsonPath, translation: String)
 object L10nInline {
-  given decoder: JsonDecoder[L10nInline] = DeriveJsonDecoder.gen[L10nInline]
-  given encoder: JsonEncoder[L10nInline] = DeriveJsonEncoder.gen[L10nInline]
+  given decoder: JsonDecoder[L10nInline] = JsonDecoder
+    .seq[String]
+    .mapOrFail {
+      case Seq(lang, field, translation) => Right(L10nInline(lang, field, translation))
+      case seq =>
+        Left(
+          "L10nInline element MUST be a 3-item array" +
+            " where each triple is in the form ['lang', 'field', 'translation']"
+        )
+    }
+
+  given encoder: JsonEncoder[L10nInline] = JsonEncoder
+    .seq[String]
+    .contramap((e: L10nInline) => Seq(e.lang, e.field, e.translation))
 }
 
 type JsonPath = String
