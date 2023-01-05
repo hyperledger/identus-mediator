@@ -1,4 +1,4 @@
-package fmgp.did.demo
+package fmgp.did.comm.mediator
 
 import zio._
 import zio.json._
@@ -8,14 +8,33 @@ import zio.stream._
 
 import fmgp.did._
 import fmgp.did.comm._
+import fmgp.crypto.error._
 
 type SocketID = String
 case class MyChannel(id: SocketID, socketOutHub: Hub[String])
 case class DIDSocketManager(
-    host: String,
+    // host: String,
     sockets: Map[SocketID, MyChannel] = Map.empty,
     ids: Map[DIDSubject, Seq[SocketID]] = Map.empty,
-)
+    kids: Map[VerificationMethodReferenced, Seq[SocketID]] = Map.empty,
+) {
+
+  def link(from: VerificationMethodReferenced, socketID: SocketID): DIDSocketManager =
+    if (!sockets.keySet.contains(socketID)) this // if sockets is close
+    else
+      kids.get(from) match
+        case Some(seq) if seq.contains(socketID) => this
+        case Some(seq) => this.copy(kids = kids + (from -> (seq :+ socketID))).link(from.did, socketID)
+        case None      => this.copy(kids = kids + (from -> Seq(socketID))).link(from.did, socketID)
+
+  def link(from: DIDSubject, socketID: SocketID): DIDSocketManager =
+    if (!sockets.keySet.contains(socketID)) this // if sockets is close
+    else
+      ids.get(from) match
+        case Some(seq) if seq.contains(socketID) => this
+        case Some(seq)                           => this.copy(ids = ids + (from -> (seq :+ socketID)))
+        case None                                => this.copy(ids = ids + (from -> Seq(socketID)))
+}
 
 object DIDSocketManager {
   def inBoundSize = 5
@@ -25,12 +44,7 @@ object DIDSocketManager {
   private given JsonEncoder[MyChannel] = DeriveJsonEncoder.gen[MyChannel]
   given encoder: JsonEncoder[DIDSocketManager] = DeriveJsonEncoder.gen[DIDSocketManager]
 
-  val aliceLayer = ZLayer(
-    for {
-      inboundHub <- Hub.bounded[String](inBoundSize)
-      ref <- Ref.make(DIDSocketManager("alice.did.fmgp.app"))
-    } yield (ref)
-  )
+  def make = Ref.make(DIDSocketManager())
 
   def registerSocket(channel: Channel[WebSocketFrame]) =
     for {
@@ -48,11 +62,18 @@ object DIDSocketManager {
       socketManager <- ZIO.service[Ref[DIDSocketManager]]
       id = channel.id
       mMessage = data.fromJson[EncryptedMessage]
-      _ <- mMessage match
-        case Left(value)    => ZIO.logError(s"Data is not a EncryptedMessage: $value")
-        case Right(message) => Console.printLine("Message's recipients: " + message.recipientsDID.mkString(","))
-    } yield ()
+      msg <- mMessage match
+        case Left(error) =>
+          ZIO.logError(s"Data is not a EncryptedMessage: $error")
+            *> ZIO.fail(FailToParse(error))
+        case Right(message) =>
+          ZIO.log(
+            "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
+              "; DID: " + "Message's recipients DIDs: " + message.recipientsSubject.mkString(",")
+          ) *> ZIO.succeed(message)
+    } yield (id, msg)
 
+  /* TODO REMOVE
   def newMessageText(channel: Channel[WebSocketFrame], data: String) =
     for {
       socketManager <- ZIO.service[Ref[DIDSocketManager]]
@@ -60,7 +81,7 @@ object DIDSocketManager {
       _ <-
         if (data.startsWith("$")) {
           ZIO.logDebug(s"Channel($id) - add ID: $data")
-            *> socketManager.update { sm =>
+   *> socketManager.update { sm =>
               val did = DIDSubject(data)
               val sockets = sm.ids.get(did).getOrElse(Seq.empty) :+ id
               sm.copy(ids = sm.ids + (did -> sockets))
@@ -74,29 +95,19 @@ object DIDSocketManager {
             }
         }
     } yield ()
+   */
 
   def unregisterSocket(channel: Channel[WebSocketFrame]) =
     for {
       socketManager <- ZIO.service[Ref[DIDSocketManager]] // ZState ???
-      _ <- socketManager.update { case DIDSocketManager(host, sockets, ids) =>
+      _ <- socketManager.update { case DIDSocketManager(sockets, ids, kids) =>
         DIDSocketManager(
-          host = host,
           sockets = sockets.filterKeys(_ != channel.id).toMap,
-          ids = ids.map { case (did, socketsID) => (did, socketsID.filter(_ != channel.id)) }.filterNot(_._2.isEmpty)
+          ids = ids.map { case (did, socketsID) => (did, socketsID.filter(_ != channel.id)) }.filterNot(_._2.isEmpty),
+          kids = kids.map { case (kid, socketsID) => (kid, socketsID.filter(_ != channel.id)) }.filterNot(_._2.isEmpty)
         )
       }
       _ <- ZIO.logDebug(s"Channel(${channel.id}): unregisterSocket Done")
     } yield ()
-
-  val socketApp: SocketApp[Ref[DIDSocketManager]] = SocketApp {
-    case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
-      DIDSocketManager.registerSocket(ch)
-    case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-      DIDSocketManager.newMessage(ch, text)
-    case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
-      DIDSocketManager.unregisterSocket(ch)
-    case ch =>
-      Console.printLine("TODO" + ch.event)
-  }
 
 }

@@ -338,7 +338,7 @@ lazy val webapp = project
   .dependsOn(did.js, didExample.js)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
-    libraryDependencies ++= Seq(D.zio.value, /*D.zioStreams.value,*/ D.zioJson.value),
+    libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
     Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient
     // ++ List("ms" -> "2.1.1"),
     // stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
@@ -359,6 +359,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
   .settings(
     name := "did-demo",
+    libraryDependencies += D.zioStreams.value,
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )

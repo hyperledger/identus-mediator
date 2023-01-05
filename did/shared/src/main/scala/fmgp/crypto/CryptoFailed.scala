@@ -2,9 +2,11 @@ package fmgp.crypto
 
 import zio.json._
 
+import fmgp.did.comm.PIURI
+
 package error {
 
-  case class DidException(error: FailToParse) extends Exception(error.error) // with DidFail
+  case class DidException(fail: DidFail) extends Exception(fail.toString())
 
   @jsonDiscriminator("typeOfDidFail")
   sealed trait DidFail // extends Exception with Product with Serializable
@@ -69,6 +71,7 @@ package error {
 
   case object EncryptionFailed extends CryptoFailed
   case object DecryptionFailed extends CryptoFailed
+  case object ValidationFailed extends CryptoFailed
 
   case object NoKeys extends CryptoFailed
   case class PointNotOnCurve(error: String) extends CryptoFailed
@@ -81,4 +84,18 @@ package error {
   case object MultiDifferentResults extends CryptoFailed
   case object ZeroResults extends CryptoFailed
 
+  // ######################
+  // ### Error Protocol ###
+  // ######################
+
+  @jsonDiscriminator("typeOfProtocolFail")
+  sealed trait ProtocolFail extends DidFail
+
+  object ProtocolFail {
+    // import CurveError.given
+    given decoder: JsonDecoder[ProtocolFail] = DeriveJsonDecoder.gen[ProtocolFail]
+    given encoder: JsonEncoder[ProtocolFail] = DeriveJsonEncoder.gen[ProtocolFail]
+  }
+
+  case class MissingProtocol(piuri: PIURI) extends ProtocolFail
 }

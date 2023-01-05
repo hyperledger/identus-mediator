@@ -117,6 +117,7 @@ You should open the reports with your browser. The reports will be in each modul
 ### WIP
 
 - We are still working on core API.
+  - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
 - Publish to maven
   - scala-cli example
     - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`

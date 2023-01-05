@@ -7,6 +7,9 @@ import fmgp.did._
 import fmgp.crypto.error._
 import fmgp.crypto._
 
+object MyOperations {
+  val layer: ULayer[Operations] = ZLayer.succeed(new MyOperations())
+}
 class MyOperations extends Operations {
 
   def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] =

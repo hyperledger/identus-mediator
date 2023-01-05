@@ -47,13 +47,15 @@ object VerificationMethodReferencedWithKey {
 }
 
 case class VerificationMethodReferenced(value: String) extends VerificationMethod {
-  def did = DIDSubject(value.split('#').head) // FIXME
+  def did = DIDSubject(value.split('#').head)
 }
 object VerificationMethodReferenced {
-  implicit val decoder: JsonDecoder[VerificationMethodReferenced] =
-    JsonDecoder.string.map(e => VerificationMethodReferenced(e))
-  implicit val encoder: JsonEncoder[VerificationMethodReferenced] =
-    JsonEncoder.string.contramap(e => e.value)
+  given decoder: JsonDecoder[VerificationMethodReferenced] = JsonDecoder.string.map(VerificationMethodReferenced.apply)
+  given encoder: JsonEncoder[VerificationMethodReferenced] = JsonEncoder.string.contramap(_.value)
+
+  // These given are useful if we use the VerificationMethodReferenced as a Key (ex: Map[VerificationMethodReferenced , Value])
+  given JsonFieldDecoder[VerificationMethodReferenced] = JsonFieldDecoder.string.map(VerificationMethodReferenced.apply)
+  given JsonFieldEncoder[VerificationMethodReferenced] = JsonFieldEncoder.string.contramap(_.value)
 }
 
 sealed trait VerificationMethodEmbedded extends VerificationMethod {

@@ -10,8 +10,10 @@ import zio.http.socket._
 import fmgp.did._
 import fmgp.crypto.error._
 import fmgp.did.comm._
+import fmgp.did.comm.mediator._
 
 import scala.io.Source
+import fmgp.did.example.AgentProvider
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -26,18 +28,20 @@ import scala.io.Source
   */
 object AppServer extends ZIOAppDefault {
 
-  val app: Http[Hub[String] & Ref[DIDSocketManager], Throwable, Request, Response] = Http
+  val app: Http[Hub[String] & MediatorAgent & Operations, Throwable, Request, Response] = Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
       case req @ Method.GET -> !! / "socket" =>
         for {
-          sm <- ZIO.service[Ref[DIDSocketManager]].flatMap(_.get)
+          agent <- ZIO.service[MediatorAgent]
+          sm <- agent.didSocketManager.get
           ret <- ZIO.succeed(Response.text(sm.toJsonPretty))
         } yield (ret)
       case req @ Method.POST -> !! / "socket" / id =>
         for {
           hub <- ZIO.service[Hub[String]]
-          sm <- ZIO.service[Ref[DIDSocketManager]].flatMap(_.get)
+          agent <- ZIO.service[MediatorAgent]
+          sm <- agent.didSocketManager.get
           ret <- sm.ids
             .get(DIDSubject(id))
             .toSeq
@@ -56,7 +60,8 @@ object AppServer extends ZIOAppDefault {
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
-      case Method.GET -> !! / "ws" => DIDSocketManager.socketApp.toResponse
+      case Method.GET -> !! / "ws" =>
+        ZIO.service[MediatorAgent].flatMap(_.createSocketApp)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key == "content-type" &&
             (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
@@ -75,12 +80,10 @@ object AppServer extends ZIOAppDefault {
       case Method.POST -> !! =>
         ZIO
           .succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
-          .debug
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
           .flatMap(e => OperationsServerRPC.ops(e))
           .map(e => Response.text(e))
-          .debug
       case Method.GET -> !! / "resolver" / did =>
         DIDSubject.either(did) match
           case Left(error)  => ZIO.succeed(Response.text(error.error).setStatus(Status.BadRequest)).debug
@@ -114,6 +117,13 @@ object AppServer extends ZIOAppDefault {
     )
     myHub <- Hub.sliding[String](5)
     _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => Console.printLine("HUB: " + str))).fork
+    pord <- System
+      .property("PORD")
+      .flatMap {
+        case None        => System.property("pord")
+        case Some(value) => ZIO.succeed(Some(value))
+      }
+      .map(_.flatMap(_.toBooleanOption).getOrElse(false))
     port <- System
       .property("PORT")
       .flatMap {
@@ -129,12 +139,19 @@ object AppServer extends ZIOAppDefault {
     }
 
     inboundHub <- Hub.bounded[String](5)
-    ref <- Ref.make(DIDSocketManager("alice.did.fmgp.app"))
     myServer <- Server
       .serve(app)
-      // .provideSomeLayer(DIDSocketManager.aliceLayer)
-      .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub).add(ref) }
+      .provideSomeEnvironment { (env: ZEnvironment[Server & MediatorAgent & Operations]) => env.add(myHub) }
+      .provideSomeLayer(
+        ZLayer(
+          ZIO
+            .succeed(AgentProvider(pord, Some(port)))
+            .flatMap(e => MediatorAgent.make(e.alice.id, e.alice.keyStore))
+        )
+      )
+      .provideSomeLayer(MyOperations.layer)
       .provide(server)
+      .debug
       .fork
     _ <- Console.printLine(s"Server Started")
     _ <- myServer.join *> Console.printLine(s"Server End")

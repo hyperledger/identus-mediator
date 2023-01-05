@@ -23,7 +23,7 @@ object AgentProvider {
   |""".stripMargin
 
   val allAgents = {
-    val obj = AgentProvider(prod = false, port = 8080)
+    val obj = AgentProvider(prod = false, port = Some(8080))
     Map(
       "alice" -> obj.alice,
       "bob" -> obj.bob,
@@ -50,17 +50,17 @@ object AgentProvider {
     ZLayer.succeedEnvironment(
       ZEnvironment(
         Map(
-          "alice.did.fmgp.app" -> AgentProvider(true, 443),
-          "bob.did.fmgp.app" -> AgentProvider(true, 443),
-          "charlie.did.fmgp.app" -> AgentProvider(true, 443),
-          "fabio.did.fmgp.app" -> AgentProvider(true, 443),
-          "localhost" -> AgentProvider(false, 8080)
+          "alice.did.fmgp.app" -> AgentProvider(true, None),
+          "bob.did.fmgp.app" -> AgentProvider(true, None),
+          "charlie.did.fmgp.app" -> AgentProvider(true, None),
+          "fabio.did.fmgp.app" -> AgentProvider(true, None),
+          "localhost" -> AgentProvider(false, Some(8080))
         )
       )
     )
 }
 
-case class AgentProvider(prod: Boolean = true, port: Int) {
+case class AgentProvider(prod: Boolean, port: Option[Int]) {
 
   def userURL(name: String) =
     if (prod) s"https://$name.did.fmgp.app/"

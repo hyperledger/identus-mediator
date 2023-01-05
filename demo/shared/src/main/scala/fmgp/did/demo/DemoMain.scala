@@ -46,14 +46,13 @@ import fmgp.did.resolver.peer._
     _ <- Console.printLine(s"auth msg: ${msg3.toJson /*Pretty*/}")
   } yield ()
 
-  val operations: ULayer[Operations] = ZLayer.succeed(new MyOperations())
   val resolvers = ZLayer.succeed(DidPeerResolver)
 
   Unsafe.unsafe { implicit unsafe => // Run side efect
     Runtime.default.unsafe
       .run(
         program.provide(
-          operations ++
+          MyOperations.layer ++
             Agent0Mediators.agentLayer ++
             resolvers
         )
