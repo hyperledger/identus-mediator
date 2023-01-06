@@ -1,4 +1,4 @@
-package fmgp.did.example
+package fmgp.did.demo
 
 import zio._
 import zio.json._
@@ -10,8 +10,6 @@ import fmgp.did.resolver.peer._
 import fmgp.multibase._
 import fmgp.multibase.Base.Base58BTC
 import fmgp.util.Base64
-import fmgp.did.example.Agent0Mediators
-import fmgp.did.example.Agent1Mediators
 
 /** didExampleJVM/runMain fmgp.did.example.ExampleMain */
 @main def ExampleMain() = {
