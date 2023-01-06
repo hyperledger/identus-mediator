@@ -118,12 +118,22 @@ You should open the reports with your browser. The reports will be in each modul
 
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
+  - implement HASH from zio-prelude instead of using the hashCode
 - Publish to maven
   - scala-cli example
     - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
     - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
   - docker with scala-cli
 - create module for protocols
+- routing:
+  - implement a mediator [WIP]
+    - websocket
+    - HTTP POST
+    - push notification
+  - implement a relay
+    - NFC
+    - websocket
+    - bluetooth
 
 ### TODO Protocols
 - `Routing`- https://didcomm.org/routing/2.0

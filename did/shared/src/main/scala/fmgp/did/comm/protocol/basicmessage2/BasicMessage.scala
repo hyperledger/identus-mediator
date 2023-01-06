@@ -9,7 +9,7 @@ extension (msg: PlaintextMessage)
   def toBasicMessage: Either[String, BasicMessage] =
     BasicMessage.fromPlaintextMessage(msg)
 
-/** The message message is sent by the sender to the recipient.
+/** The Basic Message is sent by the sender to the recipient.
   *
   * Note that the role is only specific to the creation of messages, and that both parties may play both roles.
   *

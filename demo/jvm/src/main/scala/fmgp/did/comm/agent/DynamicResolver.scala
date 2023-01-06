@@ -10,7 +10,7 @@ final case class DynamicResolver(anotherResolver: Resolver, didSocketManager: Re
     for {
       cleanDoc <- anotherResolver.didDocument(did)
       sm <- didSocketManager.get
-      job = sm.ids
+
       doc = DIDDocumentClass(
         id = cleanDoc.id,
         alsoKnownAs = cleanDoc.alsoKnownAs,
@@ -21,7 +21,7 @@ final case class DynamicResolver(anotherResolver: Resolver, didSocketManager: Re
         keyAgreement = cleanDoc.keyAgreement,
         capabilityInvocation = cleanDoc.capabilityInvocation,
         capabilityDelegation = cleanDoc.capabilityDelegation,
-        service = cleanDoc.service,
+        service = cleanDoc.service, // FIXME TODO
       )
     } yield (doc)
 

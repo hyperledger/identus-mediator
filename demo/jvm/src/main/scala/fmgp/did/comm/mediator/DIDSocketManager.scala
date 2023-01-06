@@ -48,7 +48,7 @@ object DIDSocketManager {
 
   def registerSocket(channel: Channel[WebSocketFrame]) =
     for {
-      socketManager <- ZIO.service[Ref[DIDSocketManager]] // ZState ???
+      socketManager <- ZIO.service[Ref[DIDSocketManager]]
       hub <- Hub.bounded[String](outBoundSize)
       myChannel = MyChannel(channel.id, hub)
       _ <- socketManager.update { sm => sm.copy(sockets = sm.sockets + (myChannel.id -> myChannel)) }
@@ -73,33 +73,9 @@ object DIDSocketManager {
           ) *> ZIO.succeed(message)
     } yield (id, msg)
 
-  /* TODO REMOVE
-  def newMessageText(channel: Channel[WebSocketFrame], data: String) =
-    for {
-      socketManager <- ZIO.service[Ref[DIDSocketManager]]
-      id = channel.id
-      _ <-
-        if (data.startsWith("$")) {
-          ZIO.logDebug(s"Channel($id) - add ID: $data")
-   *> socketManager.update { sm =>
-              val did = DIDSubject(data)
-              val sockets = sm.ids.get(did).getOrElse(Seq.empty) :+ id
-              sm.copy(ids = sm.ids + (did -> sockets))
-            }
-        } else {
-          ZIO.logDebug(s"Channel($id) - newMessage: $data") *>
-            socketManager.get.flatMap { sm =>
-              ZIO.foreach(
-                sm.sockets.map(_._2.socketOutHub.publish(s"Repay: $data"))
-              )(e => e)
-            }
-        }
-    } yield ()
-   */
-
   def unregisterSocket(channel: Channel[WebSocketFrame]) =
     for {
-      socketManager <- ZIO.service[Ref[DIDSocketManager]] // ZState ???
+      socketManager <- ZIO.service[Ref[DIDSocketManager]]
       _ <- socketManager.update { case DIDSocketManager(sockets, ids, kids) =>
         DIDSocketManager(
           sockets = sockets.filterKeys(_ != channel.id).toMap,

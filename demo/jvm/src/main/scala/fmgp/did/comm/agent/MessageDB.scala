@@ -1,4 +1,4 @@
-package fmgp.did.comm.mediator
+package fmgp.did.comm.agent
 
 import fmgp.did.comm.EncryptedMessage
 import scala.collection.immutable.HashMap
