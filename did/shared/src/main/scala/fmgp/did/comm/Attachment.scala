@@ -16,18 +16,18 @@ import zio.json.ast.Json
 // }
 
 case class Attachment(
-    id: NotRequired[String],
+    id: NotRequired[String] = None,
     /** A human-readable description of the content. */
-    description: NotRequired[String],
-    filename: NotRequired[String],
-    media_type: NotRequired[String],
-    format: NotRequired[String],
-    lastmod_time: NotRequired[String],
+    description: NotRequired[String] = None,
+    filename: NotRequired[String] = None,
+    media_type: NotRequired[String] = None,
+    format: NotRequired[String] = None,
+    lastmod_time: NotRequired[String] = None,
     data: AttachmentData,
     /** Mostly relevant when content is included by reference instead of by value. Lets the receiver guess how expensive
       * it will be, in time, bandwidth, and storage, to fully fetch the attachment.
       */
-    byte_count: NotRequired[String],
+    byte_count: NotRequired[String] = None,
 )
 object Attachment {
   given decoder: JsonDecoder[Attachment] = DeriveJsonDecoder.gen[Attachment]

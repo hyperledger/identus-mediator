@@ -89,7 +89,9 @@ package error {
   // ######################
 
   @jsonDiscriminator("typeOfProtocolFail")
-  sealed trait ProtocolFail extends DidFail
+  sealed trait ProtocolFail extends DidFail {
+    def piuri: PIURI
+  }
 
   object ProtocolFail {
     // import CurveError.given
@@ -98,4 +100,5 @@ package error {
   }
 
   case class MissingProtocol(piuri: PIURI) extends ProtocolFail
+  case class FailToEncodeMessage(piuri: PIURI, error: String) extends ProtocolFail
 }
