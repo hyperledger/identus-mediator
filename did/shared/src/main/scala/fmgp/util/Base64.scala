@@ -4,7 +4,8 @@ import java.{util => ju}
 import zio.json._
 
 // Base64 URL
-opaque type Base64 = Array[Byte]
+// opaque type Base64 = Array[Byte]
+opaque type Base64 = Seq[Byte]
 
 object Base64:
   /** Base64 url encoder RFC4648 */
@@ -37,18 +38,15 @@ object Base64:
   def encode(data: Array[Byte]): Base64 = urlEncoder.encode(data)
 
   extension (bytes: Base64)
-    def urlBase64: String = String(bytes).filterNot(_ == '=')
-    def basicBase64: String = String(
-      Base64.basicEncoder.encode(
-        Base64.urlDecoder.decode(bytes)
-      )
-    )
-    def bytes: Array[Byte] = bytes
-    def decode: Array[Byte] = Base64.urlDecoder.decode(bytes)
-    def decodeToString: String = String(Base64.urlDecoder.decode(bytes))
+    def urlBase64: String = String(bytes.toArray).filterNot(_ == '=')
+    def basicBase64: String = String(Base64.basicEncoder.encode(Base64.urlDecoder.decode(bytes.toArray)))
+    def bytes: Seq[Byte] = bytes
+    def byteArray: Array[Byte] = bytes.toArray
+    def decode: Seq[Byte] = Base64.urlDecoder.decode(bytes.toArray)
+    def decodeToString: String = String(Base64.urlDecoder.decode(bytes.toArray))
 
     /** Decodes this Base64 object to an unsigned big integer. */
-    def decodeToBigInt = BigInt(1, bytes.decode)
+    def decodeToBigInt = BigInt(1, bytes.decode.toArray)
     def decodeToHex = bytes.decode.map("%02X".format(_)).mkString
 
 /** Base64Obj keep the original base64 encoder (useful to preserve data for doing MAC checks) */

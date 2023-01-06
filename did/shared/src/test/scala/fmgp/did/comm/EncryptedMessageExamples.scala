@@ -1,5 +1,9 @@
 package fmgp.did.comm
 
+import fmgp.util._
+import fmgp.did._
+import fmgp.crypto._
+
 object EncryptedMessageExamples {
 
   def plaintextMessage = """{
@@ -58,6 +62,48 @@ object EncryptedMessageExamples {
    "tag":"6ylC_iAs4JvDQzXeY6MuYQ",
    "iv":"ESpmcyGiZpRjc5urDela21TOOTW8Wqd1"
 }""".stripMargin
+
+  val obj_encryptedMessage_ECDHES_X25519_XC20P = EncryptedMessageGeneric(
+    ciphertext = CipherText(
+      "KWS7gJU7TbyJlcT9dPkCw-ohNigGaHSukR9MUqFM0THbCTCNkY-g5tahBFyszlKIKXs7qOtqzYyWbPou2q77XlAeYs93IhF6NvaIjyNqYklvj-OtJt9W2Pj5CLOMdsR0C30wchGoXd6wEQZY4ttbzpxYznqPmJ0b9KW6ZP-l4_DSRYe9B-1oSWMNmqMPwluKbtguC-riy356Xbu2C9ShfWmpmjz1HyJWQhZfczuwkWWlE63g26FMskIZZd_jGpEhPFHKUXCFwbuiw_Iy3R0BIzmXXdK_w7PZMMPbaxssl2UeJmLQgCAP8j8TukxV96EKa6rGgULvlo7qibjJqsS5j03bnbxkuxwbfyu3OxwgVzFWlyHbUH6p"
+    ),
+    // {"epk":{"kty":"OKP","crv":"X25519","x":"JHjsmIRZAaB0zRG_wNXLV2rPggF00hdHbW5rj8g0I24"},"apv":"NcsuAnrRfPK69A-rkZ0L9XWUG4jMvNC3Zg74BPz53PA","typ":"application/didcomm-encrypted+json","enc":"XC20P","alg":"ECDH-ES+A256KW"}
+    `protected` = Base64Obj[ProtectedHeader](
+      AnonProtectedHeader(
+        epk = OKPPublicKey(
+          kty = KTY.OKP,
+          crv = Curve.X25519,
+          x = "JHjsmIRZAaB0zRG_wNXLV2rPggF00hdHbW5rj8g0I24",
+          kid = None
+        ),
+        apv = APV("NcsuAnrRfPK69A-rkZ0L9XWUG4jMvNC3Zg74BPz53PA"),
+        typ = Some(MediaTypes.ENCRYPTED),
+        enc = ENCAlgorithm.XC20P,
+        alg = KWAlgorithm.`ECDH-ES+A256KW`,
+      ),
+      Some(
+        Base64(
+          "eyJlcGsiOnsia3R5IjoiT0tQIiwiY3J2IjoiWDI1NTE5IiwieCI6IkpIanNtSVJaQWFCMHpSR193TlhMVjJyUGdnRjAwaGRIYlc1cmo4ZzBJMjQifSwiYXB2IjoiTmNzdUFuclJmUEs2OUEtcmtaMEw5WFdVRzRqTXZOQzNaZzc0QlB6NTNQQSIsInR5cCI6ImFwcGxpY2F0aW9uL2RpZGNvbW0tZW5jcnlwdGVkK2pzb24iLCJlbmMiOiJYQzIwUCIsImFsZyI6IkVDREgtRVMrQTI1NktXIn0"
+        )
+      )
+    ),
+    recipients = Seq(
+      Recipient(
+        encrypted_key = Base64("3n1olyBR3nY7ZGAprOx-b7wYAKza6cvOYjNwVg3miTnbLwPP_FmE1A"),
+        header = RecipientHeader(VerificationMethodReferenced("did:example:bob#key-x25519-1"))
+      ),
+      Recipient(
+        encrypted_key = Base64("j5eSzn3kCrIkhQAWPnEwrFPMW6hG0zF_y37gUvvc5gvlzsuNX4hXrQ"),
+        header = RecipientHeader(VerificationMethodReferenced("did:example:bob#key-x25519-2"))
+      ),
+      Recipient(
+        encrypted_key = Base64("TEWlqlq-ao7Lbynf0oZYhxs7ZB39SUWBCK4qjqQqfeItfwmNyDm73A"),
+        header = RecipientHeader(VerificationMethodReferenced("did:example:bob#key-x25519-3"))
+      ),
+    ),
+    tag = TAG("6ylC_iAs4JvDQzXeY6MuYQ"),
+    iv = IV("ESpmcyGiZpRjc5urDela21TOOTW8Wqd1")
+  )
 
   /** This example uses ECDH-ES key wrapping algorithm using key with NIST defined P-384 elliptic curve and
     * A256CBC-HS512 for content encryption of the message.

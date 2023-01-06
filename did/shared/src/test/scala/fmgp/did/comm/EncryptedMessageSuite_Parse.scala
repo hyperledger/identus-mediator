@@ -4,12 +4,12 @@ import munit._
 
 import fmgp.did._
 import fmgp.crypto._
-// import fmgp.crypto.RawOperations._
 
 import zio._
 import zio.json._
 import zio.json.ast.Json
 
+/** didJVM/testOnly fmgp.did.comm.EncryptedMessageSuite_Parse */
 class EncryptedMessageSuite_Parse extends ZSuite {
 
   test("Example parse plaintextMessage") {
@@ -18,6 +18,16 @@ class EncryptedMessageSuite_Parse extends ZSuite {
       case Left(error) => fail(error)
       case Right(obj) =>
         assertEquals(obj.`type`, PIURI("https://example.com/protocols/lets_do_lunch/1.0/proposal"))
+    }
+  }
+
+  test("Parse and check hashCode encryptedMessage_ECDHES_X25519_XC20P") {
+    val ret = EncryptedMessageExamples.encryptedMessage_ECDHES_X25519_XC20P.fromJson[EncryptedMessage]
+    ret match {
+      case Left(error) => fail(error)
+      case Right(obj) =>
+        assertEquals(obj, EncryptedMessageExamples.obj_encryptedMessage_ECDHES_X25519_XC20P)
+        assertEquals(obj.hashCode, EncryptedMessageExamples.obj_encryptedMessage_ECDHES_X25519_XC20P.hashCode)
     }
   }
 
@@ -38,6 +48,14 @@ class EncryptedMessageSuite_Parse extends ZSuite {
       }
     }
   )
+
+  test(s"Compere the hashCode of two Encrypted Messages") {
+    EncryptedMessageExamples.allEncryptedMessage.foreach { example =>
+      val ret1 = example.fromJson[EncryptedMessage]
+      val ret2 = example.fromJson[EncryptedMessage]
+      assertEquals(ret1.hashCode(), ret2.hashCode())
+    }
+  }
 
   // ###############
   // ### decrypt ###
