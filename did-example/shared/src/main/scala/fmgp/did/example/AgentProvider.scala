@@ -22,49 +22,21 @@ object AgentProvider {
   |  did
   |""".stripMargin
 
-  val allAgents = {
-    val obj = AgentProvider(prod = false, port = Some(8080))
-    Map(
-      "alice" -> obj.alice,
-      "bob" -> obj.bob,
-      "charlie" -> obj.charlie,
-      "dave" -> obj.dave,
-      "eve" -> obj.eve,
-      "frank" -> obj.frank,
-      "ivan" -> obj.ivan,
-      "pat" -> obj.pat,
-      "victor" -> obj.victor,
-    )
-  }
+  val allAgents = Map(
+    "alice" -> alice,
+    "bob" -> bob,
+    "charlie" -> charlie,
+    "dave" -> dave,
+    "eve" -> eve,
+    "frank" -> frank,
+    "ivan" -> ivan,
+    "pat" -> pat,
+    "victor" -> victor,
+  )
 
-  def aliceLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.alice)
-  def patLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.pat)
-  def daveLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.dave)
-  def bobLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.bob)
-  def eveLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.eve)
-  def charlieLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.charlie)
-  def ivanLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.ivan)
-  def victorLayer: ZIO[AgentProvider, Nothing, Agent] = ZIO.serviceWith(_.victor)
-
-  val layer: ULayer[Map[String, AgentProvider]] =
-    ZLayer.succeedEnvironment(
-      ZEnvironment(
-        Map(
-          "alice.did.fmgp.app" -> AgentProvider(true, None),
-          "bob.did.fmgp.app" -> AgentProvider(true, None),
-          "charlie.did.fmgp.app" -> AgentProvider(true, None),
-          "fabio.did.fmgp.app" -> AgentProvider(true, None),
-          "localhost" -> AgentProvider(false, Some(8080))
-        )
-      )
-    )
-}
-
-case class AgentProvider(prod: Boolean, port: Option[Int]) {
-
-  def userURL(name: String) =
-    if (prod) s"https://$name.did.fmgp.app/"
-    else s"http://localhost:$port/"
+  private def aliceURL = s"https://alice.did.fmgp.app/"
+  private def bobURL = s"https://bob.did.fmgp.app/"
+  private def charlieURL = s"https://charlie.did.fmgp.app/"
 
   private def keyAgreement(d: String, x: String) =
     OKPPrivateKey(kty = KTY.OKP, crv = Curve.X25519, d = d, x = x, kid = None)
@@ -77,7 +49,7 @@ case class AgentProvider(prod: Boolean, port: Option[Int]) {
       keyAgreement("Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c", "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"),
       keyAuthentication("INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug", "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA")
     ),
-    Seq(DIDPeerServiceEncoded(s = userURL("alice")))
+    Seq(DIDPeerServiceEncoded(s = aliceURL))
   )
   // did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z
   val bob = DIDPeer2.makeAgent(
@@ -85,7 +57,7 @@ case class AgentProvider(prod: Boolean, port: Option[Int]) {
       keyAgreement("H5wHQcecUqobAMT3RiNsAaYaFXIfTLCNhWAYXgTYv7E", "f8ce_zxdhIEy76JE21XpVDviRtR2amXaZ6NjYyIPjg4"),
       keyAuthentication("LyMSyr_usdn3pHZc00IbJaS2RcvF4OcJTJIB2Vw6dLQ", "TQdV8Wduyz3OylN3YbyHR0R-aynF3C1tmvHAgl6b34I")
     ),
-    Seq(DIDPeerServiceEncoded(s = userURL("bob")))
+    Seq(DIDPeerServiceEncoded(s = bobURL))
   )
   // did:peer:2.Ez6LSbj1AHPALSc6v6jMzozr4HfE3siavLgjZ8XrriNTSWdkW.Vz6MkmL4nXx4qze1UU3hAcAVghn5WVZj2vbt2w9vpAWN85ZAS
   val charlie = DIDPeer2.makeAgent(
@@ -93,7 +65,7 @@ case class AgentProvider(prod: Boolean, port: Option[Int]) {
       keyAgreement("J7aAYF3EDfKpfK392bgPV-bC2vaceq0jpMnfjM8agoQ", "ALluQw8hX9lN3G-vKEsGHJdteEMx7IN8qrNu3Z-o_wM"),
       keyAuthentication("dJ-k49IrQ3CQmrkrpHZvWYIdlMkcc6-hnQvrCa8hB1Q", "ZioC9PEG6LJA_Yf1sDTwQgTkKpK-LMWYYff0KUfeVZM")
     ),
-    Seq(DIDPeerServiceEncoded(s = userURL("charlie")))
+    Seq(DIDPeerServiceEncoded(s = charlieURL))
   )
   // did:peer:2.Ez6LSoJXKbJuq1FvfMdCm3jnbTV4PLAN4qAs8sEEnZn6gNiBD.Vz6MkmAG1iP6YaTHzmU2n6wfkCuMep8swWEUdjwzmVH5EewjW)
   val pat = DIDPeer2.makeAgent(
