@@ -7,13 +7,11 @@ import zio.http._
 import zio.http.model._
 import zio.http.socket._
 
-import fmgp.did._
 import fmgp.crypto.error._
+import fmgp.did._
 import fmgp.did.comm._
-import fmgp.did.comm.mediator._
 
 import scala.io.Source
-import fmgp.did.example.AgentProvider
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -28,19 +26,19 @@ import fmgp.did.example.AgentProvider
   */
 object AppServer extends ZIOAppDefault {
 
-  val app: Http[Hub[String] & MediatorAgent & Operations, Throwable, Request, Response] = Http
+  val app: Http[Hub[String] & AgentByHost & Operations, Throwable, Request, Response] = Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
       case req @ Method.GET -> !! / "socket" =>
         for {
-          agent <- ZIO.service[MediatorAgent]
+          agent <- AgentByHost.getAgentFor(req)
           sm <- agent.didSocketManager.get
           ret <- ZIO.succeed(Response.text(sm.toJsonPretty))
         } yield (ret)
       case req @ Method.POST -> !! / "socket" / id =>
         for {
           hub <- ZIO.service[Hub[String]]
-          agent <- ZIO.service[MediatorAgent]
+          agent <- AgentByHost.getAgentFor(req)
           sm <- agent.didSocketManager.get
           ret <- sm.ids
             .get(DIDSubject(id))
@@ -60,8 +58,12 @@ object AppServer extends ZIOAppDefault {
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
-      case Method.GET -> !! / "ws" =>
-        ZIO.service[MediatorAgent].flatMap(_.createSocketApp)
+      case req @ Method.GET -> !! / "ws" =>
+        for {
+          agent <- AgentByHost.getAgentFor(req)
+          ret <- agent.createSocketApp
+            .provideSomeEnvironment((env: ZEnvironment[Operations]) => env.add(agent))
+        } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key == "content-type" &&
             (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
@@ -76,10 +78,8 @@ object AppServer extends ZIOAppDefault {
           )
           _ <- ZIO.log(msg.toJsonPretty)
         } yield Response.text(msg.toJson)
-
       case Method.POST -> !! =>
-        ZIO
-          .succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+        ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
           .flatMap(e => OperationsServerRPC.ops(e))
@@ -141,14 +141,8 @@ object AppServer extends ZIOAppDefault {
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(app)
-      .provideSomeEnvironment { (env: ZEnvironment[Server & MediatorAgent & Operations]) => env.add(myHub) }
-      .provideSomeLayer(
-        ZLayer(
-          ZIO
-            .succeed(AgentProvider(pord, Some(port)))
-            .flatMap(e => MediatorAgent.make(e.alice.id, e.alice.keyStore))
-        )
-      )
+      .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations]) => env.add(myHub) }
+      .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(MyOperations.layer)
       .provide(server)
       .debug

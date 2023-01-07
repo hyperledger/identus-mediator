@@ -8,8 +8,6 @@ import fmgp.did.resolver.peer._
 import fmgp.crypto._
 
 /** didExampleJVM/console
-  *
-  * import fmgp.did.example._
   */
 object Agent0Mediators { // https://localhost:8080/
   // "did:peer:2.Ez6LSpou63sBDB4FGpbVM23bECgZnkMHj6hGmA3PgQByR9fs4.Vz6MkhNpHBCUgBgkCbiM4zMjrbfgGowwEuEchmzf6J5W3av8E"

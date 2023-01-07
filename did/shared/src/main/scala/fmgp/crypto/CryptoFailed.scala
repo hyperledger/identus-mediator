@@ -20,6 +20,8 @@ package error {
 
   case class DidMethodNotSupported(method: String) extends DidFail
 
+  case class NoAgent(info: String) extends DidFail
+
   // ####################
   // ### Error Crypto ###
   // ####################

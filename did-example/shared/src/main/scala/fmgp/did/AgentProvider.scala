@@ -1,4 +1,4 @@
-package fmgp.did.example
+package fmgp.did
 
 import zio._
 import fmgp.crypto._

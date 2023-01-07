@@ -7,7 +7,6 @@ import zio.json.ast.Json
 import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.comm._
-import fmgp.did.example._
 import fmgp.did.resolver.peer._
 
 @main def DemoMain() = {

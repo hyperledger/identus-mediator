@@ -1,15 +1,13 @@
 package fmgp.webapp
 
 import org.scalajs.dom
-import com.raquo.laminar.api.L._
-import typings.std.stdStrings.text
-
-import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLElement
-
+import com.raquo.laminar.api.L._
+import com.raquo.laminar.nodes.ReactiveHtmlElement
+import typings.std.stdStrings.text
 import typings.mermaid
-import fmgp.did.example.AgentProvider
 
+import fmgp.did._
 object Home {
   implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 

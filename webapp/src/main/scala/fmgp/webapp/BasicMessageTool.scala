@@ -10,7 +10,6 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.example._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import fmgp.did.resolver.peer.DIDPeer._

@@ -3,7 +3,7 @@ package fmgp.webapp
 import com.raquo.laminar.api.L._
 
 import fmgp.did.Agent
-import fmgp.did.example.AgentProvider
+import fmgp.did.AgentProvider
 
 object Global {
 

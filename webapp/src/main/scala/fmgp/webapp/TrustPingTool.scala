@@ -10,12 +10,12 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.example._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.trustping2._
 import fmgp.did.resolver.peer.DIDPeer._
 import fmgp.did.resolver.peer.DidPeerResolver
 
+import fmgp.did.AgentProvider
 object TrustPingTool {
 
   val fromAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)

@@ -9,7 +9,7 @@ import fmgp.did.comm._
 import fmgp.did.comm.agent._
 import fmgp.crypto.error._
 import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.example.AgentProvider
+import fmgp.did.resolver.peer.DIDPeer.AgentDIDPeer
 
 case class MediatorAgent(
     id: DIDSubject,
@@ -123,5 +123,10 @@ object MediatorAgent {
     sm <- DIDSocketManager.make
     db <- Ref.make(MessageDB())
   } yield MediatorAgent(id, keyStore, sm, db)
+
+  def make(agent: AgentDIDPeer): ZIO[Any, Nothing, MediatorAgent] = for {
+    sm <- DIDSocketManager.make
+    db <- Ref.make(MessageDB())
+  } yield MediatorAgent(agent.id, agent.keyStore, sm, db)
 
 }
