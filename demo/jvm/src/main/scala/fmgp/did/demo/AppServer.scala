@@ -17,7 +17,9 @@ import scala.io.Source
   *
   * curl localhost:8080/hello
   *
-  * wscat -c ws://localhost:8080/ws
+  * curl 'http://localhost:8080/db' -H "host: alice.did.fmgp.app"
+  *
+  * wscat -c ws://localhost:8080/ws --host "alice.did.fmgp.app"
   *
   * curl -X POST localhost:8080 -H 'content-type: application/didcomm-encrypted+json' -d '{}'
   *
@@ -29,6 +31,12 @@ object AppServer extends ZIOAppDefault {
   val app: Http[Hub[String] & AgentByHost & Operations, Throwable, Request, Response] = Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
+      case req @ Method.GET -> !! / "db" =>
+        for {
+          agent <- AgentByHost.getAgentFor(req)
+          db <- agent.messageDB.get
+          ret <- ZIO.succeed(Response.json(db.toJsonPretty))
+        } yield (ret)
       case req @ Method.GET -> !! / "socket" =>
         for {
           agent <- AgentByHost.getAgentFor(req)
@@ -80,6 +88,7 @@ object AppServer extends ZIOAppDefault {
         } yield Response.text(msg.toJson)
       case Method.POST -> !! =>
         ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
+      // TODO
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
           .flatMap(e => OperationsServerRPC.ops(e))
@@ -90,7 +99,7 @@ object AppServer extends ZIOAppDefault {
           case Right(value) => ZIO.succeed(Response.text("DID:" + value)).debug
       case req @ Method.GET -> !! => { // html.Html.fromDomElement()
         val data = Source.fromResource(s"public/index.html").mkString("")
-        ZIO.succeed(Response.html(data)).debug
+        ZIO.succeed(Response.html(data))
       }
     }
     ++ {
