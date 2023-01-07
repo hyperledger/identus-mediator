@@ -73,6 +73,14 @@ object ResolverTool {
           case Left(errorInfo) => errorInfo
         }
       )
+    ),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        didDocumentVar.now() match
+          case Right(doc)      => doc.toJson
+          case Left(errorInfo) => errorInfo
+      )
     )
   )
 

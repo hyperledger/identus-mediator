@@ -82,6 +82,15 @@ object DecryptTool {
       case Some(Left(didFail)) => didFail.toString
       case Some(Right(msg))    => msg.toJsonPretty
     })),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        decryptMessageVar.now() match
+          case None                => "None"
+          case Some(Left(didFail)) => didFail.toString
+          case Some(Right(msg))    => msg.toJson
+      )
+    )
   )
 
   def apply(): HtmlElement = rootElement

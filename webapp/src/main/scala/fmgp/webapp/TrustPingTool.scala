@@ -109,6 +109,14 @@ object TrustPingTool {
       "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
     ),
     pre(code(child.text <-- encryptedMessageVar.signal.map(_.toJsonPretty))),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        encryptedMessageVar.now() match
+          case None        => "None"
+          case Some(value) => value.toJson
+      )
+    )
   )
 
   def apply(): HtmlElement = rootElement

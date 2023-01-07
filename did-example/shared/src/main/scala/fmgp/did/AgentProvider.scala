@@ -10,7 +10,7 @@ object AgentProvider {
 
   /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
     */
-  val usersGraph = """
+  def usersGraph = """
   |graph TD
   |  Alice --> Pat[Pat\nprover]
   |  Bob --> Dave
@@ -22,7 +22,7 @@ object AgentProvider {
   |  did
   |""".stripMargin
 
-  val allAgents = Map(
+  def allAgents = Map(
     "alice" -> alice,
     "bob" -> bob,
     "charlie" -> charlie,
