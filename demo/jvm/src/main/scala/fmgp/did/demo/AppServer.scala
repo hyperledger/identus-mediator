@@ -140,7 +140,13 @@ object AppServer extends ZIOAppDefault {
 
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
-      .serve(app)
+      .serve(
+        app.foldCauseHttp( // THIS is to log all the erros
+          cause => Http.fromZIO(ZIO.logErrorCause(cause)) *> Http.failCause(cause),
+          Http.succeed,
+          Http.empty
+        )
+      )
       .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations]) => env.add(myHub) }
       .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(MyOperations.layer)
