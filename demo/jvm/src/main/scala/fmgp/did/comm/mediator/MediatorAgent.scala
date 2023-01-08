@@ -55,15 +55,6 @@ case class MediatorAgent(
     (for {
       _ <- ZIO.logAnnotateScoped("msgHash", msg.hashCode.toString)
       _ <- ZIO.log(s"receiveMessage ${msg.hashCode()}")
-      aaaaa = println("msg.recipients")
-      zzz = println(msg.recipients)
-      aaa = println(msg.recipientsSubject)
-      bbb = println(id)
-
-// demoJVM List(Recipient([B@65d9849f,RecipientHeader(VerificationMethodReferenced(did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0#6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y))))
-// demoJVM Set(did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0)
-// demoJVM     did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo0NDMvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ
-
       _ <-
         if (!msg.recipientsSubject.contains(id))
           ZIO.logError(s"This mediator '${id.string}' is not a recipient")

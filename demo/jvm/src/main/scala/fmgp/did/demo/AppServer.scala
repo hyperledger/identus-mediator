@@ -19,9 +19,10 @@ import scala.io.Source
   *
   * curl 'http://localhost:8080/db' -H "host: alice.did.fmgp.app"
   *
-  * wscat -c ws://localhost:8080/ws --host "alice.did.fmgp.app"
+  * wscat -c ws://localhost:8080/ws --host "alice.did.fmgp.app" -H 'content-type: application/didcomm-encrypted+json'
   *
-  * curl -X POST localhost:8080 -H 'content-type: application/didcomm-encrypted+json' -d '{}'
+  * curl -X POST localhost:8080 -H "host: alice.did.fmgp.app" -H 'content-type: application/didcomm-encrypted+json' -d
+  * '{}'
   *
   * curl
   * localhost:8080/resolver/did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.Vz6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6OTA5My8iLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19
@@ -66,7 +67,10 @@ object AppServer extends ZIOAppDefault {
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
-      case req @ Method.GET -> !! / "ws" =>
+      case req @ Method.GET -> !! if req.headersAsList.exists { h =>
+            h.key == "content-type" &&
+            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+          } =>
         for {
           agent <- AgentByHost.getAgentFor(req)
           ret <- agent.createSocketApp
