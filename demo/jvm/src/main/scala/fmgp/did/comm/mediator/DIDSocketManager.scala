@@ -61,17 +61,7 @@ object DIDSocketManager {
     for {
       socketManager <- ZIO.service[Ref[DIDSocketManager]]
       id = channel.id
-      mMessage = data.fromJson[EncryptedMessage]
-      msg <- mMessage match
-        case Left(error) =>
-          ZIO.logError(s"Data is not a EncryptedMessage: $error")
-            *> ZIO.fail(FailToParse(error))
-        case Right(message) =>
-          ZIO.log(
-            "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
-              "; DID: " + "Message's recipients DIDs: " + message.recipientsSubject.mkString(",")
-          ) *> ZIO.succeed(message)
-    } yield (id, msg)
+    } yield (id, data)
 
   def unregisterSocket(channel: Channel[WebSocketFrame]) =
     for {

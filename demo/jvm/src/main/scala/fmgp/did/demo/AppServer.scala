@@ -12,6 +12,8 @@ import fmgp.did._
 import fmgp.did.comm._
 
 import scala.io.Source
+import fmgp.did.comm.mediator.MediatorAgent
+import zio.http.ZClient.ClientLive
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -19,7 +21,7 @@ import scala.io.Source
   *
   * curl 'http://localhost:8080/db' -H "host: alice.did.fmgp.app"
   *
-  * wscat -c ws://localhost:8080/ws --host "alice.did.fmgp.app" -H 'content-type: application/didcomm-encrypted+json'
+  * wscat -c ws://localhost:8080 --host "alice.did.fmgp.app" -H 'content-type: application/didcomm-encrypted+json'
   *
   * curl -X POST localhost:8080 -H "host: alice.did.fmgp.app" -H 'content-type: application/didcomm-encrypted+json' -d
   * '{}'
@@ -29,7 +31,12 @@ import scala.io.Source
   */
 object AppServer extends ZIOAppDefault {
 
-  val app: Http[Hub[String] & AgentByHost & Operations, Throwable, Request, Response] = Http
+  val app: Http[
+    Hub[String] & AgentByHost & Operations,
+    Throwable,
+    Request,
+    Response
+  ] = MediatorAgent.didCommApp ++ Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
       case req @ Method.GET -> !! / "db" =>
@@ -67,32 +74,6 @@ object AppServer extends ZIOAppDefault {
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
-      case req @ Method.GET -> !! if req.headersAsList.exists { h =>
-            h.key == "content-type" &&
-            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
-          } =>
-        for {
-          agent <- AgentByHost.getAgentFor(req)
-          ret <- agent.createSocketApp
-            .provideSomeEnvironment((env: ZEnvironment[Operations]) => env.add(agent))
-        } yield (ret)
-      case req @ Method.POST -> !! if req.headersAsList.exists { h =>
-            h.key == "content-type" &&
-            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
-          } =>
-        for {
-          data <- req.body.asString
-          msg <- ZIO.fromEither(
-            data
-              .fromJson[Message]
-              .left
-              .map(error => DidException(FailToParse(error)))
-          )
-          _ <- ZIO.log(msg.toJsonPretty)
-        } yield Response.text(msg.toJson)
-      case Method.POST -> !! =>
-        ZIO.succeed(Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}"))
-      // TODO
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
           .flatMap(e => OperationsServerRPC.ops(e))
@@ -150,7 +131,6 @@ object AppServer extends ZIOAppDefault {
       val config = ServerConfig(address = new java.net.InetSocketAddress(port))
       ServerConfig.live(config)(using Trace.empty) >>> Server.live
     }
-
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(

@@ -118,12 +118,15 @@ final case class TrustPingWithOutRequestedResponse(
 final case class TrustPingResponse(
     id: MsgID = MsgID(),
     thid: MsgID,
+    // to: Option[DIDSubject] // Should this field be required? (not in example)
 ) {
-  def toPlaintextMessage: PlaintextMessage =
+  def toPlaintextMessage(to: DIDSubject, from: Option[DIDSubject]): PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = TrustPingResponse.piuri,
       thid = Some(thid),
+      to = Some(Set(to)),
+      from = from
     )
 
 }
@@ -135,6 +138,13 @@ object TrustPingResponse {
       Left(s"No able to create TrustPingResponse from a Message of the type '${msg.`type`}'")
     else
       msg.thid match
-        case None       => Left(s"'$piuri' MUST have the field 'thid'")
-        case Some(thid) => Right(new TrustPingResponse(id = msg.id, thid = thid))
+        case None => Left(s"'$piuri' MUST have the field 'thid'")
+        case Some(thid) =>
+          Right(
+            TrustPingResponse(
+              id = msg.id,
+              thid = thid,
+              // to = msg.to.flatMap(_.headOption)
+            )
+          )
 }
