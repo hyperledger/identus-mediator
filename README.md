@@ -27,6 +27,41 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 - DID Comm - Wallet and Credential Interaction (WACI) - https://identity.foundation/waci-didcomm/
 - Future Work (maybe):
   - DID Credentials -> [Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
+
+## Protocols
+- [WIP] `Routing`- https://didcomm.org/routing/2.0
+  - Also see https://didcomm.org/book/v2/routing
+- [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
+- `ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
+- [WIP] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+- `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
+- Create new protocol `PreSetValue`
+- Create new protocol `PseudoRandom`
+  - https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
+  - https://www.rfc-editor.org/rfc/rfc3797
+
+## TODO/WIP
+
+- We are still working on core API.
+  - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
+  - implement HASH from zio-prelude instead of using the hashCode
+- Publish to maven
+  - scala-cli example
+    - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
+    - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
+  - docker with scala-cli
+- create module for protocols
+- method `did:jwk` https://github.com/quartzjer/did-jwk
+- routing:
+  - implement a mediator [WIP]
+    - websocket
+    - HTTP POST
+    - push notification
+  - implement a relay
+    - NFC
+    - websocket
+    - bluetooth
+
 ## Benefits of type safety
 
 - It would help prevent errors by ensuring that only valid DIDs are used, and that the library does not attempt to perform any invalid operations on them. This could help ensure that the library functions correctly and reliably.
@@ -97,7 +132,8 @@ NOTES:
 - The `did-imp-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
 - `did-resolver-web` & `did-resolver-peer` are implementations of the respective did methods.
 
-## Test coverage
+## Test
+### Test coverage
 
 1. `sbt clean coverage testJVM` - Run test
 2. `sbt coverageReport` - Generate reports
@@ -114,38 +150,10 @@ You should open the reports with your browser. The reports will be in each modul
 - [did-resolver-web](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-web/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
 - [did-resolver-peer](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-peer/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
 
-### WIP
+### Test Interoperability
 
-- We are still working on core API.
-  - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
-  - implement HASH from zio-prelude instead of using the hashCode
-- Publish to maven
-  - scala-cli example
-    - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
-    - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
-  - docker with scala-cli
-- create module for protocols
-- routing:
-  - implement a mediator [WIP]
-    - websocket
-    - HTTP POST
-    - push notification
-  - implement a relay
-    - NFC
-    - websocket
-    - bluetooth
-
-### TODO Protocols
-- `Routing`- https://didcomm.org/routing/2.0
-  - Also see https://didcomm.org/book/v2/routing
-- `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
-- `ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
-- `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
-- `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
-- Create new protocol `PreSetValue`
-- Create new protocol `PseudoRandom`
-  - https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
-  - https://www.rfc-editor.org/rfc/rfc3797
+ - With RootsID's mediator https://github.com/roots-id/didcomm-mediator/tree/main
+  - invitation: `https://mediator.rootsid.cloud/?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNzk0Mjc4MzctY2MwNi00ODUzLWJiMzktNjg2ZWFjM2U2YjlhIiwiZnJvbSI6ImRpZDpwZWVyOjIuRXo2TFNtczU1NVloRnRobjFXVjhjaURCcFptODZoSzl0cDgzV29qSlVteFBHazFoWi5WejZNa21kQmpNeUI0VFM1VWJiUXc1NHN6bTh5dk1NZjFmdEdWMnNRVllBeGFlV2hFLlNleUpwWkNJNkltNWxkeTFwWkNJc0luUWlPaUprYlNJc0luTWlPaUpvZEhSd2N6b3ZMMjFsWkdsaGRHOXlMbkp2YjNSemFXUXVZMnh2ZFdRaUxDSmhJanBiSW1ScFpHTnZiVzB2ZGpJaVhYMCIsImJvZHkiOnsiZ29hbF9jb2RlIjoicmVxdWVzdC1tZWRpYXRlIiwiZ29hbCI6IlJlcXVlc3RNZWRpYXRlIiwibGFiZWwiOiJNZWRpYXRvciIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ`
 
 ### Limitations in JS ATM
 
