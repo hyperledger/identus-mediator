@@ -38,7 +38,7 @@ import scala.util.chaining._
 case class DIDPeerServiceEncoded(
     t: String = "dm",
     s: String,
-    r: Seq[String] = Seq.empty,
+    r: Option[Seq[String]] = Some(Seq.empty),
     a: Seq[String] = Seq("didcomm/v2")
 ) {
   def `type` = t
@@ -50,7 +50,7 @@ case class DIDPeerServiceEncoded(
     id = id.string + "#didcommmessaging-0",
     `type` = if (this.t == "dm") "DIDCommMessaging" else this.t,
     serviceEndpoint = this.s,
-    routingKeys = Some(this.r.toSet).filterNot(_.isEmpty),
+    routingKeys = Some(this.r.toSet.flatten).filterNot(_.isEmpty),
     accept = Some(this.a.toSet).filterNot(_.isEmpty),
   )
 }
