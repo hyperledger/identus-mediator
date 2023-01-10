@@ -12,14 +12,14 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.trustping2._
-import fmgp.did.resolver.peer.DIDPeer._
+import fmgp.did.resolver.peer.DIDPeer
 import fmgp.did.resolver.peer.DidPeerResolver
 
 import fmgp.did.AgentProvider
 object TrustPingTool {
 
-  val fromAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
-  val toAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
+  val fromAgentVar: Var[Option[DIDPeer.AgentDIDPeer]] = Var(initial = None)
+  val toDIDVar: Var[Option[DID]] = Var(initial = None)
   val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
 
   val responseRequestedVar = Var(initial = true)
@@ -30,16 +30,16 @@ object TrustPingTool {
     Signal
       .combine(
         fromAgentVar,
-        toAgentVar,
+        toDIDVar,
         responseRequestedVar
       )
       .map {
         case (mFrom, None, responseRequested) => Left("Missing the 'TO'")
         case (None, Some(to), true)           => Left("Missing the 'FROM' (since response_requested is true)")
         case (Some(from), Some(to), true) =>
-          Right(TrustPingWithRequestedResponse(from = from.id, to = to.id))
+          Right(TrustPingWithRequestedResponse(from = from.id, to = to))
         case (mFrom, Some(to), false) =>
-          Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to.id))
+          Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to))
       }
 
   val job = Signal
@@ -87,15 +87,8 @@ object TrustPingTool {
     ),
     pre(code(child.text <-- fromAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
     // pre(code(child.text <-- fromAgentVar.signal.map(_.map(e => e.id.document.toJsonPretty).getOrElse("--")))),
-    p(
-      "TO: ",
-      select(
-        value <-- toAgentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> toAgentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
-    ),
-    pre(code(child.text <-- toAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
+    p("TO: ", Global.makeSelectElementDID(toDIDVar)),
+    pre(code(child.text <-- toDIDVar.signal.map(_.map(_.string).getOrElse("none")))),
     p("Requested Response:"),
     input(
       typ("checkbox"),

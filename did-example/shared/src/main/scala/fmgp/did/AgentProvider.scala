@@ -5,6 +5,7 @@ import fmgp.crypto._
 import fmgp.did.Agent
 import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DIDPeerServiceEncoded
+import fmgp.did.resolver.peer.DIDPeer
 
 object AgentProvider {
 
@@ -22,7 +23,7 @@ object AgentProvider {
   |  did
   |""".stripMargin
 
-  def allAgents = Map(
+  def allAgents: Map[String, DIDPeer.AgentDIDPeer] = Map(
     "alice" -> alice,
     "bob" -> bob,
     "charlie" -> charlie,
@@ -33,6 +34,18 @@ object AgentProvider {
     "pat" -> pat,
     "victor" -> victor,
   )
+
+  def allIdentities: Map[String, DIDPeer] =
+    allAgents.mapValues(_.id).toMap ++
+      DIDPeer
+        .fromDID(
+          DIDSubject(
+            "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0"
+          ).toDID
+        )
+        .toOption
+        .map("rootsid" -> _) // https://mediator.rootsid.cloud/oob_url
+        .toMap
 
   private def aliceURL = s"https://alice.did.fmgp.app/"
   private def bobURL = s"https://bob.did.fmgp.app/"
