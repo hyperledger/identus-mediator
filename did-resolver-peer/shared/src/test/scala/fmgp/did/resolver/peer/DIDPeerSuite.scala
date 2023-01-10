@@ -86,7 +86,7 @@ class DIDPeerSuite extends ZSuite {
         )
   }
 
-  test("DID peer - missing optional fields of the service endpoint") {
+  test("Parse DIDPeer with missing optional fields of the service endpoint") {
     val s = DIDSubject(rootsid_ex_peer2_did)
     DIDPeer.fromDID(s) match
       case Left(value) => fail(value)
