@@ -8,24 +8,24 @@ import zio.http.model._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.crypto.error._
+import fmgp.did.demo.MyHeaders
 
 trait MessageDispatcher {
   def send(
       msg: EncryptedMessage,
       /*context*/
       destination: String,
+      xForwardedHost: Option[String],
   ): ZIO[Any, DidFail, Unit]
 }
 
 object MessageDispatcher {
-  val layer: ZLayer[Any, Throwable, MessageDispatcher] = {
-    val tmp = (for {
-      client <- ZIO.service[Client]
-      scope <- ZIO.service[Scope]
-      m = MyMessageDispatcher(client)
-    } yield m: MessageDispatcher).provide(Client.default, Scope.default)
-    ZLayer.fromZIO(tmp)
-  }
+  val layer: ZLayer[Client, Throwable, MessageDispatcher] =
+    ZLayer.fromZIO(
+      ZIO
+        .service[Client]
+        .map(MyMessageDispatcher(_))
+    )
 }
 
 class MyMessageDispatcher(client: Client) extends MessageDispatcher {
@@ -33,14 +33,16 @@ class MyMessageDispatcher(client: Client) extends MessageDispatcher {
       msg: EncryptedMessage,
       /*context*/
       destination: String,
+      xForwardedHost: Option[String],
   ): ZIO[Any, DidFail, Unit] = {
-    val contentTypeHeader = Header("content-type", msg.`protected`.obj.typ.getOrElse(MediaTypes.ENCRYPTED).typ)
+    val contentTypeHeader = Headers.contentType(msg.`protected`.obj.typ.getOrElse(MediaTypes.ENCRYPTED).typ)
+    val xForwardedHostHeader = Headers(xForwardedHost.map(x => Header(MyHeaders.xForwardedHost, x)))
     for {
       res <- Client
         .request(
           url = destination,
           method = Method.POST,
-          headers = Headers(Seq(contentTypeHeader)),
+          headers = contentTypeHeader ++ xForwardedHostHeader,
           content = Body.fromCharSequence(msg.toJson),
         )
         .mapError(ex => SomeThrowable(ex))
@@ -49,5 +51,5 @@ class MyMessageDispatcher(client: Client) extends MessageDispatcher {
         case true  => ZIO.logError(data)
         case false => ZIO.logInfo(data)
     } yield ()
-  }.provideEnvironment(ZEnvironment(client))
+  }.provideEnvironment(ZEnvironment(client)) // .host()
 }

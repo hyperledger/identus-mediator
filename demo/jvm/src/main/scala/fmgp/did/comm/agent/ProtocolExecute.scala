@@ -47,19 +47,49 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
       plaintextMessage: PlaintextMessage,
       // context: Context
   ): ZIO[R1, DidFail, Unit] =
-    program(plaintextMessage).flatMap {
-      case None => ZIO.unit
-      case Some(reply) =>
-        for {
-          msg <- reply.from match
-            case Some(value) => authEncrypt(reply)
-            case None        => anonEncrypt(reply)
-          // TODO forward message
-          messageDispatcher <- ZIO.service[MessageDispatcher]
-          _ <- ZIO.log("*" * 100)
-          job <- messageDispatcher.send(msg, "http://localhost:8080") // "https://bob.did.fmgp.app")
-        } yield ()
-    }
+    program(plaintextMessage)
+      .tap(v => ZIO.logDebug(v.toJsonPretty)) // DEBUG
+      .flatMap {
+        case None => ZIO.unit
+        case Some(reply) =>
+          for {
+            msg <- reply.from match
+              case Some(value) => authEncrypt(reply)
+              case None        => anonEncrypt(reply)
+            // TODO forward message
+            to <- reply.to match // TODO improve
+              case None => ZIO.unit
+              case Some(send2DIDs) =>
+                ZIO.foreach(send2DIDs)(to =>
+                  for {
+                    messageDispatcher <- ZIO.service[MessageDispatcher]
+                    resolver <- ZIO.service[Resolver]
+                    doc <- resolver.didDocument(to)
+                    url =
+                      doc.service.toSeq.flatten // TODO .filter(_.`type`.contend(DIDService.TYPE_DIDCommMessaging))
+                      match {
+                        case head +: next =>
+                          head.serviceEndpoint match
+                            case s: String                      => s
+                            case s: Seq[URI] @unchecked         => s.head
+                            case s: Map[String, URI] @unchecked => s.head._2
+                      }
+                    _ <- ZIO.log(s"Send to url: $url")
+                    job <- messageDispatcher
+                      .send(
+                        msg,
+                        url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
+                        None
+                        // url match // FIXME REMOVE (use for local env)
+                        //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
+                        //   case https if https.startsWith("https://") =>
+                        //     Some(url.drop(8).split(':').head.split('/').head)
+                        //   case _ => None
+                      )
+                  } yield ()
+                ) *> ZIO.unit
+          } yield ()
+      }
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,

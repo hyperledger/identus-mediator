@@ -32,6 +32,9 @@ trait DIDServiceDIDCommMessaging extends DIDService {
 }
 
 object DIDService {
+  val TYPE_DIDCommMessaging = "DIDCommMessaging"
+  val TYPE_LinkedDomains = "LinkedDomains"
+
   given decoder: JsonDecoder[DIDService] =
     DIDServiceClass.decoder.map(e => e)
   given encoder: JsonEncoder[DIDService] =

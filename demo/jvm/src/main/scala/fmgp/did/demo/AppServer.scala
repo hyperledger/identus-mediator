@@ -32,7 +32,7 @@ import zio.http.ZClient.ClientLive
 object AppServer extends ZIOAppDefault {
 
   val app: Http[
-    Hub[String] & AgentByHost & Operations,
+    Hub[String] & AgentByHost & Operations & MessageDispatcher,
     Throwable,
     Request,
     Response
@@ -131,6 +131,7 @@ object AppServer extends ZIOAppDefault {
       val config = ServerConfig(address = new java.net.InetSocketAddress(port))
       ServerConfig.live(config)(using Trace.empty) >>> Server.live
     }
+    client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(
@@ -140,9 +141,12 @@ object AppServer extends ZIOAppDefault {
           Http.empty
         )
       )
-      .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations]) => env.add(myHub) }
+      .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations & MessageDispatcher]) =>
+        env.add(myHub)
+      }
       .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(MyOperations.layer)
+      .provideSomeLayer(client >>> MessageDispatcher.layer)
       .provide(server)
       .debug
       .fork
