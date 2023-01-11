@@ -60,7 +60,7 @@ object VerificationMethodReferenced {
 
 sealed trait VerificationMethodEmbedded extends VerificationMethod {
   def id: Required[DIDURLSyntax]
-  def controller: Required[DIDSubject]
+  def controller: Required[DIDController]
   def `type`: Required[String]
 
   // def publicKeyJwk: NotRequired[JSONWebKeyMap]
@@ -76,7 +76,7 @@ sealed trait VerificationMethodEmbedded extends VerificationMethod {
   */
 case class VerificationMethodEmbeddedJWK(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
-    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
+    controller: Required[DIDController], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
     publicKeyJwk: Required[PublicKey]
 ) extends VerificationMethodEmbedded {
@@ -94,7 +94,7 @@ object VerificationMethodEmbeddedJWK {
   */
 case class VerificationMethodEmbeddedMultibase(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
-    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
+    controller: Required[DIDController], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
     publicKeyMultibase: Required[MULTIBASE]
 ) extends VerificationMethodEmbedded {

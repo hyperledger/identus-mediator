@@ -64,6 +64,7 @@ object DID {
 
 type DIDSyntax = String //FIXME
 type DIDURLSyntax = String //FIXME
+type DIDController = DIDSyntax //FIXME
 /** RFC3986 - https://www.rfc-editor.org/rfc/rfc3986 */
 type URI = String
 

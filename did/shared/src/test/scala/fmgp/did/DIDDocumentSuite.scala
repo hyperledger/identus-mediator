@@ -33,7 +33,7 @@ class DIDDocumentSuite extends FunSuite {
   test("parse and stringify an VerificationMethod example") {
     val aux: VerificationMethod = VerificationMethodEmbeddedJWK(
       id = "did:example:123456789abcdefghi#keys-1",
-      controller = DIDSubject("did:example:123456789abcdefghi"),
+      controller = "did:example:123456789abcdefghi",
       `type` = "Ed25519VerificationKey2020",
       publicKeyJwk = OKPPublicKey(kty = KTY.OKP, crv = Curve.X25519, x = "Test", kid = None)
     )

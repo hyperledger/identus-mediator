@@ -44,7 +44,7 @@ case class DIDPeer2(elements: Seq[DIDPeer2.Element]) extends DIDPeer {
         .collect { case e: DIDPeer2.ElementV =>
           VerificationMethodEmbeddedJWK(
             id = this.string + "#" + e.mb.value.drop(1),
-            controller = this,
+            controller = this.did,
             `type` = "JsonWebKey2020",
             publicKeyJwk = OKPPublicKey(
               kty = KTY.OKP,
@@ -59,7 +59,7 @@ case class DIDPeer2(elements: Seq[DIDPeer2.Element]) extends DIDPeer {
       elements.collect { case e: DIDPeer2.ElementE =>
         VerificationMethodEmbeddedJWK(
           id = this.string + "#" + e.mb.value.drop(1),
-          controller = this,
+          controller = this.did,
           `type` = "JsonWebKey2020",
           publicKeyJwk = OKPPublicKey(
             kty = KTY.OKP,

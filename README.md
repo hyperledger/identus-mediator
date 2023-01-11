@@ -61,6 +61,7 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
     - NFC
     - websocket
     - bluetooth
+- maybe implement ["KERI lite"](https://docs.google.com/presentation/d/1ksqVxeCAvqLjr67htWZ4JYaSnI8TUZIO7tDMF5npHTo/edit#slide=id.g1ca1fd90f33_0_0)
 
 ## Benefits of type safety
 

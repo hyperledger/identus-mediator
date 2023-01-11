@@ -12,7 +12,7 @@ import scala.util.chaining._
   * @param `type`
   *   https://www.w3.org/TR/did-spec-registries/#service-types
   */
-trait DIDService extends DID {
+trait DIDService {
   def id: Required[URI]
   def `type`: Required[SetU[String]]
   def serviceEndpoint: Required[SetMapU[URI]]
@@ -59,10 +59,7 @@ final case class DIDServiceGeneric(
     accept: NotRequired[Set[String]] = None,
 ) extends DIDService
     with DIDServiceDIDCommMessaging
-    with DIDServiceDIDLinkedDomains {
-  // val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
-  val (namespace, specificId) = DIDSubject(id).pipe(did => (did.namespace, did.specificId))
-}
+    with DIDServiceDIDLinkedDomains
 object DIDServiceClass {
   import SetU.{given}
   import SetMapU.{given}
