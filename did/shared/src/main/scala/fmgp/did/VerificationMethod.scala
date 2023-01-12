@@ -1,10 +1,11 @@
 package fmgp.did
 
 import zio.json._
-import fmgp.crypto.PublicKey
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
+import fmgp.crypto.PublicKey
 import fmgp.crypto.OKPPublicKey
+import fmgp.did.comm.FROMTO
 
 /** MULTIBASE encoded public key.- https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03 */
 type MULTIBASE = String // TODO
@@ -48,6 +49,7 @@ object VerificationMethodReferencedWithKey {
 
 case class VerificationMethodReferenced(value: String) extends VerificationMethod {
   def did = DIDSubject(value.split('#').head)
+  def fromto = FROMTO(value.split('#').head) // FIXME
 }
 object VerificationMethodReferenced {
   given decoder: JsonDecoder[VerificationMethodReferenced] = JsonDecoder.string.map(VerificationMethodReferenced.apply)

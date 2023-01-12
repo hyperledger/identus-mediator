@@ -33,14 +33,14 @@ extension (msg: EncryptedMessage)
   */
 final case class ForwardMessage(
     id: MsgID = MsgID(),
-    to: Set[DIDSubject] = Set.empty,
-    next: DIDSubject,
+    to: Set[TO] = Set.empty,
+    next: DIDSubject, // TODO is this on the type TO?
     expires_time: NotRequired[UTCEpoch] = None,
     attachments: Seq[Attachment],
 ) {
   def `type` = ForwardMessage.piuri
 
-  def toPlaintextMessage(from: Option[DIDSubject]): Either[String, PlaintextMessage] =
+  def toPlaintextMessage(from: Option[FROM]): Either[String, PlaintextMessage] =
     ForwardMessage
       .Body(next)
       .toJSON_RFC7159
@@ -84,7 +84,7 @@ object ForwardMessage {
 
   def buildForwardMessage(
       id: MsgID = MsgID(),
-      to: Set[DIDSubject] = Set.empty,
+      to: Set[TO] = Set.empty,
       next: DIDSubject,
       msg: EncryptedMessage,
   ) =
@@ -102,7 +102,7 @@ object ForwardMessage {
 
   // TODO make a test (but need a implementation )
   def makeForwardMessage(
-      to: DIDSubject, // Mediator
+      to: TO, // Mediator
       next: DIDSubject,
       msg: EncryptedMessage
   ): ZIO[Operations & Resolver, DidFail, EncryptedMessage] =

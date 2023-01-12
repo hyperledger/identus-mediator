@@ -34,7 +34,7 @@ object ResolverTool {
       case (None, custom) =>
         val program = {
           ZIO
-            .fromEither(DIDSubject.either(custom))
+            .fromEither(FROMTO.either(custom))
             .flatMap(did => DidPeerResolver.didDocument(did))
             .mapBoth(
               errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),

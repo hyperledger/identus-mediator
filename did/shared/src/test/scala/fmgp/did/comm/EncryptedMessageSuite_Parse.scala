@@ -64,8 +64,8 @@ class EncryptedMessageSuite_Parse extends ZSuite {
   val expeted = PlaintextMessageClass(
     MsgID("1234567890"),
     PIURI("http://example.com/protocols/lets_do_lunch/1.0/proposal"),
-    Some(Set(DIDSubject("did:example:bob"))),
-    Some(DIDSubject("did:example:alice")),
+    Some(Set(TO("did:example:bob"))),
+    Some(FROM("did:example:alice")),
     None,
     Some(1516269022),
     Some(1516385931),

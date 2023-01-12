@@ -25,7 +25,7 @@ extension (msg: PlaintextMessage)
 sealed trait TrustPing {
   def piuri = TrustPing.piuri
   def id: MsgID
-  def to: DID
+  def to: TO
   def response_requested: Boolean // default is false
 
   // utils
@@ -62,8 +62,8 @@ object TrustPing {
 
 final case class TrustPingWithRequestedResponse(
     id: MsgID = MsgID(),
-    from: DID,
-    to: DID,
+    from: FROM,
+    to: TO,
 ) extends TrustPing {
   def response_requested: Boolean = true
 
@@ -86,8 +86,8 @@ final case class TrustPingWithRequestedResponse(
 
 final case class TrustPingWithOutRequestedResponse(
     id: MsgID = MsgID(),
-    from: Option[DID],
-    to: DID,
+    from: Option[FROM],
+    to: TO,
 ) extends TrustPing {
   def response_requested: Boolean = false
 
@@ -120,7 +120,7 @@ final case class TrustPingResponse(
     thid: MsgID,
     // to: Option[DIDSubject] // Should this field be required? (not in example)
 ) {
-  def toPlaintextMessage(to: DIDSubject, from: Option[DIDSubject]): PlaintextMessage =
+  def toPlaintextMessage(to: TO, from: Option[FROM]): PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = TrustPingResponse.piuri,

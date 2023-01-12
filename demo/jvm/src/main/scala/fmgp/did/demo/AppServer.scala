@@ -57,7 +57,7 @@ object AppServer extends ZIOAppDefault {
           agent <- AgentByHost.getAgentFor(req)
           sm <- agent.didSocketManager.get
           ret <- sm.ids
-            .get(DIDSubject(id))
+            .get(FROMTO(id))
             .toSeq
             .flatMap { socketsID =>
               socketsID.flatMap(id => sm.sockets.get(id).map(e => (id, e))).toSeq

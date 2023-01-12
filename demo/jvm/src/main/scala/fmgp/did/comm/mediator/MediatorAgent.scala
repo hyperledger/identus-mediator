@@ -93,8 +93,8 @@ case class MediatorAgent(
                   case None => ZIO.unit
                   case Some(socketID) =>
                     plaintextMessage.from match
-                      case None      => ZIO.unit
-                      case Some(did) => didSocketManager.update { _.link(did, socketID) }
+                      case None       => ZIO.unit
+                      case Some(from) => didSocketManager.update { _.link(from.asFROMTO, socketID) }
 
                 // TODO Store context of the decrypt unwarping
                 // TODO Store context with MsgID and PIURI

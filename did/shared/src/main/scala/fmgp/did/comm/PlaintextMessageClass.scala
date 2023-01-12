@@ -8,8 +8,8 @@ import fmgp.did.comm.extension._
 case class PlaintextMessageClass(
     id: Required[MsgID],
     `type`: PIURI,
-    to: NotRequired[Set[DIDSubject]] = None,
-    from: NotRequired[DIDSubject] = None,
+    to: NotRequired[Set[TO]] = None,
+    from: NotRequired[FROM] = None,
     thid: NotRequired[MsgID] = None,
     created_time: NotRequired[UTCEpoch] = None,
     expires_time: NotRequired[UTCEpoch] = None,

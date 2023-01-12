@@ -3,12 +3,13 @@ package fmgp.did.resolver.peer
 import zio._
 import zio.json._
 import fmgp.did._
+import fmgp.did.comm.FROMTO
 import fmgp.crypto._
 import fmgp.crypto.error.DidMethodNotSupported
 
 object DidPeerResolver extends Resolver {
 
-  override def didDocument(did: DIDSubject): IO[DidMethodNotSupported, DIDDocument] = (did: DID) match {
+  override protected def didDocumentOf(did: FROMTO): IO[DidMethodNotSupported, DIDDocument] = did.toDID match {
     case peer: DIDPeer => didDocument(peer)
     case did if DIDPeer.regexPeer.matches(did.string) =>
       didDocument(DIDPeer(did))

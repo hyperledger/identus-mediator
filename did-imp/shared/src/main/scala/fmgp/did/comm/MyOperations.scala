@@ -4,6 +4,7 @@ import zio._
 import zio.json._
 
 import fmgp.did._
+import fmgp.did.comm.FROMTO
 import fmgp.crypto.error._
 import fmgp.crypto._
 
@@ -23,7 +24,7 @@ class MyOperations extends Operations {
     for {
       resolver <- ZIO.service[Resolver]
       doc <- resolver
-        .didDocument(DIDSubject(msg.signatures.head.header.get.kid))
+        .didDocument(FROMTO.force(msg.signatures.head.header.get.kid))
         .catchAll(error => ???) // FIXME
       key = {
         doc.keyAgreement.get.head match {
@@ -125,8 +126,7 @@ class MyOperations extends Operations {
       skid = msg.`protected`.obj match
         case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ??? // FIXME
         case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => skid
-      senderDID = skid.did
-      doc <- resolver.didDocument(senderDID)
+      doc <- resolver.didDocument(skid.fromto)
       senderKey = doc.didCommKeys
         .map {
           case e: VerificationMethodReferenced        => ??? // FIXME

@@ -36,7 +36,7 @@ final case class BasicMessage(
 ) {
   def `type` = BasicMessage.piuri
 
-  def toPlaintextMessage(from: Option[DIDSubject], to: Set[DIDSubject]): Either[String, PlaintextMessage] =
+  def toPlaintextMessage(from: Option[FROM], to: Set[TO]): Either[String, PlaintextMessage] =
     BasicMessage
       .Body(content)
       .toJSON_RFC7159

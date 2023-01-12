@@ -41,13 +41,13 @@ trait PlaintextMessage extends Message {
   /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
   def `type`: PIURI
 
-  def to: NotRequired[Set[DIDSubject]]
+  def to: NotRequired[Set[TO]]
 
   /** OPTIONAL when the message is to be encrypted via anoncrypt;
     *
     * TODO REQUIRED when the message is encrypted via authcrypt
     */
-  def from: NotRequired[DIDSubject]
+  def from: NotRequired[FROM]
 
   /** Thread identifier */
   def thid: NotRequired[MsgID]
@@ -127,7 +127,7 @@ object JWMSignatureObj {
   given encoder: JsonEncoder[JWMSignatureObj] = DeriveJsonEncoder.gen[JWMSignatureObj]
 }
 
-case class JWMHeader(kid: String) //FIXME DIDSuject
+case class JWMHeader(kid: String) //FIXME DIDURI
 object JWMHeader {
   given decoder: JsonDecoder[JWMHeader] = DeriveJsonDecoder.gen[JWMHeader]
   given encoder: JsonEncoder[JWMHeader] = DeriveJsonEncoder.gen[JWMHeader]
