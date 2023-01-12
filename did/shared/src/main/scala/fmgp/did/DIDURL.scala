@@ -1,5 +1,6 @@
 package fmgp.did
 
+import fmgp.did.comm.FROMTO
 object DIDURL {
   val pattern = """^did:([^\s:]+):([^/\?\#\s]*)([^\?\#\s]*)(\?[^\#\s:]*)?(\#.*)?$""".r
   // ------------------|--method-|------id-----|----path---|---query----|-fragment
@@ -18,6 +19,9 @@ object DIDURL {
   }
 }
 
+/** for https://identity.foundation/didcomm-messaging/spec/#construction */
+type DIDURI = DIDURL //TODO is this the same?
+
 /** DIDURL
   *
   * did-url = did path-abempty [ "?" query ] [ "#" fragment ]
@@ -34,10 +38,12 @@ case class DIDURL(
 ) { self =>
   def specificId: String = didSyntax + path + query + fragment
   def string = s"did:$namespace:$specificId"
+  def toFROMTO = FROMTO(s"did:$namespace:$specificId$didSyntax$path$query") // no fragment
   def toDID: DID = new {
     val namespace = self.namespace
     val specificId = self.specificId
   }
+
 }
 
 /** @see

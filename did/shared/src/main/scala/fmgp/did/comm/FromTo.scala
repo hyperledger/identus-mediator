@@ -53,6 +53,31 @@ private[comm] object FromTo {
   }
 }
 
+opaque type FROMTO = String
+object FROMTO {
+  extension (id: FROMTO)
+    inline def value: String = id
+    inline def asTO = TO.unsafe_apply(id)
+    inline def asFROM = FROM.unsafe_apply(id)
+    inline def toDID = DIDURL.parseString(id).toDID
+
+  private[did] inline def unsafe_apply(s: String): FROMTO = s
+  def apply(s: String): FROMTO = s.tap(e => FromTo.unsafe_parse(e))
+  def either(s: String): Either[FailToParse, FROMTO] = FromTo.either_parse(s).flatMap(fromDIDURL(_))
+  def fromDIDURL(s: DIDURL): Either[FailToParse, FROMTO] =
+    if (s.fragment.isEmpty) Right(unsafe_apply(s.string))
+    else Left(FailToParse(s"MUST be DID URL with no fragment '$s'"))
+  def fromForcedDIDURL(s: DIDURL) = s.toFROMTO // REMOVE
+  /** FIXME REMOVE method @throws AssertionError if not a valid DIDSubject */
+  def force(s: String) = fromForcedDIDURL(DIDURL.parseString(s))
+
+  given decoder: JsonDecoder[FROMTO] = JsonDecoder.string.mapOrFail(s => FROMTO.either(s).left.map(_.error))
+  given encoder: JsonEncoder[FROMTO] = JsonEncoder.string.contramap(e => e.value)
+  // These given are useful if we use the FROMTO as a Key (ex: Map[FROMTO , Value])
+  given JsonFieldDecoder[FROMTO] = JsonFieldDecoder.string.mapOrFail(s => FROMTO.either(s).left.map(_.error))
+  given JsonFieldEncoder[FROMTO] = JsonFieldEncoder.string.contramap(e => e.value)
+}
+
 /** FROM is a DID URL with Path and Query parameter (that can be missing) (no-fragment)
   *
   * @note
@@ -66,11 +91,13 @@ object FROM {
     inline def didSyntax: String = FromTo.unsafe_parse(id).didSyntax
     inline def path: String = FromTo.unsafe_parse(id).path
     inline def query: String = FromTo.unsafe_parse(id).query
+    inline def toDID = DIDURL.parseString(id).toDID
     inline def asDIDURL = DIDURL(namespace = id.namespace, didSyntax = id.didSyntax, path = id.path, query = id.query)
     inline def asTO = TO.unsafe_apply(id)
+    inline def asFROMTO = FROMTO.unsafe_apply(id)
 
   /** Like apply but for optimization (no runtime code hopefully) */
-  private[comm] inline def unsafe_apply(s: String): FROM = s
+  private[did] inline def unsafe_apply(s: String): FROM = s
 
   /** @throws AssertionError
     *   if not a valid DIDSubjectQ
@@ -99,11 +126,13 @@ object TO {
     inline def didSyntax: String = FromTo.unsafe_parse(id).didSyntax
     inline def path: String = FromTo.unsafe_parse(id).path
     inline def query: String = FromTo.unsafe_parse(id).query
+    inline def toDID = DIDURL.parseString(id).toDID
     inline def asDIDURL = DIDURL(namespace = id.namespace, didSyntax = id.didSyntax, path = id.path, query = id.query)
     inline def asFROM = FROM.unsafe_apply(id)
+    inline def asFROMTO = FROMTO.unsafe_apply(id)
 
   /** Like apply but for optimization (no runtime code hopefully) */
-  private[comm] inline def unsafe_apply(s: String): TO = s
+  private[did] inline def unsafe_apply(s: String): TO = s
 
   /** @throws AssertionError
     *   if not a valid DIDSubjectQ

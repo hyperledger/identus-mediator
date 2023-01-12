@@ -1,6 +1,7 @@
 package fmgp.did
 
 import zio.json._
+import fmgp.did.comm.{FROM, FROMTO, TO}
 
 //https://github.com/jwtk/jjwt
 //https://github.com/panva/jose
@@ -60,6 +61,9 @@ trait DID {
 }
 object DID {
   given Conversion[DID, DIDSubject] = did => DIDSubject(did.scheme + ":" + did.namespace + ":" + did.specificId)
+  given Conversion[DID, TO] = did => TO.unsafe_apply(did.scheme + ":" + did.namespace + ":" + did.specificId)
+  given Conversion[DID, FROM] = did => FROM.unsafe_apply(did.scheme + ":" + did.namespace + ":" + did.specificId)
+  given Conversion[DID, FROMTO] = did => FROMTO.unsafe_apply(did.scheme + ":" + did.namespace + ":" + did.specificId)
 }
 
 type DIDSyntax = String //FIXME

@@ -8,6 +8,8 @@ import fmgp.crypto.error._
   * organization, physical thing, digital thing, logical thing, etc.
   *
   * NOTE URL_Path is path of the DIDSubject!
+  *
+  * TODO deprecated in favor of FROMTO
   */
 opaque type DIDSubject = String
 object DIDSubject {
@@ -58,7 +60,9 @@ object DIDSubject {
 
 }
 
-/** DIDSubjectQ is a DIDSubject with Path and Query parameter (that can be missing)
+/** TODO rename to DIDSubjectEXTRA or REMOVE
+  *
+  * DIDSubjectQ is a DIDSubject with Path and Query parameter (that can be missing)
   *
   * NOTE if missing the behavior of using a DIDSubjectQ MUST be the same as using a DIDSubject NOTE that DIDSubject can
   * be implicitly converted into a DIDSubjectQ
