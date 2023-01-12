@@ -6,14 +6,14 @@ object DIDURL {
 
   /** @throws AssertionError if not a valid DIDSubject */
   inline def parseString(id: String) = id match {
-    case pattern(namespace, subject, path, null, null) =>
-      DIDURL(namespace, subject, if (path.isEmpty) None else Some(path), None, None)
-    case pattern(namespace, subject, path, null, fragment) =>
-      DIDURL(namespace, subject, if (path.isEmpty) None else Some(path), None, Some(fragment.drop(1)))
-    case pattern(namespace, subject, path, query, null) =>
-      DIDURL(namespace, subject, if (path.isEmpty) None else Some(path), Some(query.drop(1)), None)
     case pattern(namespace, subject, path, query, fragment) =>
-      DIDURL(namespace, subject, if (path.isEmpty) None else Some(path), Some(query.drop(1)), Some(fragment.drop(1)))
+      DIDURL(
+        namespace,
+        subject,
+        Option(path).getOrElse(""),
+        Option(query).getOrElse(""),
+        Option(fragment).getOrElse("")
+      )
     case _ => throw new java.lang.AssertionError(s"Fail to parse DIDSubjectQ: '$id'")
   }
 }
@@ -28,16 +28,16 @@ object DIDURL {
 case class DIDURL(
     val namespace: String,
     didSyntax: DIDSyntax,
-    path: Option[PathAbempty] = None,
-    query: Option[Query] = None,
-    fragment: Option[Fragment] = None,
-) extends DID {
-
-  override def specificId: String =
-    didSyntax +
-      path.map("/" + _).getOrElse("") +
-      query.map("?" + _).getOrElse("") +
-      fragment.map("#" + _).getOrElse("")
+    path: PathAbempty = "",
+    query: Query = "",
+    fragment: Fragment = "",
+) { self =>
+  def specificId: String = didSyntax + path + query + fragment
+  def string = s"did:$namespace:$specificId"
+  def toDID: DID = new {
+    val namespace = self.namespace
+    val specificId = self.specificId
+  }
 }
 
 /** @see
