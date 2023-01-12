@@ -58,10 +58,10 @@ object DIDSubject {
 
 }
 
-/** DIDSubjectQ is a DIDSubject with Query parameter (that can be missing)
+/** DIDSubjectQ is a DIDSubject with Path and Query parameter (that can be missing)
   *
-  * NOTE if missing the the behavior of using a DIDSubjectQ MUST be the same as using a DIDSubject NOTE that DIDSubject
-  * can be implicitly converted into a DIDSubjectQ
+  * NOTE if missing the behavior of using a DIDSubjectQ MUST be the same as using a DIDSubject NOTE that DIDSubject can
+  * be implicitly converted into a DIDSubjectQ
   *
   * NOTE URL_Path is path of the DIDSubject!
   *
@@ -118,6 +118,10 @@ object DIDSubjectQ {
     inline def sameSubjectQ(that: DIDSubjectQ): Boolean =
       toDID.namespace == that.namespace & subject == that.subject
 
+  /** This SHOULD NOT BE an implicit conversion
+    *
+    * FIXME DIDSubjectQ (DID with Query) is should probably not be a DID!
+    */
   given Conversion[DIDSubjectQ, DID] = _.toDID
   // given Conversion[DIDSubjectQ, DIDURL] = e => DIDURL(subject = e.subject, query = e.query)
 
