@@ -46,9 +46,13 @@ object ResolverTool {
     .observe(App.owner)
 
   val rootElement = div(
-    code("DID Resolver Page (for 'did:peer')"),
-    p("Agent: ", Global.makeSelectElementDID(didVar)),
-    pre(code(child.text <-- didVar.signal.map(_.map(_.string).getOrElse("custom")))),
+    code("DID Resolver Page (only 'did:peer' is supported)"),
+    p(
+      "Agent: ",
+      Global.makeSelectElementDID(didVar),
+      " ",
+      code(child.text <-- didVar.signal.map(_.map(_.string).getOrElse("custom")))
+    ),
     div(child <-- didVar.signal.map {
       case Some(agent) => div()
       case None =>

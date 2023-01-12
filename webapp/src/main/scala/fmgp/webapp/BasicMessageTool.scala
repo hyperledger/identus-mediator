@@ -18,7 +18,6 @@ import fmgp.did.resolver.peer.DIDPeer
 
 object BasicMessageTool {
 
-  val fromAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
   val toDIDVar: Var[Option[DID]] = Var(initial = None)
   val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
 
@@ -27,7 +26,7 @@ object BasicMessageTool {
   def plaintextMessage =
     Signal
       .combine(
-        fromAgentVar,
+        Global.agentVar,
         toDIDVar,
         message
       )
@@ -38,7 +37,7 @@ object BasicMessageTool {
 
   val job = Signal
     .combine(
-      fromAgentVar,
+      Global.agentVar,
       toDIDVar,
       message
     )
@@ -69,18 +68,18 @@ object BasicMessageTool {
   val rootElement = div(
     code("BasicMessage Page"),
     p(
+      overflowWrap.:=("anywhere"),
       "FROM: ",
-      select(
-        value <-- fromAgentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> fromAgentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      " ",
+      code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("none")))
     ),
-    pre(code(child.text <-- fromAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
-    // pre(code(child.text <-- fromAgentVar.signal.map(_.map(e => e.id.document.toJsonPretty).getOrElse("--")))),
-    p("TO: ", Global.makeSelectElementDID(toDIDVar)),
-    pre(code(child.text <-- toDIDVar.signal.map(_.map(_.string).getOrElse("none")))),
-    // pre(code(child.text <-- fromAgentVar.signal.map(_.map(e => e.id.document.toJsonPretty).getOrElse("--")))),
+    p(
+      overflowWrap.:=("anywhere"),
+      "TO: ",
+      Global.makeSelectElementDID(toDIDVar),
+      " ",
+      code(child.text <-- toDIDVar.signal.map(_.map(_.string).getOrElse("none")))
+    ),
     p("BasicMessage text:"),
     input(
       placeholder("Words"),

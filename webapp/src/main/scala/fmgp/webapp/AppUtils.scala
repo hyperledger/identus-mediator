@@ -85,6 +85,11 @@ object AppUtils {
           //   aria.label("Search"),
           //   "search"
           // ),
+          select(
+            value <-- Global.agentVar.signal.map(Global.getAgentName(_)),
+            onChange.mapToValue.map(e => fmgp.did.AgentProvider.allAgents.get(e)) --> Global.agentVar,
+            Global.dids.map { step => option(value := step, step) }
+          ),
           div(
             className("mdc-menu-surface--anchor"),
             optionsButton,

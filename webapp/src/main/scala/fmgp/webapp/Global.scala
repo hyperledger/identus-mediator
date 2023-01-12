@@ -11,6 +11,9 @@ import fmgp.did.DID
 
 object Global {
 
+  /** Agent in use */
+  val agentVar = Var[Option[DIDPeer.AgentDIDPeer]](initial = None)
+
   val dids = AgentProvider.allAgents.keys.toSeq.sorted :+ "<none>"
   val didsTO = AgentProvider.allIdentities.keys.toSeq.sorted :+ "<none>"
 

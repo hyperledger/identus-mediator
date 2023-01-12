@@ -60,12 +60,10 @@ object DecryptTool {
   val rootElement = div(
     code("DecryptTool Page"),
     p(
+      overflowWrap.:=("anywhere"),
       "Agent: ",
-      select(
-        value <-- agentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> agentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      " ",
+      code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("none")))
     ),
     pre(code(child.text <-- agentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
     p("Encrypted Message Data:"),
