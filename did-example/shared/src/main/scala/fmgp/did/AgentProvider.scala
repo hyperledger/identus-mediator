@@ -12,15 +12,24 @@ object AgentProvider {
   /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
     */
   def usersGraph = """
-  |graph TD
-  |  Alice --> Pat[Pat\nprover]
-  |  Bob --> Dave
-  |  Bob --> Ivan[Ivan\nissuer]
-  |  Charlie --> Eve[Eve\neavesdropper]
+  |graph LR
+  |  subgraph alice.did.fmgp.app
+  |    Alice --> Pat[Pat prover]
+  |  end
+  |  subgraph bob.did.fmgp.app
+  |    Bob --> Dave
+  |    Bob --> Ivan[Ivan issuer]
+  |  end
+  |  subgraph charlie.did.fmgp.app
+  |    Charlie --> Eve[Eve eavesdropper]
   |    Eve --> Frank
-  |    Eve --> Victor[Victor\nverifier]
-  |  Fabio
-  |  did
+  |    Eve --> Victor[Victor verifier]
+  |  end
+  |  subgraph fabio.did.fmgp.app
+  |    Fabio
+  |  end
+  |  subgraph did.fmgp.app
+  |  end
   |""".stripMargin
 
   def allAgents: Map[String, DIDPeer.AgentDIDPeer] = Map(
