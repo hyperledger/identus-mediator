@@ -33,6 +33,22 @@ object AppUtils {
     )
     typings.materialRipple.mod.MDCRipple.attachTo(menuButton.ref)
 
+    def makeLi(didName: String, icon: String) =
+      li(
+        className("mdc-list-item"),
+        role("menuitem"),
+        span(className("mdc-list-item__ripple")),
+        i(className("material-icons mdc-list-item__graphic"), icon), // FIXME icon make a make a clone of icon
+        // span(
+        //   className("mdc-list-item__graphic mdc-menu__selection-group-icon"),
+        //   i(aria.label("Atomium"), atomiumSVG)
+        // ),
+        span(className("mdc-list-item__text"), didName),
+        onClick --> Observer[org.scalajs.dom.MouseEvent](onNext =
+          ev => Global.agentVar.update(e => fmgp.did.AgentProvider.allAgents.get(didName)),
+        )
+      )
+
     val options = {
       div(
         className("mdc-menu mdc-menu-surface"),
@@ -43,12 +59,11 @@ object AppUtils {
           aria.hidden(true),
           aria.orientation("vertical"),
           tabIndex(-1),
-          "WorldExamplesOption.Clean.makeLi",
           li(className("mdc-list-divider"), role("separator")),
           li(
             ul(
               className("mdc-menu__selection-group"),
-              // WorldExamplesOption.values.filterNot(_ == WorldExamplesOption.Clean).toSeq.map(_.makeLi),
+              Global.dids.map { did => makeLi(did, "person_outline") }
             )
           ),
         )

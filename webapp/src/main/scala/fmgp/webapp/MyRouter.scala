@@ -15,6 +15,7 @@ object MyRouter {
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
   case object ResolverPage extends Page("Resolver", "dns")
+  case object EncryptPage extends Page("Encrypt", "enhanced_encryption")
   case object DecryptPage extends Page("Decrypt", "email")
   case object BasicMessagePage extends Page("BasicMessage", "message")
   case object TrustPingPage extends Page("TrustPing", "network_ping")
@@ -30,6 +31,7 @@ object MyRouter {
     Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
     // Route.static(DIDPage, root / "did" / endOfSegments, Router.localFragmentBasePath),
     Route.static(ResolverPage, root / "resolver" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(EncryptPage, root / "encrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(BasicMessagePage, root / "basicmessage" / endOfSegments, Router.localFragmentBasePath),
