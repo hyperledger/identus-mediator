@@ -68,7 +68,7 @@ object DIDSocketManager {
       socketManager <- ZIO.service[Ref[DIDSocketManager]]
       _ <- socketManager.update { case DIDSocketManager(sockets, ids, kids) =>
         DIDSocketManager(
-          sockets = sockets.filterKeys(_ != channel.id).toMap,
+          sockets = sockets.view.filterKeys(_ != channel.id).toMap,
           ids = ids.map { case (did, socketsID) => (did, socketsID.filter(_ != channel.id)) }.filterNot(_._2.isEmpty),
           kids = kids.map { case (kid, socketsID) => (kid, socketsID.filter(_ != channel.id)) }.filterNot(_._2.isEmpty)
         )

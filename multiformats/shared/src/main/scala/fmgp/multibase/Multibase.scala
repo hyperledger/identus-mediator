@@ -5,7 +5,7 @@ object Multibase {
 
   def apply(d: String): Multibase = d
 
-  def encode(base: Base, data: Array[Byte]): Multibase = base.code + {
+  def encode(base: Base, data: Array[Byte]): Multibase = base.code.toString + {
     base match {
       case Base.Base1             => throw new UnsupportedOperationException("Base1 is not supported yet!")
       case Base.Identity          => IdentityImpl.encode(data)

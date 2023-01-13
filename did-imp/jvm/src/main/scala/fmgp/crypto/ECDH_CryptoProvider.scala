@@ -1,5 +1,9 @@
 package fmgp.crypto
 
+import java.util.Collections
+import scala.jdk.CollectionConverters._
+import scala.util.Try
+
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.EncryptionMethod
 import com.nimbusds.jose.crypto.ECDHDecrypter
@@ -17,14 +21,10 @@ import com.nimbusds.jose.JWECryptoParts
 import javax.crypto.SecretKey
 
 import zio.json._
-import fmgp.util.Base64
-import fmgp.crypto.JWERecipient
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
-import java.util.Collections
-import scala.collection.JavaConverters._
-import fmgp.util.Base64Obj
-import scala.util.Try
+import fmgp.util._
+import fmgp.crypto.JWERecipient
 import fmgp.crypto.error._
 
 /** Elliptic-curve Diffie–Hellman */

@@ -45,7 +45,7 @@ object AgentProvider {
   )
 
   def allIdentities: Map[String, DIDPeer] =
-    allAgents.mapValues(_.id).toMap ++
+    allAgents.view.mapValues(_.id).toMap ++
       DIDPeer
         .fromDID(
           DIDSubject(

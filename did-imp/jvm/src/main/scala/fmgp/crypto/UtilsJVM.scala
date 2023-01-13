@@ -1,10 +1,19 @@
 package fmgp.crypto
 
+import scala.concurrent.Future
+import scala.util.Try
+import scala.util.chaining._
+import scala.jdk.CollectionConverters._
+
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.Payload
+import com.nimbusds.jose.JWEHeader
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.crypto.Ed25519Verifier
@@ -12,27 +21,16 @@ import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
+import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
+
+import zio.json._
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm._
 import fmgp.util._
-import zio.json._
-
-import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import scala.util.chaining._
-import scala.collection.JavaConverters._
-
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
 import fmgp.crypto.UtilsJVM.toJWK
-import com.nimbusds.jose.util.Base64URL
 
 given Conversion[Base64Obj[ProtectedHeader], JWEHeader] with
   def apply(x: Base64Obj[ProtectedHeader]) = {

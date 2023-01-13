@@ -151,36 +151,37 @@ lazy val NPM = new {
   val jose = Seq("jose" -> "4.8.3")
 }
 
-lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = Seq(
-  scalacOptions ++= Seq(
-    "-encoding",
-    "UTF-8", // source files are in UTF-8
-    "-deprecation", // warn about use of deprecated APIs
-    "-unchecked", // warn about unchecked type parameters
-    "-feature", // warn about misused language features
-    "-Xfatal-warnings",
-    // TODO "-Yexplicit-nulls",
-    // TODO  "-Ysafe-init",
-    "-language:implicitConversions",
-    "-language:reflectiveCalls",
-    "-Xprint-diff-del", // "-Xprint-diff",
-    "-Xprint-inline",
+//lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = ???
+//lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = ???
+//lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = ???
+inThisBuild(
+  Seq(
+    scalacOptions ++= Seq( // https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html
+      "-encoding", // if an option takes an arg, supply it on the same line
+      "UTF-8", // source files are in UTF-8
+      "-deprecation", // warn about use of deprecated APIs
+      "-unchecked", // warn about unchecked type parameters
+      "-feature", // warn about misused language features (Note we are using 'language:implicitConversions')
+      "-Xfatal-warnings",
+      // TODO "-Yexplicit-nulls",
+      "-Ysafe-init", // https://dotty.epfl.ch/docs/reference/other-new-features/safe-initialization.html
+      "-language:implicitConversions", // we can use with the flag '-feature'
+      // NO NEED ATM "-language:reflectiveCalls",
+      // "-Xprint-diff-del", // "-Xprint-diff",
+      // "-Xprint-inline",
+      // NO NEED ATM "-Xsemanticdb"
+      // NO NEED ATM "-Ykind-projector"
+    ),
+    // ### commonSettings ###
+    Compile / doc / sources := Nil,
+    // ### setupTestConfig ###
+    libraryDependencies += D.munit.value,
   )
 )
 
-lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = Seq(
-  libraryDependencies += D.munit.value,
-)
-
-lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = settingsFlags ++ Seq(
-  Compile / doc / sources := Nil,
-)
-
 lazy val scalaJSBundlerConfigure: Project => Project =
-  _.settings(commonSettings: _*)
-    .enablePlugins(ScalaJSPlugin)
+  _.enablePlugins(ScalaJSPlugin)
     .enablePlugins(ScalaJSBundlerPlugin)
-    .settings((setupTestConfig): _*)
     .settings(
       scalaJSLinkerConfig ~= {
         _.withSourceMap(false) // disabled because it somehow triggers warnings and errors
@@ -242,12 +243,10 @@ lazy val root = project
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
   .aggregate(webapp, demo.jvm, demo.js)
-  .settings(commonSettings: _*)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
   .configure(publishConfigure)
-  .settings((setupTestConfig): _*)
   .settings(
     name := "did",
     libraryDependencies += D.zioJson.value,
@@ -258,7 +257,6 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
   .configure(publishConfigure)
-  .settings((setupTestConfig): _*)
   .settings(name := "did-imp")
   .settings(libraryDependencies += D.zioMunitTest.value)
   .dependsOn(did % "compile;test->test")

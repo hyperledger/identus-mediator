@@ -45,10 +45,10 @@ package error {
   case class CryptoErrorCollection[E <: CryptoFailed](errors: Seq[E]) extends CryptoFailed
   object CryptoErrorCollection {
     def unfold[E <: CryptoFailed, A](x: Seq[Either[E, A]]): Either[CryptoFailed, Seq[A]] =
-      x.partition(_.isLeft) match {
-        case (l, r) if l.isEmpty => Right(r.map(_.right.get))
+      x.partition(_.isLeft).asInstanceOf[(Seq[Left[E, A]], Seq[Right[E, A]])] match {
+        case (l, r) if l.isEmpty => Right(r.map(_.value))
         case (l, _) =>
-          val tmp = l.map(_.left.get)
+          val tmp = l.map(_.value)
           if (tmp.size == 1) Left(tmp.head)
           else Left(CryptoErrorCollection(tmp))
       }

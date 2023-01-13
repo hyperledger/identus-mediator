@@ -20,7 +20,6 @@ object BasicMessageTool {
 
   val toDIDVar: Var[Option[DID]] = Var(initial = None)
   val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
-
   val inicialTextVar = Var(initial = "Hello, World!")
   def message = inicialTextVar.signal.map(e => BasicMessage(content = e))
   def plaintextMessage =
@@ -88,9 +87,9 @@ object BasicMessageTool {
       value <-- inicialTextVar,
       inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> inicialTextVar }
     ),
-    p("Basic Message"),
+    p("Basic Message:"),
     pre(code(child.text <-- message.map(_.toString))),
-    p("Plaintext Message"),
+    p("Plaintext Message:"),
     pre(code(child.text <-- plaintextMessage.map(_.map(_.toJsonPretty).merge))),
     p(
       "Encrypted Message",
