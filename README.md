@@ -50,6 +50,8 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
     - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
     - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
   - docker with scala-cli
+- [TODO!] [Message Layer Addressing Consistency](https://identity.foundation/didcomm-messaging/spec/#message-layer-addressing-consistency)
+- [TODO] [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
 - create module for protocols
 - method `did:jwk` https://github.com/quartzjer/did-jwk
 - routing:
