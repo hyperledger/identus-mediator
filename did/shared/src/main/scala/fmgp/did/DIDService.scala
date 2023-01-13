@@ -18,6 +18,23 @@ trait DIDService {
   def serviceEndpoint: Required[SetMapU[URI]]
 }
 
+/** DecentralizedWebNode is a type of DIDService
+  *
+  * @see
+  *   https://identity.foundation/decentralized-web-node/spec/#service-endpoints
+  *
+  * {{{
+  * "serviceEndpoint": {"nodes": ["https://dwn.example.com", "https://example.org/dwn"]}
+  * }}}
+  */
+trait DIDServiceDecentralizedWebNode extends DIDService {
+  // override def `type` = "DecentralizedWebNode"
+  def getNodes = serviceEndpoint match
+    case str: URI                         => Seq.empty
+    case seq: Seq[URI] @unchecked         => Seq.empty
+    case map: Map[String, URI] @unchecked => map.get("nodes")
+}
+
 /** https://www.w3.org/TR/did-spec-registries/#linkeddomains */
 trait DIDServiceDIDLinkedDomains extends DIDService {
   // override def `type` = "LinkedDomains"
@@ -32,6 +49,7 @@ trait DIDServiceDIDCommMessaging extends DIDService {
 }
 
 object DIDService {
+  val TYPE_DecentralizedWebNode = "DecentralizedWebNode"
   val TYPE_DIDCommMessaging = "DIDCommMessaging"
   val TYPE_LinkedDomains = "LinkedDomains"
 
@@ -60,6 +78,7 @@ final case class DIDServiceGeneric(
 ) extends DIDService
     with DIDServiceDIDCommMessaging
     with DIDServiceDIDLinkedDomains
+    with DIDServiceDecentralizedWebNode
 object DIDServiceClass {
   import SetU.{given}
   import SetMapU.{given}
