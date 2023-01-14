@@ -17,6 +17,13 @@ object Global {
   val dids = AgentProvider.allAgents.keys.toSeq.sorted :+ "<none>"
   val didsTO = AgentProvider.allIdentities.keys.toSeq.sorted :+ "<none>"
 
+  def agent2Host(mAgent: Option[Agent]): Option[String] = getAgentName(mAgent) match {
+    case "alice"   => Some("alice.did.fmgp.app")
+    case "bob"     => Some("bob.did.fmgp.app")
+    case "charlie" => Some("charlie.did.fmgp.app")
+    case _         => None
+  }
+
   def getAgentName(mAgent: Option[Agent]): String =
     mAgent.flatMap(agent => AgentProvider.allAgents.find(_._2.id == agent.id)).map(_._1).getOrElse("<none>")
 

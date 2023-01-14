@@ -1,4 +1,4 @@
-package fmgp.did.comm.agent
+package fmgp.did
 
 import zio.json._
 

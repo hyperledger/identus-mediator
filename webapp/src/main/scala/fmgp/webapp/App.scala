@@ -41,6 +41,7 @@ object App {
     .collectStatic(HomePage)(Home())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
+    .collectStatic(AgentDBPage)(AgentDB())
     .collectStatic(ResolverPage)(ResolverTool())
     .collectStatic(EncryptPage)(EncryptTool())
     .collectStatic(DecryptPage)(DecryptTool())
@@ -52,6 +53,7 @@ object App {
     HomePage,
     KeysPage,
     // DIDPage,
+    AgentDBPage,
     ResolverPage,
     EncryptPage,
     DecryptPage,
