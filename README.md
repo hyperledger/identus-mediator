@@ -90,24 +90,25 @@ flowchart BT
   did --> zio
   zhttp --> zio
   did --> zio-json
-
   did-resolver-web ----> zhttp:::JVM
+  
+  did-example ----> did
+  did-example --> did-imp
+  did-example  --> did-resolver-web
+  demo --> did-imp 
 
   subgraph fmgp libraries
+    did-extra --> did
     subgraph platform specific
       did-imp
-      did-imp_jvm:::JVM ==>|compiles together| did-imp
-      did-imp_js:::JS ==>|compiles together| did-imp
       did-imp-hw:::Others -.-> did-imp
+      did-imp_js:::JS ==>|compiles together| did-imp
+      did-imp_jvm:::JVM ==>|compiles together| did-imp
     end
-    did-imp --> did
-    did-extra --> did
-    %% did-imp_jvm:::JVM --> did
-    %% did-imp_js:::JS --> did
-    
     did-resolver-peer --> multibase
     did-resolver-peer --> did
     did-resolver-web --> did
+    did-imp --> did
   end
   
   did-imp_jvm:::JVM ----> nimbus-jose-jwt:::JVM --> google-tink:::JVM
@@ -116,14 +117,18 @@ flowchart BT
   did-imp_js ----> jose:::JS
 
   %% subgraph demo/docs
+    
     webapp:::JS --> did-imp_js
     webapp:::JS  --> did-resolver-web
-    webapp:::JS  --> did-resolver-peer
+    demo  --> did-example
     demo --> did-resolver-web
     demo --> did-resolver-peer
-    demo --> did-imp 
     demo -.->|uses\serves| webapp
     demo_jvm(demo_jvm\nA server):::JVM ==>|compiles together| demo
+    webapp:::JS  --> did-resolver-peer
+    webapp:::JS  --> did-example
+    did-example  --> did-resolver-peer
+
   %% end
 
   classDef JVM fill:#141,stroke:#444,stroke-width:2px;
