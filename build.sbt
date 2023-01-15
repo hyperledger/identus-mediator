@@ -164,7 +164,7 @@ inThisBuild(
       "-feature", // warn about misused language features (Note we are using 'language:implicitConversions')
       "-Xfatal-warnings",
       // TODO "-Yexplicit-nulls",
-      "-Ysafe-init", // https://dotty.epfl.ch/docs/reference/other-new-features/safe-initialization.html
+      // "-Ysafe-init", // https://dotty.epfl.ch/docs/reference/other-new-features/safe-initialization.html
       "-language:implicitConversions", // we can use with the flag '-feature'
       // NO NEED ATM "-language:reflectiveCalls",
       // "-Xprint-diff-del", // "-Xprint-diff",
