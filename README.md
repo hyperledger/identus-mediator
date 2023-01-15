@@ -101,6 +101,7 @@ flowchart BT
       did-imp-hw:::Others -.-> did-imp
     end
     did-imp --> did
+    did-extra --> did
     %% did-imp_jvm:::JVM --> did
     %% did-imp_js:::JS --> did
     

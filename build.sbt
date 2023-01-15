@@ -81,6 +81,7 @@ lazy val V = new {
   val zioJson = "0.4.2"
   val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.3"
+  val zioPrelude = "1.0.0-RC16"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
   val scalaJavaTime = "2.3.0"
@@ -113,6 +114,7 @@ lazy val D = new {
   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
   val ziohttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
+  val zioPrelude = Def.setting("dev.zio" %% "zio-prelude" % V.zioPrelude)
   // val zioTest = Def.setting("dev.zio" %%% "zio-test" % V.zio % Test)
   // val zioTestSBT = Def.setting("dev.zio" %%% "zio-test-sbt" % V.zio % Test)
   // val zioTestMagnolia = Def.setting("dev.zio" %%% "zio-test-magnolia" % V.zio % Test)
@@ -156,7 +158,9 @@ lazy val NPM = new {
 //lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = ???
 inThisBuild(
   Seq(
-    scalacOptions ++= Seq( // https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html
+    scalacOptions ++= Seq(
+      // ### https://docs.scala-lang.org/scala3/guides/migration/options-new.html
+      // ### https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html
       "-encoding", // if an option takes an arg, supply it on the same line
       "UTF-8", // source files are in UTF-8
       "-deprecation", // warn about use of deprecated APIs
@@ -167,8 +171,9 @@ inThisBuild(
       // "-Ysafe-init", // https://dotty.epfl.ch/docs/reference/other-new-features/safe-initialization.html
       "-language:implicitConversions", // we can use with the flag '-feature'
       // NO NEED ATM "-language:reflectiveCalls",
-      // "-Xprint-diff-del", // "-Xprint-diff",
-      // "-Xprint-inline",
+      "-Xprint-diff",
+      "-Xprint-diff-del",
+      "-Xprint-inline",
       // NO NEED ATM "-Xsemanticdb"
       // NO NEED ATM "-Ykind-projector"
     ),
@@ -252,6 +257,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
   .configure(publishConfigure)
   .settings((setupTestConfig): _*)
+  .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
   .settings(
     name := "did",
     libraryDependencies += D.zioJson.value,
@@ -259,10 +265,21 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(libraryDependencies += D.scalajsJavaSecureRandom.value.cross(CrossVersion.for3Use2_13))
 
+lazy val didExtra = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-extra"))
+  .configure(publishConfigure)
+  .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
+  .settings(
+    name := "did-extra",
+    libraryDependencies += D.zioPrelude.value, // just for the hash (is this over power?)
+    libraryDependencies += D.zioMunitTest.value,
+  )
+
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
   .configure(publishConfigure)
   .settings((setupTestConfig): _*)
+  .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
   .settings(name := "did-imp")
   .settings(libraryDependencies += D.zioMunitTest.value)
   .dependsOn(did % "compile;test->test")
@@ -294,6 +311,7 @@ lazy val multiformats =
   crossProject(JSPlatform, JVMPlatform)
     .in(file("multiformats"))
     .configure(publishConfigure)
+    .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
     .settings(
       name := "multiformats",
       libraryDependencies += D.munit.value,
