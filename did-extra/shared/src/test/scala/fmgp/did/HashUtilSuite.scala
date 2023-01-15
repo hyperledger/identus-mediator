@@ -2,16 +2,16 @@ package fmgp.did
 
 import munit._
 
-import fmgp.did._
-import fmgp.crypto._
-
 import zio._
 import zio.json._
-import zio.json.ast.Json
 import zio.prelude.{Hash, Equal}
 
-/** didJVM/testOnly fmgp.did.comm.HashSuite */
-class HashSuite extends ZSuite with fmgp.util.AssertionsHash {
+import fmgp.did._
+import fmgp.did.comm._
+import fmgp.crypto._
+
+/** didExtraJVM/testOnly fmgp.did.HashSuite */
+class HashSuite extends ZSuite with AssertionsHash {
 
   test(s"Compere the equals '==' of two Encrypted Messages") {
     EncryptedMessageExamples.allEncryptedMessage.foreach { example =>

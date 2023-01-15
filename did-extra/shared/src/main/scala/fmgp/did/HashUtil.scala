@@ -3,9 +3,9 @@ package fmgp.did
 import zio.json._
 import zio.prelude.Equal
 import zio.prelude.Hash
-import zio.prelude.Derive
 
 import fmgp.did._
+import fmgp.did.comm._
 import fmgp.util._
 
 //Maybe this is a bit offer power

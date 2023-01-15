@@ -236,11 +236,15 @@ lazy val publishConfigure: Project => Project = _.settings(
 
 addCommandAlias(
   "testJVM",
-  ";didJVM/test; didImpJVM/test; didResolverPeerJVM/test; didResolverWebJVM/test; multiformatsJVM/test"
+  ";didJVM/test; didExtraJVM/test; didImpJVM/test; " +
+    "didResolverPeerJVM/test; didResolverWebJVM/test; " +
+    "multiformatsJVM/test"
 )
 addCommandAlias(
   "testJS",
-  ";didJS/test;  didImpJS/test;  didResolverPeerJS/test;  didResolverWebJS/test;  multiformatsJS/test"
+  ";didJS/test;  didExtraJS/test;  didImpJS/test;  " +
+    "didResolverPeerJS/test;  didResolverWebJS/test;  " +
+    "multiformatsJS/test"
 )
 addCommandAlias("testAll", ";testJVM;testJS")
 
@@ -274,6 +278,7 @@ lazy val didExtra = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioPrelude.value, // just for the hash (is this over power?)
     libraryDependencies += D.zioMunitTest.value,
   )
+  .dependsOn(did % "compile;test->test")
 
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
@@ -282,7 +287,6 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
   .settings(name := "did-imp")
   .settings(libraryDependencies += D.zioMunitTest.value)
-  .dependsOn(did % "compile;test->test")
   .jvmSettings( // Add JVM-specific settings here
     libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
     libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
@@ -302,6 +306,7 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     Test / parallelExecution := false,
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
+  .dependsOn(did % "compile;test->test")
 
 /** This is a copy of https://github.com/fluency03/scala-multibase to support crossProject
   *
