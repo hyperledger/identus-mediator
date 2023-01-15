@@ -175,8 +175,12 @@ inThisBuild(
     // ### commonSettings ###
     Compile / doc / sources := Nil,
     // ### setupTestConfig ###
-    libraryDependencies += D.munit.value,
+    // libraryDependencies += D.munit.value, // BUG? "JS's Tests does not stop"
   )
+)
+
+lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = Seq(
+  libraryDependencies += D.munit.value,
 )
 
 lazy val scalaJSBundlerConfigure: Project => Project =
@@ -247,6 +251,7 @@ lazy val root = project
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
   .configure(publishConfigure)
+  .settings((setupTestConfig): _*)
   .settings(
     name := "did",
     libraryDependencies += D.zioJson.value,
@@ -257,6 +262,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
   .configure(publishConfigure)
+  .settings((setupTestConfig): _*)
   .settings(name := "did-imp")
   .settings(libraryDependencies += D.zioMunitTest.value)
   .dependsOn(did % "compile;test->test")
