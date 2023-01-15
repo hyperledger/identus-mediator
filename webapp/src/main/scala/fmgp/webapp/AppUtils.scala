@@ -149,4 +149,17 @@ object AppUtils {
       )
     )
 
+  def myButton(text: String) = {
+    div(
+      className("mdc-touch-target-wrapper"),
+      button(
+        className("mdc-button mdc-button--touch mdc-button--raised"),
+        span(className("mdc-button__ripple")),
+        span(className("mdc-button__touch")),
+        span(className("mdc-button__label"), text),
+      )
+    )
+
+  }
+
 }

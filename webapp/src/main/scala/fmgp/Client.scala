@@ -20,7 +20,7 @@ object Client {
         ZIO.succeed(None)
       case Some(value) =>
         val header = new Headers()
-        header.append("x-forwarded-host", "alice.did.fmgp.app")
+        header.append("x-forwarded-host", value)
         ZIO
           .fromPromiseJS(fetch(url, new RequestInit { method = HttpMethod.GET; headers = header }))
           .flatMap(e => ZIO.fromPromiseJS(e.text()))

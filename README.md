@@ -42,15 +42,20 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 
 ## TODO/WIP
 
+- Implement HASH from zio-prelude instead of using the hashCode
+ - My Base64 need to have a consistent hashCode
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
-  - implement HASH from zio-prelude instead of using the hashCode
+  
 - Publish to maven
   - scala-cli example
     - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
     - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
   - docker with scala-cli
 - [TODO!] [Message Layer Addressing Consistency](https://identity.foundation/didcomm-messaging/spec/#message-layer-addressing-consistency)
+- did-rotation: https://identity.foundation/didcomm-messaging/spec/#did-rotation
+  - support `from_prior`
+  - support `sub` `iss` on JWT https://datatracker.ietf.org/doc/html/rfc7519
 - [TODO] [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
 - create module for protocols
 - method `did:jwk` https://github.com/quartzjer/did-jwk
