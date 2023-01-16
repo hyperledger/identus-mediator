@@ -42,8 +42,6 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 
 ## TODO/WIP
 
-- Implement HASH from zio-prelude instead of using the hashCode
- - My Base64 need to have a consistent hashCode
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
   

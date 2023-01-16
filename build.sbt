@@ -45,24 +45,25 @@ inThisBuild(
     )
 )
 
+/** run with 'docs/mdoc' */
 lazy val docs = project // new documentation project
   .in(file("docs-build")) // important: it must not be docs/
   .settings(skip / publish := true)
   .settings(
-    mdocJS := Some(webapp),
-    // https://scalameta.org/mdoc/docs/js.html#using-scalajs-bundler
-    mdocJSLibraries := ((webapp / Compile / fullOptJS) / webpack).value,
+    //   mdocJS := Some(webapp),
+    //   // https://scalameta.org/mdoc/docs/js.html#using-scalajs-bundler
+    //   mdocJSLibraries := ((webapp / Compile / fullOptJS) / webpack).value,
     mdoc := {
-      val log = streams.value.log
+      //     val log = streams.value.log
       (mdoc).evaluated
-      scala.sys.process.Process("pwd") ! log
-      scala.sys.process.Process(
-        "md2html" :: "docs-build/target/mdoc/readme.md" :: Nil
-      ) #> file("docs-build/target/mdoc/readme.html") ! log
+      //     scala.sys.process.Process("pwd") ! log
+      //     scala.sys.process.Process(
+      //       "md2html" :: "docs-build/target/mdoc/readme.md" :: Nil
+      //     ) #> file("docs-build/target/mdoc/readme.html") ! log
     }
   )
   .settings(mdocVariables := Map("VERSION" -> version.value))
-  .dependsOn(webapp) // jsdocs)
+  .dependsOn(did.jvm) // , webapp) // jsdocs)
   .enablePlugins(MdocPlugin) // , DocusaurusPlugin)
 
 /** Versions */

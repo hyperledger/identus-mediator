@@ -170,7 +170,7 @@ object DIDExamples {
     "did:example:123456789abcdefghi#keys-1",
     {
       "id": "did:example:123#zC9ByQ8aJs8vrNXyDhPHHNNMSHPcaSgNpjjsBYpMMjsTdS",
-      "type": "X25519KeyAgreementKey2019", 
+      "type": "X25519KeyAgreementKey2019",
       "controller": "did:example:123",
       "publicKeyMultibase": "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"
     }
