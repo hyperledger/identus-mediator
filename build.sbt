@@ -416,7 +416,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioStreams.value,
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
-    libraryDependencies += D.laika,
+    libraryDependencies += D.laika.value,
   )
   .jvmSettings(
     reStart / mainClass := Some("fmgp.did.demo.AppServer"),

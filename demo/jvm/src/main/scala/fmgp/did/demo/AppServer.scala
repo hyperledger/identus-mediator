@@ -47,18 +47,13 @@ object AppServer extends ZIOAppDefault {
       .using(GitHubFlavor, SyntaxHighlighting)
       .build
 
-    Http.fromResource(s"$path").mapZIO { ee =>
-      val ret = ee.body.asString.map { data =>
+    Http.fromResource(s"$path").mapZIO {
+      _.body.asString.map { data =>
         val result = transformer.transform(data) match
           case Left(value)  => value.message
           case Right(value) => value
-        // ee.copy(
-        //   body = zio.http.Body.fromString(result),
-        //   attribute = Response.Attribute.
-        // )
         Response.html(result)
       }
-      ret
     }
   }
 
