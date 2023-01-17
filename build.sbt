@@ -90,6 +90,8 @@ lazy val V = new {
   val logbackClassic = "1.2.10"
   val scalaLogging = "3.9.4"
 
+  val laika = "0.19.0"
+
   val laminar = "0.14.5"
   val waypoint = "0.5.0"
   val upickle = "2.0.0"
@@ -130,6 +132,8 @@ lazy val D = new {
 
   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
   val munit = Def.setting("org.scalameta" %%% "munit" % V.munit % Test)
+
+  val laika = Def.setting("org.planet42" %%% "laika-core" % V.laika) // JVM & JS
 
   // For WEBAPP
   val laminar = Def.setting("com.raquo" %%% "laminar" % V.laminar)
@@ -412,6 +416,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioStreams.value,
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
+    libraryDependencies += D.laika,
   )
   .jvmSettings(
     reStart / mainClass := Some("fmgp.did.demo.AppServer"),
@@ -428,7 +433,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Assets / pipelineStages := Seq(scalaJSPipeline),
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
-    Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "api").toFile,
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "api").toFile,
     Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
     Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
     // Frontend dependency configuration

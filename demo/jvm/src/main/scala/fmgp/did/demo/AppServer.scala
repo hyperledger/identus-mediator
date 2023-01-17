@@ -15,6 +15,11 @@ import scala.io.Source
 import fmgp.did.comm.mediator.MediatorAgent
 import zio.http.ZClient.ClientLive
 
+import laika.api._
+import laika.format._
+import laika.markdown.github.GitHubFlavor
+import laika.parse.code.SyntaxHighlighting
+
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
   * curl localhost:8080/hello
@@ -30,6 +35,32 @@ import zio.http.ZClient.ClientLive
   * localhost:8080/resolver/did:peer:2.Ez6LSq12DePnP5rSzuuy2HDNyVshdraAbKzywSBq6KweFZ3WH.Vz6MksEtp5uusk11aUuwRHzdwfTxJBUaKaUVVXwFSVsmUkxKF.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6OTA5My8iLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19
   */
 object AppServer extends ZIOAppDefault {
+
+  val mdocMarkdown = Http.collectHttp[Request] { case req @ Method.GET -> !! / "mdoc" / path =>
+    Http.fromResource(s"$path")
+  }
+
+  val mdocHTML = Http.collectHttp[Request] { case req @ Method.GET -> !! / "doc" / path =>
+    val transformer = Transformer
+      .from(Markdown)
+      .to(HTML)
+      .using(GitHubFlavor, SyntaxHighlighting)
+      .build
+
+    Http.fromResource(s"$path").mapZIO { ee =>
+      val ret = ee.body.asString.map { data =>
+        val result = transformer.transform(data) match
+          case Left(value)  => value.message
+          case Right(value) => value
+        // ee.copy(
+        //   body = zio.http.Body.fromString(result),
+        //   attribute = Response.Attribute.
+        // )
+        Response.html(result)
+      }
+      ret
+    }
+  }
 
   val app: Http[
     Hub[String] & AgentByHost & Operations & MessageDispatcher,
@@ -97,6 +128,7 @@ object AppServer extends ZIOAppDefault {
         case _ => false
       }
     }
+    ++ mdocMarkdown ++ mdocHTML
 
   override val run = for {
     _ <- Console.printLine(
