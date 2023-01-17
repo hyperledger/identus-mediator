@@ -154,14 +154,12 @@ lazy val NPM = new {
   val jose = Seq("jose" -> "4.8.3")
 }
 
-//lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = ???
-//lazy val setupTestConfig: Seq[sbt.Def.SettingsDefinition] = ???
-//lazy val commonSettings: Seq[sbt.Def.SettingsDefinition] = ???
 inThisBuild(
   Seq(
     scalacOptions ++= Seq(
       // ### https://docs.scala-lang.org/scala3/guides/migration/options-new.html
       // ### https://docs.scala-lang.org/scala3/guides/migration/options-lookup.html
+      //
       "-encoding", // if an option takes an arg, supply it on the same line
       "UTF-8", // source files are in UTF-8
       "-deprecation", // warn about use of deprecated APIs
@@ -172,15 +170,16 @@ inThisBuild(
       // "-Ysafe-init", // https://dotty.epfl.ch/docs/reference/other-new-features/safe-initialization.html
       "-language:implicitConversions", // we can use with the flag '-feature'
       // NO NEED ATM "-language:reflectiveCalls",
-      "-Xprint-diff",
-      "-Xprint-diff-del",
-      "-Xprint-inline",
+      // "-Xprint-diff",
+      // "-Xprint-diff-del",
+      // "-Xprint-inline",
       // NO NEED ATM "-Xsemanticdb"
       // NO NEED ATM "-Ykind-projector"
     ),
+
     // ### commonSettings ###
-    Compile / doc / sources := Nil,
-    // ### setupTestConfig ###
+    // Compile / doc / sources := Nil,
+    // ### setupTestConfig ### //lazy val settingsFlags: Seq[sbt.Def.SettingsDefinition] = ???
     // libraryDependencies += D.munit.value, // BUG? "JS's Tests does not stop"
   )
 )
@@ -231,6 +230,21 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
     ),
   )
 
+/** https://docs.scala-lang.org/scala3/guides/scaladoc/settings.html */
+lazy val docConfigure: Project => Project =
+  _.settings(
+    autoAPIMappings := true,
+    Compile / doc / target := {
+      val path =
+        baseDirectory.value.toPath.getParent.getParent /
+          "docs-build" / "target" / "api" /
+          name.value / baseDirectory.value.getName
+      // println(path)
+      path.toFile
+    },
+    apiURL := Some(url(s"https://did.fmgp.app/apis/${name.value}/${baseDirectory.value.getName}")),
+  )
+
 lazy val publishConfigure: Project => Project = _.settings(
   sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
 )
@@ -253,7 +267,9 @@ lazy val root = project
   .in(file("."))
   .settings(publish / skip := true)
   .aggregate(did.js, did.jvm)
+  .aggregate(didExtra.js, didExtra.jvm)
   .aggregate(didImp.js, didImp.jvm)
+  .aggregate(multiformats.js, multiformats.jvm)
   .aggregate(didResolverPeer.js, didResolverPeer.jvm)
   .aggregate(didResolverWeb.js, didResolverWeb.jvm)
   .aggregate(webapp, demo.jvm, demo.js)
@@ -269,6 +285,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
   )
   .jsSettings(libraryDependencies += D.scalajsJavaSecureRandom.value.cross(CrossVersion.for3Use2_13))
+  .configure(docConfigure)
 
 lazy val didExtra = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-extra"))
@@ -280,6 +297,7 @@ lazy val didExtra = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.zioMunitTest.value,
   )
   .dependsOn(did % "compile;test->test")
+  .configure(docConfigure)
 
 lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-imp"))
@@ -308,6 +326,7 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
     Test / testOptions += Tests.Argument("--exclude-tags=JsUnsupported"),
   )
   .dependsOn(did % "compile;test->test")
+  .configure(docConfigure)
 
 /** This is a copy of https://github.com/fluency03/scala-multibase to support crossProject
   *
@@ -323,6 +342,7 @@ lazy val multiformats =
       libraryDependencies += D.munit.value,
       libraryDependencies += D.zioMunitTest.value,
     )
+    .configure(docConfigure)
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-peer"))
@@ -342,6 +362,7 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .jsConfigure(scalaJSBundlerConfigure)
   .dependsOn(did, multiformats)
   .dependsOn(didImp % "test->test") // To generate keys for tests
+  .configure(docConfigure)
 
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
@@ -356,6 +377,7 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.ziohttp.value,
   )
   .dependsOn(did)
+  .configure(docConfigure)
 
 lazy val webapp = project
   .in(file("webapp"))
@@ -406,6 +428,8 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Assets / pipelineStages := Seq(scalaJSPipeline),
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
+    Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "api").toFile,
+    Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
     Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
     // Frontend dependency configuration
     Assets / WebKeys.packagePrefix := "public/",
