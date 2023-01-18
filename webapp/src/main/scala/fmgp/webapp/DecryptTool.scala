@@ -24,7 +24,7 @@ object DecryptTool {
     dataVar.signal.map(_.fromJson[EncryptedMessage])
   val decryptMessageVar: Var[Option[Either[DidFail, Message]]] = Var(initial = None)
 
-  val job =
+  def job(owner: Owner) =
     Signal
       .combine(
         Global.agentVar,
@@ -52,9 +52,13 @@ object DecryptTool {
             )
           }
       }
-      .observe(App.owner)
+      .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("DecryptTool Page"),
     p(
       overflowWrap.:=("anywhere"),

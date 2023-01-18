@@ -24,7 +24,7 @@ object ResolverTool {
   val customVar: Var[String] = Var(initial = "")
   val didDocumentVar: Var[Either[String, DIDDocument]] = Var(initial = Left(""))
 
-  val job = Signal
+  def job(owner: Owner) = Signal
     .combine(didVar, customVar)
     .map {
       case (Some(did), custom) =>
@@ -43,9 +43,13 @@ object ResolverTool {
         }
         Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("DID Resolver Page (only 'did:peer' is supported)"),
     p(
       "Agent: ",

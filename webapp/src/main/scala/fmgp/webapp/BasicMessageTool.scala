@@ -34,7 +34,7 @@ object BasicMessageTool {
         case (mFrom, None, msg)     => Left("Missing the 'TO'")
       }
 
-  val job = Signal
+  def job(owner: Owner) = Signal
     .combine(
       Global.agentVar,
       toDIDVar,
@@ -62,9 +62,13 @@ object BasicMessageTool {
           )
         }
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("BasicMessage Page"),
     p(
       overflowWrap.:=("anywhere"),

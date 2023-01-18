@@ -41,7 +41,7 @@ object TrustPingTool {
           Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to))
       }
 
-  val job = Signal
+  def job(owner: Owner) = Signal
     .combine(
       Global.agentVar,
       mTrustPing
@@ -72,9 +72,13 @@ object TrustPingTool {
               Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver)))
             }
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("TrustPing Tool"),
     p(
       overflowWrap.:=("anywhere"),

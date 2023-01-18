@@ -11,8 +11,6 @@ import com.raquo.airstream.ownership.ManualOwner
 
 object App {
 
-  val owner: ManualOwner = ManualOwner()
-
   def main( /*args: Array[String]*/ ): Unit = {
 
     // This div, its id and contents are defined in index-fastopt.html and index-fullopt.html files

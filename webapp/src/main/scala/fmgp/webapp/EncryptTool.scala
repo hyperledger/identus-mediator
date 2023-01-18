@@ -45,7 +45,7 @@ object EncryptTool {
 
   def plaintextMessage = dataTextVar.signal.map(_.fromJson[PlaintextMessage])
 
-  val job = Signal
+  def job(owner: Owner) = Signal
     .combine(
       Global.agentVar,
       plaintextMessage
@@ -70,9 +70,13 @@ object EncryptTool {
           )
         }
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("DecryptTool Page"),
     p(
       overflowWrap.:=("anywhere"),
