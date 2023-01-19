@@ -12,6 +12,7 @@ object MyRouter {
   )
 
   case object HomePage extends Page("Home", "home")
+  case object DocPage extends Page("Doc", "menu_book")
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
   case object AgentDBPage extends Page("DB", "folder_open")
@@ -29,6 +30,7 @@ object MyRouter {
 
   private val routes = List(
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
+    Route.static(DocPage, root / "doc" / endOfSegments, Router.localFragmentBasePath),
     Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
     // Route.static(DIDPage, root / "did" / endOfSegments, Router.localFragmentBasePath),
     Route.static(AgentDBPage, root / "db" / endOfSegments, Router.localFragmentBasePath),

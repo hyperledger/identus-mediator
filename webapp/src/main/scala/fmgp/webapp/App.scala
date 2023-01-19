@@ -9,6 +9,7 @@ import com.raquo.waypoint._
 import MyRouter._
 import com.raquo.airstream.ownership.ManualOwner
 
+import fmgp.webapp.Home
 object App {
 
   def main( /*args: Array[String]*/ ): Unit = {
@@ -37,6 +38,7 @@ object App {
 
   private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
     .collectStatic(HomePage)(Home())
+    .collectStatic(DocPage)(Doc())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
     .collectStatic(AgentDBPage)(AgentDB())
@@ -49,6 +51,7 @@ object App {
 
   private val linkPages: List[Page] = List(
     HomePage,
+    DocPage,
     KeysPage,
     // DIDPage,
     AgentDBPage,

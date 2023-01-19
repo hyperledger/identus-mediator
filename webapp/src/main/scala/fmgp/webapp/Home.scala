@@ -21,6 +21,7 @@ object Home {
   def apply(): HtmlElement = // rootElement
     div(
       p("DID Comm examples and tooling"),
+      p("Navigate to ", b("Documentation "), MyRouter.navigateTo(MyRouter.DocPage)),
       p(
         "Navigate to ",
         b("DB"),
