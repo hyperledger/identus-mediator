@@ -393,9 +393,13 @@ lazy val webapp = project
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
-    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient
+    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient,
     // ++ List("ms" -> "2.1.1"),
     // stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
+  )
+  .settings( // for doc
+    libraryDependencies += D.laika.value,
+    Compile / sourceGenerators += makeDocSources.taskValue,
   )
   .settings(
     stShortModuleNames := true,
@@ -453,4 +457,22 @@ ThisBuild / assemblyMergeStrategy := {
   case x =>
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
     oldStrategy(x)
+}
+
+/** Copy the Documentation and Generate an Scala object to Store */
+def makeDocSources = Def.task {
+  val baseDir = baseDirectory.value.toPath.getParent / "docs-build" / "target" / "mdoc"
+  val resourceFile = (baseDir / "readme.md").toFile
+  val sourceDir = (Compile / sourceManaged).value
+  val sourceFile = sourceDir / "DocSource.scala"
+  if (!sourceFile.exists() || sourceFile.lastModified() < resourceFile.lastModified()) {
+    val contentREAMDE = IO.read(resourceFile).replaceAllLiterally("$", "$$").replaceAllLiterally("\"\"\"", "\"\"$\"")
+    val scalaCode = s"""
+      |package fmgp.did
+      |object DocSource {
+      |  final val readme = raw\"\"\"$contentREAMDE\"\"\"
+      |}""".stripMargin
+    IO.write(sourceFile, scalaCode)
+  }
+  Seq(sourceFile)
 }
