@@ -9,6 +9,10 @@ import fmgp.crypto.error._
 /** methods: sign verify anonEncrypt authEncrypt anonDecrypt authDecrypt */
 trait CryptoOperations {
 
+  // ############
+  // ### Sign ###
+  // ############
+
   def sign(
       key: PrivateKey,
       plaintext: PlaintextMessage
@@ -56,6 +60,17 @@ trait CryptoOperations {
   // ### Decrypt ###
   // ###############
 
+  def decrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Message] = anonDecrypt(recipientKidsKeys, msg)
+
+  def decrypt(
+      senderKey: PublicKey,
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Message] = authDecrypt(senderKey, recipientKidsKeys, msg)
+
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
@@ -66,20 +81,5 @@ trait CryptoOperations {
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
   ): IO[DidFail, Message]
-
-  /*TODO REMOVE
-  def anonDecryptOne(
-      key: PrivateKey,
-      encryptedKey: String,
-      msg: EncryptedMessage
-  ): IO[DidFail, Message]
-
-  def authDecryptOne(
-      recipientKey: PrivateKey,
-      senderKey: PublicKey,
-      encryptedKey: String,
-      msg: EncryptedMessage
-  ): IO[DidFail, Message]
-   */
 
 }
