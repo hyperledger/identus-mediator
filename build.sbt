@@ -146,8 +146,7 @@ lazy val NPM = new {
   // https://www.npmjs.com/package/@types/d3
   // val d3NpmDependencies = Seq("d3", "@types/d3").map(_ -> "7.1.0")
 
-  // val mermaid = Seq("mermaid" -> "8.14.0", "@types/mermaid" -> "8.2.8")
-  val mermaid = Seq("mermaid" -> "9.1.6", "@types/mermaid" -> "8.2.9")
+  val mermaid = Seq("mermaid" -> "9.3.0") // "@types/mermaid" -> "9.2.0"
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
 

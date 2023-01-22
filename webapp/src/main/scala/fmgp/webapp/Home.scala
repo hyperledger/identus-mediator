@@ -38,15 +38,9 @@ object Home {
       div(child <-- statementVar.signal.map(e => getHtml(e)))
     )
   def getHtml(statement: Option[Statement], indent: Int = 0): ReactiveHtmlElement[HTMLElement] =
-    div(className("mermaid"), statementToMermaid(statement), onMountCallback(ctx => { update }))
+    div(className("mermaid"), statementToMermaid(statement), onMountCallback(ctx => { Global.update("div.mermaid") }))
 
   def statementToMermaid(s: Option[Statement]): String =
     AgentProvider.usersGraph
 
-  def update = {
-    println("MermaidApp Update!!")
-    // val config = mermaid.mermaidAPIMod.mermaidAPI.Config().setStartOnLoad(false)
-    // mermaid.mod.default.initialize(config)
-    mermaid.mod.default.init("div.mermaid")
-  }
 }

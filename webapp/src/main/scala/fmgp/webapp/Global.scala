@@ -1,7 +1,8 @@
 package fmgp.webapp
 
-import org.scalajs.dom
 import scala.scalajs.js
+import scala.scalajs.js.annotation.JSExport
+import org.scalajs.dom
 import com.raquo.laminar.api.L._
 
 import fmgp.did.Agent
@@ -39,4 +40,10 @@ object Global {
   def clipboardSideEffect(text: => String): Any => Unit =
     (_: Any) => { dom.window.navigator.clipboard.writeText(text) }
 
+  @JSExport
+  def update(htmlPath: String) = {
+    println("MermaidApp Update!!")
+    val config = typings.mermaid.configTypeMod.MermaidConfig()
+    typings.mermaid.mod.default.init(config, htmlPath)
+  }
 }
