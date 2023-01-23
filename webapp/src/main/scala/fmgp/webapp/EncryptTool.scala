@@ -13,6 +13,7 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.extension._
+import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DidPeerResolver
 import fmgp.crypto.error.DidFail
 
@@ -42,10 +43,11 @@ object EncryptTool {
 
   val encryptedMessageVar: Var[Option[Either[DidFail, EncryptedMessage]]] = Var(initial = None)
   val dataTextVar = Var(initial = example.toJsonPretty)
+  val curlCommandVar: Var[Option[String]] = Var(initial = None)
 
   def plaintextMessage = dataTextVar.signal.map(_.fromJson[PlaintextMessage])
 
-  def job(owner: Owner) = Signal
+  def calEncryptedViaRPC(owner: Owner) = Signal
     .combine(
       Global.agentVar,
       plaintextMessage
@@ -72,9 +74,25 @@ object EncryptTool {
     }
     .observe(owner)
 
+  def curlCommand(owner: Owner) = encryptedMessageVar.signal
+    .map(_.flatMap(_.toOption))
+    .map(_.flatMap { em =>
+      DIDPeer2
+        .fromDID(em.recipientsSubject.head)
+        .toOption
+        .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
+        .flatMap(_.getServiceEndpointAsURIs.headOption)
+        .map { uri =>
+          s"""curl -X POST $uri -H 'content-type: application/didcomm-encrypted+json' -d '${em.toJson}'"""
+        }
+    })
+    .map(e => curlCommandVar.set(e))
+    .observe(owner)
+
   val rootElement = div(
     onMountCallback { ctx =>
-      job(ctx.owner)
+      calEncryptedViaRPC(ctx.owner) // side effect
+      curlCommand(ctx.owner) // side effect
       ()
     },
     code("DecryptTool Page"),
@@ -124,7 +142,15 @@ object EncryptTool {
           case Some(Left(error)) => "Error when encrypting " + error.toJson
           case Some(Right(eMsg)) => eMsg.toJson
       )
-    )
+    ),
+    p(code(child.text <-- curlCommandVar.signal.map(_.getOrElse("curl")))),
+    div(
+      child <-- curlCommandVar.signal
+        .map { // .map(curlStr => button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr)))
+          case Some(curlStr) => button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr))
+          case None          => div("No curl")
+        }
+    ),
   )
 
   def apply(): HtmlElement = rootElement
