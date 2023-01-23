@@ -46,6 +46,12 @@ trait DIDServiceDIDCommMessaging extends DIDService {
   // override def `type` = "DIDCommMessaging"
   def routingKeys: NotRequired[Set[String]]
   def accept: NotRequired[Set[String]]
+
+  // extra
+  def getServiceEndpointAsURIs: Seq[URI] = serviceEndpoint match
+    case str: URI                         => Seq(str)
+    case seq: Seq[URI] @unchecked         => seq
+    case map: Map[String, URI] @unchecked => map.values.toSeq
 }
 
 object DIDService {
