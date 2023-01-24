@@ -16,6 +16,7 @@ import fmgp.did.comm.extension._
 import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DidPeerResolver
 import fmgp.crypto.error.DidFail
+import com.raquo.airstream.core.Sink
 
 object EncryptTool {
   def example = PlaintextMessageClass(
@@ -89,6 +90,23 @@ object EncryptTool {
     .map(e => curlCommandVar.set(e))
     .observe(owner)
 
+  def curlProgram(msg: EncryptedMessage) = {
+    DIDPeer2
+      .fromDID(msg.recipientsSubject.head)
+      .toOption
+      .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
+      .flatMap(_.getServiceEndpointAsURIs.headOption)
+      .map { uri => Client.makeDIDCommPost(msg, uri) }
+      .foreach { program =>
+        Unsafe.unsafe { implicit unsafe => // Run side efect
+          Runtime.default.unsafe.fork(
+            program
+          )
+        }
+      }
+
+  }
+
   val rootElement = div(
     onMountCallback { ctx =>
       calEncryptedViaRPC(ctx.owner) // side effect
@@ -146,9 +164,21 @@ object EncryptTool {
     p(code(child.text <-- curlCommandVar.signal.map(_.getOrElse("curl")))),
     div(
       child <-- curlCommandVar.signal
-        .map { // .map(curlStr => button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr)))
-          case Some(curlStr) => button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr))
-          case None          => div("No curl")
+        .map {
+          case Some(curlStr) =>
+            div(
+              button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr)),
+              button(
+                "Make the HTTP POST",
+                onClick --> Sink.jsCallbackToSink(_ =>
+                  encryptedMessageVar.now() match {
+                    case Some(Right(eMsg)) => curlProgram(eMsg)
+                    case _                 => // None
+                  }
+                )
+              )
+            )
+          case None => div("Valid message")
         }
     ),
   )

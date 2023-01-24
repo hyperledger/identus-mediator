@@ -167,10 +167,18 @@ object MediatorAgent {
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
             .mapError(fail => DidException(fail))
         } yield Response.ok // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
-      case Method.POST -> !! =>
-        ZIO.succeed(
-          Response.text(s"The content-type must be ${MediaTypes.SIGNED.typ} and ${MediaTypes.ENCRYPTED.typ}")
-        )
+      case req @ Method.POST -> !! =>
+        for {
+          agent <- AgentByHost.getAgentFor(req)
+          data <- req.body.asString
+          ret <- agent
+            .receiveMessage(data, None)
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+            .mapError(fail => DidException(fail))
+        } yield Response
+          .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
+      // .copy(status = Status.BadRequest) but ok for now
+
     }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher, Throwable, Request, Response]
   }
 }

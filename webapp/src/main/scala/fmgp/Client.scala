@@ -11,6 +11,7 @@ import fmgp.did._
 import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.webapp.Global
+import fmgp.did.comm.EncryptedMessage
 
 object Client {
   // curl 'http://localhost:8080/db' -H "host: alice.did.fmgp.app"
@@ -49,4 +50,28 @@ object Client {
   //     )
   //   }
   // }
+
+  def makeDIDCommPost(
+      data: EncryptedMessage,
+      url: String
+  ): IO[SomeThrowable, String] =
+    ZIO
+      .fromPromiseJS(
+        fetch(
+          url, {
+            val header = new Headers()
+            header.append("content-type", "application/didcomm-encrypted+json") // FIXME this is not working why?
+            new RequestInit {
+              method = HttpMethod.POST
+              headers = header
+              body = data.toJson
+              mode = RequestMode.`no-cors`
+              cache = RequestCache.`no-cache`
+            }
+          }
+        )
+      )
+      .flatMap(e => ZIO.fromPromiseJS(e.text()))
+      .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+
 }
