@@ -9,7 +9,7 @@ import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
-import com.nimbusds.jose.Payload
+import com.nimbusds.jose.{Payload => JosePayload}
 import com.nimbusds.jose.JWEHeader
 import com.nimbusds.jose.JWEAlgorithm
 import com.nimbusds.jose.EncryptionMethod
@@ -131,7 +131,7 @@ object UtilsJVM {
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
       verifier.verify(
         haeder,
-        (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
+        (jwm.base64noSignature).getBytes(StandardCharset.UTF_8),
         Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
@@ -141,7 +141,7 @@ object UtilsJVM {
 
       val signer: JWSSigner = new ECDSASigner(ecKey) // Create the EC signer
       val haeder: JWSHeader = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(ecKey.getKeyID()).build()
-      val payloadObj = new Payload(plaintext.toJson)
+      val payloadObj = new JosePayload(plaintext.toJson)
       val jwsObject: JWSObject = new JWSObject(haeder, payloadObj) // Creates the JWS object with payload
 
       jwsObject.sign(signer)
@@ -150,7 +150,7 @@ object UtilsJVM {
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
           SignedMessage(
-            payload = payload,
+            payload = Payload.fromBase64url(payload),
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
       }
@@ -164,7 +164,7 @@ object UtilsJVM {
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
       verifier.verify(
         haeder,
-        (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
+        (jwm.base64noSignature).getBytes(StandardCharset.UTF_8),
         Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
@@ -174,7 +174,7 @@ object UtilsJVM {
 
       val signer: JWSSigner = new Ed25519Signer(okpKey) // Create the OKP signer
       val haeder: JWSHeader = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(okpKey.getKeyID()).build()
-      val payloadObj = new Payload(plaintext.toJson)
+      val payloadObj = new JosePayload(plaintext.toJson)
 
       val jwsObject: JWSObject = new JWSObject(haeder, payloadObj) // Creates the JWS object with payload
 
@@ -184,7 +184,7 @@ object UtilsJVM {
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
           SignedMessage(
-            payload = payload,
+            payload = Payload.fromBase64url(payload),
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
       }

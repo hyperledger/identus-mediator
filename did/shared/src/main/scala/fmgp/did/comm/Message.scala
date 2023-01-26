@@ -113,7 +113,8 @@ case class SignedMessage(
     payload: Payload,
     signatures: Seq[JWMSignatureObj]
 ) extends Message {
-  def base64 = signatures.head.`protected` + "." + payload + "." + signatures.head.signature
+  def base64 = signatures.head.`protected` + "." + payload.base64url + "." + signatures.head.signature
+  def base64noSignature = signatures.head.`protected` + "." + payload.base64url
 }
 
 object SignedMessage {

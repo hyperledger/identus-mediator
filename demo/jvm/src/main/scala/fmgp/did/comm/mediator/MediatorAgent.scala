@@ -51,7 +51,7 @@ case class MediatorAgent(
           ops.verify(sm).flatMap {
             case false => ZIO.fail(ValidationFailed)
             case true =>
-              sm.payload.fromJson[Message] match
+              sm.payload.content.fromJson[Message] match
                 case Left(error) => ZIO.fail(FailToParse(error))
                 case Right(msg2) => decrypt(msg2)
           }
