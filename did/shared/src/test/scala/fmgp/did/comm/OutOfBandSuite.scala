@@ -21,16 +21,15 @@ class OutOfBandSuite extends FunSuite {
   val oobURI = s"""https://example.com/some/path?_oob=$oobMessageBase64"""
 
   test(s"OutOfBand invitation as PlaintextMessage") {
-    assert(OutOfBand.oob(oobURI).isDefined)
+    assert(OutOfBand.parse(oobURI).isDefined)
     val ret1 = OutOfBand.oobPlaintext(oobURI)
-    val ret2 = OutOfBand.from(oobURI)
+    val ret2 = OutOfBand.oob(oobURI)
     val expeted = oobMessage.fromJson[PlaintextMessage].tap(o => assert(o.isRight)).getOrElse(fail("Must be Right"))
 
     assert(ret1.isRight)
     assertEquals(ret1, ret2)
     ret2 match
       case Left(value)                          => fail("Must be Right")
-      case Right(OOB(data))                     => fail("Must be a OutOfBandPlaintext")
       case Right(OutOfBandPlaintext(msg, data)) => assertEquals(msg, expeted)
       case Right(OutOfBandSigned(msg, data))    => fail("Must be a OutOfBandPlaintext")
   }
@@ -50,16 +49,11 @@ class OutOfBandSuite extends FunSuite {
   ).foreach {
     case (uri, true) =>
       test(s"OutOfBand oob will parse '$uri'") {
-        // assert(OutOfBand.oob(URI(uri)).isDefined)
-        // // Try(URL(uri)).map(url => assert(OutOfBand2.oob(url).isDefined))
-        // if (!uri.startsWith("?")) assert(OutOfBand.oob(URL(uri)).isDefined)
-        assert(OutOfBand.oob(uri).isDefined)
+        assert(OutOfBand.parse(uri).isDefined)
       }
     case (uri, false) =>
       test(s"OutOfBand oob will NOT parse '$uri'") {
-        // assert(OutOfBand.oob(URI(uri)).isEmpty)
-        // assert(OutOfBand.oob(URL(uri)).isEmpty)
-        assert(OutOfBand.oob(uri).isEmpty)
+        assert(OutOfBand.parse(uri).isEmpty)
       }
   }
 

@@ -3,6 +3,7 @@ package fmgp.util
 import java.{util => ju}
 import zio.json._
 import scala.collection.compat.immutable.ArraySeq
+import scala.util.Try
 
 // Base64 URL
 // opaque type Base64 = ArraySeq[Byte] // Byte is primitive, but elements will be boxed/unboxed on their way in or out of the backing Array
@@ -42,6 +43,12 @@ object Base64:
   def apply(bytes: Vector[Byte]): Base64 = bytes
   def fromBase64url(str: String): Base64 = str.getBytes.toVector
   def fromBase64(str: String): Base64 = encode(basicDecoder.decode(str.getBytes))
+  def safeBase64url(str: String): Either[String, Base64] =
+    Try(Base64.urlDecoder.decode(str)).toEither match
+      case Right(value)                       => Right(value.toVector)
+      case Left(ex: IllegalArgumentException) => Left("Fail to parse base64: " + ex.getMessage)
+      case Left(ex) /*should never happen*/   => Left("Fail to parse base64: " + ex.getMessage)
+
   inline def encode(str: String): Base64 = urlEncoder.encode(str.getBytes).toVector
   inline def encode(data: Array[Byte]): Base64 = urlEncoder.encode(data).toVector
   inline def encode(data: Vector[Byte]): Base64 = urlEncoder.encode(data.toArray).toVector

@@ -12,6 +12,7 @@ object MyRouter {
   )
 
   case object HomePage extends Page("Home", "home")
+  case class OOBPage(query_oob: String) extends Page("OutOfBand", "app_shortcut")
   case object DocPage extends Page("Doc", "menu_book")
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
@@ -25,10 +26,16 @@ object MyRouter {
   case object DAppStorePage extends Page("DAppStore", "share")
 
   given HomePageRW: ReadWriter[HomePage.type] = macroRW
-
+  given oobPageRW: ReadWriter[OOBPage] = macroRW
   given rw: ReadWriter[Page] = macroRW
 
   private val routes = List(
+    // http://localhost:8080/?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ
+    Route.onlyQuery[OOBPage, String]( // OOB
+      encode = page => page.query_oob,
+      decode = arg => OOBPage(query_oob = arg),
+      pattern = (root / endOfSegments) ? (param[String]("_oob"))
+    ),
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
     Route.static(DocPage, root / "doc" / endOfSegments, Router.localFragmentBasePath),
     Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),

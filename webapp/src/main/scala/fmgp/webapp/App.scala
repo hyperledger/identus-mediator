@@ -38,6 +38,7 @@ object App {
 
   private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
     .collectStatic(HomePage)(Home())
+    .collectSignal[OOBPage](page => OutOfBandTool(page))
     .collectStatic(DocPage)(Doc())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
@@ -51,6 +52,7 @@ object App {
 
   private val linkPages: List[Page] = List(
     HomePage,
+    OOBPage("asd"), // class
     DocPage,
     KeysPage,
     // DIDPage,

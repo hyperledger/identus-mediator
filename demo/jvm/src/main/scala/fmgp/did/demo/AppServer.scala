@@ -65,6 +65,13 @@ object AppServer extends ZIOAppDefault {
   ] = MediatorAgent.didCommApp ++ Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
+      // http://localhost:8080/oob?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ
+      case req @ Method.GET -> !! / "oob" =>
+        ZIO.succeed(OutOfBand.oob(req.url.encode) match
+          case Left(error)                          => Response.text(error).copy(status = Status.BadRequest)
+          case Right(OutOfBandPlaintext(msg, data)) => Response.json(msg.toJsonPretty)
+          case Right(OutOfBandSigned(msg, data))    => Response.json(msg.payload.content)
+        )
       case req @ Method.GET -> !! / "db" =>
         for {
           agent <- AgentByHost.getAgentFor(req)
