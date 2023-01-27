@@ -41,13 +41,16 @@ object Base64:
     */
   def apply(bytes: Array[Byte]): Base64 = bytes.toVector
   def apply(bytes: Vector[Byte]): Base64 = bytes
-  def fromBase64url(str: String): Base64 = str.getBytes.toVector
+  // TODO rename fromBase64url to unsafeBase64url
+  def fromBase64url(str: String): Base64 = unsafeBase64url(str)
   def fromBase64(str: String): Base64 = encode(basicDecoder.decode(str.getBytes))
+
+  inline def unsafeBase64url(str: String): Base64 = str.getBytes.toVector
   def safeBase64url(str: String): Either[String, Base64] =
-    Try(Base64.urlDecoder.decode(str)).toEither match
-      case Right(value)                       => Right(value.toVector)
-      case Left(ex: IllegalArgumentException) => Left("Fail to parse base64: " + ex.getMessage)
-      case Left(ex) /*should never happen*/   => Left("Fail to parse base64: " + ex.getMessage)
+    Try(Base64.urlDecoder.decode(str)).toEither match // try to par
+      case Right(value)                       => Right(unsafeBase64url(str))
+      case Left(ex: IllegalArgumentException) => Left("Fail to decode base64: " + ex.getMessage)
+      case Left(ex) /*should never happen*/   => Left("Fail to decode base64: " + ex.getMessage)
 
   inline def encode(str: String): Base64 = urlEncoder.encode(str.getBytes).toVector
   inline def encode(data: Array[Byte]): Base64 = urlEncoder.encode(data).toVector
