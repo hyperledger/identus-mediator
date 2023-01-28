@@ -11,9 +11,8 @@ inThisBuild(
     organization := "app.fmgp",
     homepage := Some(url("https://github.com/FabioPinheiro/scala-did")),
     licenses := Seq(
-      "Apache-2.0" ->
-        url("http://www.apache.org/licenses/LICENSE-2.0")
-        // url ("https://github.com/FabioPinheiro/scala-did" + "/blob/master/LICENSE")
+      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
+      // url ("https://github.com/FabioPinheiro/scala-did" + "/blob/master/LICENSE")
     ),
     scmInfo := Some(
       ScmInfo(
@@ -25,25 +24,29 @@ inThisBuild(
       Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
     ),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
-
-    // ### publish Github ###
-    sonatypeCredentialHost := "maven.pkg.github.com/FabioPinheiro/scala-did",
-    sonatypeRepository := "https://maven.pkg.github.com",
-    versionScheme := Some("early-semver"),
-    fork := true,
-    Test / fork := false, // If true we get a Error: `test / test` tasks in a Scala.js project require `test / fork := false`.
-    run / connectInput := true,
-  ) ++ scala.util.Properties
-    .envOrNone("PACKAGES_GITHUB_TOKEN")
-    .map(passwd =>
-      credentials += Credentials(
-        "GitHub Package Registry",
-        "maven.pkg.github.com",
-        "FabioPinheiro",
-        passwd
-      )
-    )
+    versionScheme := Some("early-semver"), // https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
+  )
 )
+
+// ### publish Github ###
+// inThisBuild(
+//   Seq(
+//     sonatypeCredentialHost := "maven.pkg.github.com/FabioPinheiro/scala-did",
+//     sonatypeRepository := "https://maven.pkg.github.com",
+//     fork := true,
+//     Test / fork := false, // If true we get a Error: `test / test` tasks in a Scala.js project require `test / fork := false`.
+//     run / connectInput := true,
+//   ) ++ scala.util.Properties
+//     .envOrNone("PACKAGES_GITHUB_TOKEN")
+//     .map(passwd =>
+//       credentials += Credentials(
+//         "GitHub Package Registry",
+//         "maven.pkg.github.com",
+//         "FabioPinheiro",
+//         passwd
+//       )
+//     )
+// )
 
 /** run with 'docs/mdoc' */
 lazy val docs = project // new documentation project
@@ -269,13 +272,15 @@ addCommandAlias("testAll", ";testJVM;testJS")
 lazy val root = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(did.js, did.jvm)
-  .aggregate(didExtra.js, didExtra.jvm)
-  .aggregate(didImp.js, didImp.jvm)
-  .aggregate(multiformats.js, multiformats.jvm)
-  .aggregate(didResolverPeer.js, didResolverPeer.jvm)
-  .aggregate(didResolverWeb.js, didResolverWeb.jvm)
-  .aggregate(webapp, demo.jvm, demo.js)
+  .aggregate(did.js, did.jvm) // publish
+  .aggregate(didExtra.js, didExtra.jvm) // publish
+  .aggregate(didImp.js, didImp.jvm) // publish
+  .aggregate(multiformats.js, multiformats.jvm) // publish
+  .aggregate(didResolverPeer.js, didResolverPeer.jvm) // publish
+  .aggregate(didResolverWeb.js, didResolverWeb.jvm) // publish
+  .aggregate(didExample.js, didExample.jvm)
+  .aggregate(demo.jvm, demo.js)
+  .aggregate(webapp)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
@@ -410,10 +415,12 @@ lazy val webapp = project
 
 lazy val didExample = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-example"))
+  .settings(publish / skip := true)
   .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
+  .settings(publish / skip := true)
   .settings(
     name := "did-demo",
     libraryDependencies += D.zioStreams.value,

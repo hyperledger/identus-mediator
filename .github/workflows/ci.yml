@@ -23,7 +23,7 @@ jobs:
       # https://github.com/japgolly/setup-everything-scala
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Needed for the release tag
+          fetch-depth: 0 # Needed for the release tag // `git fetch --tags` will also work
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v13
       - name: Setup Node
@@ -38,11 +38,11 @@ jobs:
       - run: sbt -mem 2048 -J-Xmx5120m testAll
 
       - name: Release
-        if: inputs.make_release  == true
+        if: (inputs.make_release == true) && (github.ref_name == 'master')
         run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
-          # SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          # SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           PACKAGES_GITHUB_TOKEN: ${{ secrets.PACKAGES_GITHUB_TOKEN }}
