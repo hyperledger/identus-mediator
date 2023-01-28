@@ -1,5 +1,5 @@
-resolvers += Resolver.sonatypeRepo("public")
-resolvers += Resolver.sonatypeRepo("snapshots")
+resolvers ++= Resolver.sonatypeOssRepos("public")
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
   Seq(
@@ -26,12 +26,19 @@ inThisBuild(
     developers := List(
       Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
     ),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
+    // updateOptions := updateOptions.value.withLatestSnapshots(false),
     versionScheme := Some("early-semver"), // https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
   )
 )
+lazy val notYetPublishedConfigure: Project => Project = _.settings(
+  publish / skip := true
+)
 
 // ### publish Github ###
+lazy val publishConfigure: Project => Project = _.settings(
+  // For publish to Github
+  // sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
+)
 // inThisBuild(
 //   Seq(
 //     sonatypeCredentialHost := "maven.pkg.github.com/FabioPinheiro/scala-did",
@@ -254,10 +261,6 @@ lazy val docConfigure: Project => Project =
     apiURL := Some(url(s"https://did.fmgp.app/apis/${name.value}/${baseDirectory.value.getName}")),
   )
 
-lazy val publishConfigure: Project => Project = _.settings(
-  sonatypeSnapshotResolver := MavenRepository("sonatype-snapshots", s"https://${sonatypeCredentialHost.value}")
-)
-
 addCommandAlias(
   "testJVM",
   ";didJVM/test; didExtraJVM/test; didImpJVM/test; " +
@@ -300,7 +303,7 @@ lazy val did = crossProject(JSPlatform, JVMPlatform)
 
 lazy val didExtra = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-extra"))
-  .configure(publishConfigure)
+  .configure(notYetPublishedConfigure)
   .settings(Test / scalacOptions -= "-Ysafe-init") // TODO REMOVE Cannot prove the method argument is hot.
   .settings(
     name := "did-extra",
@@ -378,7 +381,7 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-resolver-web"))
-  .configure(publishConfigure)
+  .configure(notYetPublishedConfigure)
   .settings(
     name := "did-web",
     libraryDependencies += D.munit.value,
