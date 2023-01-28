@@ -1,3 +1,6 @@
+resolvers += Resolver.sonatypeRepo("public")
+resolvers += Resolver.sonatypeRepo("snapshots")
+
 inThisBuild(
   Seq(
     scalaVersion := "3.2.2-RC2", // Also update docs/publishWebsite.sh and any ref to scala-3.2.2-RC2
