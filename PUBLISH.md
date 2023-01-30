@@ -23,19 +23,9 @@ multiformats_sjs1_3
 publishLocal
 ```
 
-## Publish Github
+## Publish to Sonatype
 
-Publish to Github is disabled (commented) on build.sbt.
-But the configuration should still work.
-
-The reason to be disabled is due to the limitations of GitHub.
-
-Even if the project is open source you need a GitHub account to download the packages.
-
-### Condig CI for Github
-
-**GitHub action** - `.github/workflows/ci.yml` but need to set the agr `make_release` to true
-`PACKAGES_GITHUB_TOKEN`
+The library is publish to https://oss.sonatype.org/
 
 ### Config 
 
@@ -52,7 +42,7 @@ gpg --keyserver hkp://keyserver.ubuntu.com --send-key $LONG_ID && \
  gpg --armor --export-secret-keys 212722AA6D9EC1A86799D54924607459115D94B0 | base64 | sed -z 's;\n;;g' | xclip -selection clipboard -i # for the PGP_SECRET
 ```
 
-### Condig CI
+### Config CI
 
 **GitHub action** - `.github/workflows/ci.yml` but need to set the agr `make_release` to true
 `SONATYPE_PASSWORD` - The password you use to log into https://s01.oss.sonatype.org/ 
@@ -67,4 +57,18 @@ gpg --keyserver hkp://keyserver.ubuntu.com --send-key $LONG_ID && \
 
 `coursier fetch app.fmgp:scala-did:0.1.0 -r sonatype:public`
 `coursier fetch app.fmgp:scala-did:0.1.0-SNAPSHOT -r sonatype:snapshots`
+
+## Publish Github (deprecated)
+
+Publish to Github is disabled (commented) on build.sbt.
+But the configuration should still work.
+
+The reason to be disabled is due to the limitations of GitHub.
+
+Even if the project is open source you need a GitHub account to download the packages.
+
+The Library was also published to github `https://maven.pkg.github.com/FabioPinheiro/scala-did`.
+
+**GitHub action** - `.github/workflows/ci.yml` but need to set the agr `make_release` to true
+`PACKAGES_GITHUB_TOKEN`
 

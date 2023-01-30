@@ -1,9 +1,8 @@
-# My Project
+# Example JS
 
 To install my project
 
-```
-scala mdoc:js
+```scala #mdoc:js
 import org.scalajs.dom.window._
 import jsdocs._
 

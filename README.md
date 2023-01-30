@@ -3,6 +3,7 @@
 A Scala/ScalaJS library for DID and DIDcomm.
 The one of the main goals of this library is to make DID Comm v2 **type safety** and easy to use.
 
+[**Scala-DID Documentation**](./docs/readme.md)
 
 [![CI](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml)
 [![Scala Steward](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml)
@@ -44,12 +45,6 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
-  
-- Publish to maven
-  - scala-cli example
-    - `docker run --rm  -it --entrypoint /bin/sh virtuslab/scala-cli`
-    - `scala-cli repl --dependency app.fmgp::did_3::0.0.0+180-b8a47cfb-SNAPSHOT --repo https://maven.pkg.github.com/FabioPinheiro/scala-did`
-  - docker with scala-cli
 - [TODO!] [Message Layer Addressing Consistency](https://identity.foundation/didcomm-messaging/spec/#message-layer-addressing-consistency)
 - did-rotation: https://identity.foundation/didcomm-messaging/spec/#did-rotation
   - support `from_prior`
@@ -63,10 +58,11 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
     - HTTP POST
     - push notification
   - implement a relay
-    - NFC
+    - [WIP] NFC
     - websocket
     - bluetooth
 - maybe implement ["KERI lite"](https://docs.google.com/presentation/d/1ksqVxeCAvqLjr67htWZ4JYaSnI8TUZIO7tDMF5npHTo/edit#slide=id.g1ca1fd90f33_0_0)
+- be part of the Adopters in https://github.com/sbt/sbt-ci-release/
 
 ## Benefits of type safety
 

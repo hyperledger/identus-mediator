@@ -1,4 +1,4 @@
-// resolvers ++= Resolver.sonatypeOssRepos("public")
+resolvers ++= Resolver.sonatypeOssRepos("public")
 resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
