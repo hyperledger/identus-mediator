@@ -18,16 +18,8 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 - [demo](demo/README.md) - How to build, test and deploy the Demo. The Demo is a server with (webapp) client.  
 - [webapp module](webapp/README.md) - How to build, develop and run localy.
 - [multiformats module](multiformats/README.md) -(Implemente notes and an considerations (of TODOs) if we want to use as the independent Library.
-- [docs](docs/) - [WIP/TODO] Base of the library documentation website.
-  <!-- - [docs/readme.md](docs/readme.md) - TODO -->
-
-**External documentation / Links:**
-- Decentralized Identifiers (DIDs) v1.0 - W3C Proposed Recommendation 03 August 2021 [LINK GitHub](https://w3c.github.io/did-core/) or [LINK W3C](https://www.w3.org/TR/did-core/)
-- DID Comm - <https://identity.foundation/didcomm-messaging/spec/>
-- DID Comm protocols - <https://didcomm.org/search/?page=1>
-- DID Comm - Wallet and Credential Interaction (WACI) - https://identity.foundation/waci-didcomm/
-- Future Work (maybe):
-  - DID Credentials -> [Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
+- [docs](docs/) - Base folder of the library documentation website.
+  - [docs/readme.md - **Scala-DID Documentation**](docs/readme.md)
 
 ## Protocols
 - [WIP] `Routing`- https://didcomm.org/routing/2.0
@@ -204,14 +196,3 @@ This solution will be an addition with what we have.
 We will have a method on `PlaintextMessage`, where the attachments data will be bytes/string.
 
 So the user can do whatever he wants. _It still has the same vulnerabilities considerations as what we have, but is no longer our responsibility_
-
-## Troubleshooting
-
-- On Node v17 you need use the legacy openssl:
-
-  - Error: `error:0308010C:digital envelope routines::unsupported`
-  - Solution:
-    ```shell
-    export NODE_OPTIONS=--openssl-legacy-provider
-    ```
-

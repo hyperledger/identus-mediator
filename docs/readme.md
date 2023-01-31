@@ -26,6 +26,7 @@ In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
 ## Site Map
 
 - This readme [Scala-did](./readme.md)
+- [External documentation](./external-documentation.md)
 - **Quickstart**
   - [Setup Environment](./quickstart-setup-environment.md)
     - [scala-cli on docker](./quickstart-setup-environment.md#scala-cli-on-docker)- recommended way just to get the feeling of the library
@@ -33,3 +34,4 @@ In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
     - [coursier download](./quickstart-setup-environment.md#coursier-download)
   - [Get Started](./quickstart-get-started.md)
   with some code samples
+- [Troubleshoot](./troubleshoot.md)
