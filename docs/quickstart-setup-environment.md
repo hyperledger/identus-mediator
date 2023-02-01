@@ -29,16 +29,16 @@ To install the library on `sbt`, you can use the following lines to your `build.
 
 ```sbt
  libraryDependencies += "app.fmgp" %% "did" % @VERSION@
- libraryDependencies += "app.fmgp" %% "did-imp" % @VERSION@ //for did comm
- libraryDependencies += "app.fmgp" %% "did-resolver-peer" % @VERSION@ //for hash utils
+ libraryDependencies += "app.fmgp" %% "did-imp" % @VERSION@ // for the DIDComm implementation
+ libraryDependencies += "app.fmgp" %% "did-resolver-peer" % @VERSION@ // for hash utils
 ```
 
 In a crossProject for the JSPlatform and JVMPlatform this shoud use this instead:
 
 ```sbt
  libraryDependencies += "app.fmgp" %%% "did" % @VERSION@
- libraryDependencies += "app.fmgp" %%% "did-imp" % @VERSION@ //for did comm
- libraryDependencies += "app.fmgp" %%% "did-resolver-peer" % @VERSION@ //for hash utils
+ libraryDependencies += "app.fmgp" %%% "did-imp" % @VERSION@ // for the DIDComm implementation
+ libraryDependencies += "app.fmgp" %%% "did-resolver-peer" % @VERSION@ // for hash utils
 ```
 
 ## Coursier Download

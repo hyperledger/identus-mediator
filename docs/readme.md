@@ -34,4 +34,7 @@ In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
     - [coursier download](./quickstart-setup-environment.md#coursier-download)
   - [Get Started](./quickstart-get-started.md)
   with some code samples
+- **Test**
+  - [Test coverage](./test-coverage.md)
+  - [Interoperability](./test-interoperability.md)
 - [Troubleshoot](./troubleshoot.md)

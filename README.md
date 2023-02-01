@@ -25,9 +25,9 @@ The one of the main goals of this library is to make DID Comm v2 **type safety**
 - [WIP] `Routing`- https://didcomm.org/routing/2.0
   - Also see https://didcomm.org/book/v2/routing
 - [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
-- `ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
+- [TODO]`ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
 - [WIP] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
-- `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
+- [TODO] `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
 - Create new protocol `PreSetValue`
 - Create new protocol `PseudoRandom`
   - https://www.stat.berkeley.edu/~stark/Java/Html/sha256Rand.htm
@@ -132,29 +132,7 @@ NOTES:
 - The `did-imp-hw` is a idea how to extend for other implementation. Lika a Hardware/platform specific.
 - `did-resolver-web` & `did-resolver-peer` are implementations of the respective did methods.
 
-## Test
-### Test coverage
-
-1. `sbt clean coverage testJVM` - Run test
-2. `sbt coverageReport` - Generate reports
-3. `sbt coverageAggregate` - Aggregate reports
-
-|   date   |  all  |  did  |did-imp|did-resolver-web|did-resolver-peer
-|:--------:|:-----:|:-----:|:-----:|:--------------:|:--------------:
-|2022-11-26|29.21 %|25.31 %|57.60 %|     81.58 %    |     27.50 %
-
-You should open the reports with your browser. The reports will be in each module `target/scala-<scala-version>/scoverage-report`
-- [all/aggregate](/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/target/scala-3.2.2-RC2/scoverage-report/index.html
-- [did](/did/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
-- [did-imp](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-imp/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
-- [did-resolver-web](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-web/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
-- [did-resolver-peer](/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html) - file:///home/fabio/workspace/ScalaDID/did-resolver-peer/jvm/target/scala-3.2.2-RC2/scoverage-report/index.html
-
-### Test Interoperability
-
- - With RootsID's mediator https://github.com/roots-id/didcomm-mediator/tree/main
-  - invitation: `https://mediator.rootsid.cloud/?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNzk0Mjc4MzctY2MwNi00ODUzLWJiMzktNjg2ZWFjM2U2YjlhIiwiZnJvbSI6ImRpZDpwZWVyOjIuRXo2TFNtczU1NVloRnRobjFXVjhjaURCcFptODZoSzl0cDgzV29qSlVteFBHazFoWi5WejZNa21kQmpNeUI0VFM1VWJiUXc1NHN6bTh5dk1NZjFmdEdWMnNRVllBeGFlV2hFLlNleUpwWkNJNkltNWxkeTFwWkNJc0luUWlPaUprYlNJc0luTWlPaUpvZEhSd2N6b3ZMMjFsWkdsaGRHOXlMbkp2YjNSemFXUXVZMnh2ZFdRaUxDSmhJanBiSW1ScFpHTnZiVzB2ZGpJaVhYMCIsImJvZHkiOnsiZ29hbF9jb2RlIjoicmVxdWVzdC1tZWRpYXRlIiwiZ29hbCI6IlJlcXVlc3RNZWRpYXRlIiwibGFiZWwiOiJNZWRpYXRvciIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ`
-
+## Limitations
 ### Limitations in JS ATM
 
 ATM no library has native JavaScript support for `ECHD-1PU` and `XC20P`.
