@@ -39,7 +39,7 @@ import fmgp.util.Base64
     afterDecryot <- authDecrypt(msg2).provideSomeLayer(Agent1Mediators.agentLayer)
   } yield ()
 
-  val operations: ULayer[Operations] = ZLayer.succeed(new MyOperations())
+  val operations: ULayer[Operations] = MyOperations.layer
   val resolvers = ZLayer.succeed(DidPeerResolver)
 
   Unsafe.unsafe { implicit unsafe => // Run side efect

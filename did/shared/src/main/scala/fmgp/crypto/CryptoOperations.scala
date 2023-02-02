@@ -1,6 +1,7 @@
 package fmgp.crypto
 
 import zio._
+import zio.json._
 
 import fmgp.did._
 import fmgp.did.comm._
@@ -74,12 +75,42 @@ trait CryptoOperations {
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message]
+  ): IO[DidFail, Message] = anonDecryptRaw(recipientKidsKeys, msg)
+    .flatMap(data =>
+      ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
+    )
 
   def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message]
+  ): IO[DidFail, Message] =
+    authDecryptRaw(senderKey, recipientKidsKeys, msg)
+      .flatMap(data =>
+        ZIO.fromEither {
+          String(data)
+            .fromJson[Message]
+            .left
+            .map(info => FailToParse(s"Decoding into a Message: $info"))
+        }
+      )
+
+  // ## Decrypt - RAW ##
+
+  def anonDecryptRaw(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Array[Byte]]
+
+  def authDecryptRaw(
+      senderKey: PublicKey,
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Array[Byte]]
 
 }

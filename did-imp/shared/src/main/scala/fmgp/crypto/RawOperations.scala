@@ -11,7 +11,10 @@ import fmgp.util.Base64
 
 import scala.util.chaining._
 
-/** https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms */
+/** https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms
+  *
+  * TODO Rename RawOperations to CryptoOperationsImp
+  */
 object RawOperations extends CryptoOperations {
 
   override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
@@ -126,10 +129,10 @@ object RawOperations extends CryptoOperations {
   // ### decrypt ###
   // ###############
 
-  def anonDecrypt(
+  def anonDecryptRaw(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message] = {
+  ): IO[DidFail, Array[Byte]] = {
 
     def header = msg.`protected`
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
@@ -143,32 +146,24 @@ object RawOperations extends CryptoOperations {
             val jweRecipient =
               msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
             val ecRecipientsKeys = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[ECPrivateKey])) // FIXME
-            val ret = ECDH
-              .anonDecryptEC(ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
-            ZIO.fromEither(ret match
-              case Left(error: CryptoFailed) => Left(error)
-              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            ZIO.fromEither(
+              ECDH.anonDecryptEC(ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
             )
-
           case okpKey: OKPKey =>
             val fixme = recipientKidsKeys.map(e => (e._1, e._2.asInstanceOf[OKPPrivateKey])) // FIXME
             val jweRecipient =
               msg.recipients.map(recipient => JWERecipient(recipient.header.kid, recipient.encrypted_key))
-
-            val ret = ECDH
-              .anonDecryptOKP(fixme, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
-            ZIO.fromEither(ret match
-              case Left(error: CryptoFailed) => Left(error)
-              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
+            ZIO.fromEither(
+              ECDH.anonDecryptOKP(fixme, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
             )
       }
   }
 
-  override def authDecrypt(
+  def authDecryptRaw(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message] = {
+  ): IO[DidFail, Array[Byte]] = {
     def header = msg.`protected`
     // String(Base64.fromBase64url(msg.`protected`).decode).fromJson[ProtectedHeader].toOption.get // FIXME
 
@@ -203,12 +198,7 @@ object RawOperations extends CryptoOperations {
             val ecRecipientsKeys = encryptedKey_vmr_keys.map { case (encryptedKey, vmr, keys) => (vmr, keys) }
             ECDH.authDecryptEC(ecSenderKey, ecRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
-          .flatMap(ret =>
-            ZIO.fromEither(ret match
-              case Left(error: CryptoFailed) => Left(error)
-              case Right(data: Array[Byte])  => String(data).fromJson[Message].left.map(FailToParse(_))
-            )
-          )
+          .flatMap(ZIO.fromEither)
       case okpSenderKey: OKPKey =>
         ZIO
           .foreach(msg.recipients) { recipien =>
@@ -237,16 +227,7 @@ object RawOperations extends CryptoOperations {
 
             ECDH.authDecryptOKP(okpSenderKey, okpRecipientsKeys, header, jweRecipient, msg.iv, msg.ciphertext, msg.tag)
           }
-          .flatMap(ret =>
-            ZIO.fromEither(ret match
-              case Left(error: CryptoFailed) => Left(error)
-              case Right(data: Array[Byte]) =>
-                String(data)
-                  .fromJson[Message]
-                  .left
-                  .map(info => FailToParse(s"After decoding to parse into a Message because: $info"))
-            )
-          )
+          .flatMap(ZIO.fromEither)
     }
   }
 
