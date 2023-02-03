@@ -22,14 +22,18 @@ case class MediatorAgent(
     didSocketManager: Ref[DIDSocketManager],
     messageDB: Ref[MessageDB],
 ) {
-  private def didSubjectAux = id
-  private def keyStoreAux = keyStore.keys.toSeq
+  val resolverLayer: ZLayer[Any, Nothing, DynamicResolver] =
+    DidPeerResolver.layer.map { peerResolver =>
+      ZEnvironment(DynamicResolver(peerResolver.get, didSocketManager))
+    }
 
-  def indentity = new Agent {
-    override def id: DID = didSubjectAux
-    override def keys: Seq[PrivateKey] = keyStoreAux
-  }
-  def resolver: Resolver = DynamicResolver(DidPeerResolver, didSocketManager)
+  private def _didSubjectAux = id
+  private def _keyStoreAux = keyStore.keys.toSeq
+  val indentityLayer = ZLayer.succeed(new Agent {
+    override def id: DID = _didSubjectAux
+    override def keys: Seq[PrivateKey] = _keyStoreAux
+  })
+
   val messageDispatcherLayer: ZLayer[Client, DidFail, MessageDispatcher] =
     MessageDispatcher.layer.mapError(ex => SomeThrowable(ex))
 
@@ -103,7 +107,7 @@ case class MediatorAgent(
               } yield ()
         } yield ()
       }
-      .provideSomeEnvironment(env => env.add(indentity).add(resolver))
+      .provideSomeLayer(resolverLayer ++ indentityLayer)
 
   def createSocketApp: ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
     val SOCKET_ID = "SocketID"

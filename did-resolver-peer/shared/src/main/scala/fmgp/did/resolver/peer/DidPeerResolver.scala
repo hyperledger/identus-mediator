@@ -7,14 +7,17 @@ import fmgp.did.comm.FROMTO
 import fmgp.crypto._
 import fmgp.crypto.error.DidMethodNotSupported
 
-object DidPeerResolver extends Resolver {
-
+class DidPeerResolver extends Resolver {
   override protected def didDocumentOf(did: FROMTO): IO[DidMethodNotSupported, DIDDocument] = did.toDID match {
-    case peer: DIDPeer => didDocument(peer)
+    case peer: DIDPeer => DidPeerResolver.didDocument(peer)
     case did if DIDPeer.regexPeer.matches(did.string) =>
-      didDocument(DIDPeer(did))
+      DidPeerResolver.didDocument(DIDPeer(did))
     case did => ZIO.fail(DidMethodNotSupported(did.namespace))
   }
+}
+object DidPeerResolver {
+
+  val layer: ULayer[Resolver] = ZLayer.succeed(new DidPeerResolver())
 
   /** see https://identity.foundation/peer-did-method-spec/#generation-method */
   def didDocument(didPeer: DIDPeer): UIO[DIDDocument] = didPeer match {
