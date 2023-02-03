@@ -49,7 +49,7 @@ object BasicMessageTool {
         val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(DidPeerResolver))
+            program.provideEnvironment(ZEnvironment(DidPeerResolver()))
           )
         }
       case (Some(from), Some(to), msg) =>
@@ -58,7 +58,7 @@ object BasicMessageTool {
         val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(from, DidPeerResolver))
+            program.provideEnvironment(ZEnvironment(from, DidPeerResolver()))
           )
         }
     }

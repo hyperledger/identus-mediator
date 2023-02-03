@@ -58,7 +58,7 @@ object TrustPingTool {
                 .anonEncrypt(message)
                 .map(msg => encryptedMessageVar.update(_ => Some(msg)))
             Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(DidPeerResolver)))
+              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(DidPeerResolver())))
             }
       case (Some(agent), Right(tp: TrustPing)) =>
         tp.toPlaintextMessage match
@@ -69,7 +69,7 @@ object TrustPingTool {
                 .authEncrypt(message)
                 .map(msg => encryptedMessageVar.update(_ => Some(msg)))
             Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver)))
+              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver())))
             }
     }
     .observe(owner)

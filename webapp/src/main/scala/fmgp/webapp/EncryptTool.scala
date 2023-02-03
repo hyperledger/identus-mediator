@@ -61,7 +61,7 @@ object EncryptTool {
         val program = programAux.either.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(DidPeerResolver))
+            program.provideEnvironment(ZEnvironment(DidPeerResolver()))
           )
         }
       case (Some(agent), Right(msg)) =>
@@ -69,7 +69,7 @@ object EncryptTool {
         val program = programAux.either.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(agent, DidPeerResolver))
+            program.provideEnvironment(ZEnvironment(agent, DidPeerResolver()))
           )
         }
     }

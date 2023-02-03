@@ -48,7 +48,7 @@ object DecryptTool {
           )
           Unsafe.unsafe { implicit unsafe => // Run side efect
             Runtime.default.unsafe.fork(
-              program.provideEnvironment(ZEnvironment(agent, DidPeerResolver))
+              program.provideEnvironment(ZEnvironment(agent, DidPeerResolver()))
             )
           }
       }
