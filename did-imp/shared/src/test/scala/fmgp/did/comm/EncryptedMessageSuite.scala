@@ -4,7 +4,7 @@ import munit._
 
 import fmgp.did._
 import fmgp.crypto._
-import fmgp.crypto.RawOperations._
+import fmgp.crypto.CryptoOperationsImp._
 
 import zio._
 import zio.json._

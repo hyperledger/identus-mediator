@@ -2,7 +2,7 @@ package fmgp.crypto
 
 import fmgp.did.DIDDocument
 import fmgp.did.comm._
-import fmgp.crypto.RawOperations._
+import fmgp.crypto.CryptoOperationsImp._
 import munit._
 import zio._
 import zio.json._

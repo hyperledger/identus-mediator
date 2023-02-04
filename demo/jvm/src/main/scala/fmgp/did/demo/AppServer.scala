@@ -179,7 +179,7 @@ object AppServer extends ZIOAppDefault {
         env.add(myHub)
       }
       .provideSomeLayer(AgentByHost.layer)
-      .provideSomeLayer(MyOperations.layer)
+      .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcher.layer)
       .provide(server)
       .debug

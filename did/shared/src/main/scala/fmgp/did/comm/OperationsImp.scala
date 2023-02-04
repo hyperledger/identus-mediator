@@ -8,14 +8,13 @@ import fmgp.did.comm.FROMTO
 import fmgp.crypto.error._
 import fmgp.crypto._
 
-/** TODO rename MyOperations to ...
-  *
-  * Move this to the "did" module. After remove all FIXME
-  */
-object MyOperations {
-  val layer: ULayer[Operations] = ZLayer.succeed(new MyOperations(RawOperations))
+/** TODO Fix all FIXME */
+object OperationsImp {
+  val layer: URLayer[CryptoOperations, Operations] =
+    ZLayer.fromFunction(OperationsImp(_))
 }
-class MyOperations(cryptoOperations: CryptoOperations) extends Operations {
+
+class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
 
   def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] =
     for {

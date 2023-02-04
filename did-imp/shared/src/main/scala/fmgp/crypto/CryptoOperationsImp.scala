@@ -11,11 +11,8 @@ import fmgp.util.Base64
 
 import scala.util.chaining._
 
-/** https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms
-  *
-  * TODO Rename RawOperations to CryptoOperationsImp
-  */
-object RawOperations extends CryptoOperations {
+/** https://identity.foundation/didcomm-messaging/spec/#key-wrapping-algorithms */
+object CryptoOperationsImp extends CryptoOperations {
 
   override def sign(key: PrivateKey, plaintext: PlaintextMessage): IO[CryptoFailed, SignedMessage] =
     PlatformSpecificOperations.sign(key, plaintext)

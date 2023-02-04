@@ -3,7 +3,7 @@ package fmgp.did.comm
 import fmgp.did.DIDDocument
 import fmgp.crypto._
 
-import fmgp.crypto.RawOperations._
+import fmgp.crypto.CryptoOperationsImp._
 import munit._
 import zio.json._
 import scala.util.Failure
