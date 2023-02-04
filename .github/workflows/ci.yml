@@ -34,8 +34,10 @@ jobs:
         uses: japgolly/setup-scalajs@v1
       - name: Cache sbt
         uses: coursier/cache-action@v6.3
-      ### TESTS ###
-      - run: sbt -mem 2048 -J-Xmx5120m testAll
+      ### Compile and TESTS ###
+      - run: sbt -mem 2048 -J-Xmx5120m "compile;testAll"
+      #   env:
+      #     NODE_OPTIONS: "--openssl-legacy-provider"
 
       - name: Release
         if: (inputs.make_release == true) && (github.ref_name == 'master')
