@@ -35,7 +35,7 @@ jobs:
       - name: Cache sbt
         uses: coursier/cache-action@v6.3
       ### Compile and TESTS ###
-      - run: sbt -mem 2048 -J-Xmx5120m "compile;testAll"
+      - run: sbt -mem 2048 -J-Xmx5120m "compileAll;testAll"
       #   env:
       #     NODE_OPTIONS: "--openssl-legacy-provider"
 

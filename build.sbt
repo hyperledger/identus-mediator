@@ -63,6 +63,7 @@ lazy val docs = project // new documentation project
   .in(file("docs-build")) // important: it must not be docs/
   .settings(skip / publish := true)
   .settings(
+    cleanFiles += baseDirectory.value / "docs-build",
     //   mdocJS := Some(webapp),
     //   // https://scalameta.org/mdoc/docs/js.html#using-scalajs-bundler
     //   mdocJSLibraries := ((webapp / Compile / fullOptJS) / webpack).value,
@@ -73,7 +74,7 @@ lazy val docs = project // new documentation project
       //     scala.sys.process.Process(
       //       "md2html" :: "docs-build/target/mdoc/readme.md" :: Nil
       //     ) #> file("docs-build/target/mdoc/readme.html") ! log
-    }
+    },
   )
   .settings(mdocVariables := Map("VERSION" -> version.value))
   .dependsOn(did.jvm) // , webapp) // jsdocs)
@@ -274,6 +275,8 @@ addCommandAlias(
     "multiformatsJS/test"
 )
 addCommandAlias("testAll", ";testJVM;testJS")
+addCommandAlias("compileAll", "docs/mdoc;compile")
+addCommandAlias("cleanAll", "clean;docs/clean")
 
 lazy val root = project
   .in(file("."))
