@@ -28,13 +28,14 @@ In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
 - This readme [Scala-did](./readme.md)
 - [External documentation](./external-documentation.md)
 - **Quickstart**
+  - [Get Started](./quickstart-get-started.md)
+  - [Basic Examples](./quickstart-basic-examples.md)
   - [Setup Environment](./quickstart-setup-environment.md)
     - [scala-cli on docker](./quickstart-setup-environment.md#scala-cli-on-docker)- recommended way just to get the feeling of the library
     - [sbt setup](./quickstart-setup-environment.md#sbt-setup) - for any project.
     - [coursier download](./quickstart-setup-environment.md#coursier-download)
-  - [Get Started](./quickstart-get-started.md)
   with some code samples
 - **Test**
   - [Test coverage](./test-coverage.md)
   - [Interoperability](./test-interoperability.md)
-- [Troubleshoot](./troubleshoot.md)
+- [Troubleshooting](./troubleshooting.md)
