@@ -38,4 +38,5 @@ In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
 - **Test**
   - [Test coverage](./test-coverage.md)
   - [Interoperability](./test-interoperability.md)
+- [Limitations](./limitations.md)
 - [Troubleshooting](./troubleshooting.md)
