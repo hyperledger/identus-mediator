@@ -64,18 +64,18 @@ trait CryptoOperations {
   def decrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message] = anonDecrypt(recipientKidsKeys, msg)
+  ): IO[DidFail, Array[Byte]] = anonDecrypt(recipientKidsKeys, msg)
 
   def decrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message] = authDecrypt(senderKey, recipientKidsKeys, msg)
+  ): IO[DidFail, Array[Byte]] = authDecrypt(senderKey, recipientKidsKeys, msg)
 
-  def anonDecrypt(
+  def anonDecryptMessage(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message] = anonDecryptRaw(recipientKidsKeys, msg)
+  ): IO[DidFail, Message] = anonDecrypt(recipientKidsKeys, msg)
     .flatMap(data =>
       ZIO.fromEither {
         String(data)
@@ -85,12 +85,12 @@ trait CryptoOperations {
       }
     )
 
-  def authDecrypt(
+  def authDecryptMessage(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
   ): IO[DidFail, Message] =
-    authDecryptRaw(senderKey, recipientKidsKeys, msg)
+    authDecrypt(senderKey, recipientKidsKeys, msg)
       .flatMap(data =>
         ZIO.fromEither {
           String(data)
@@ -102,12 +102,12 @@ trait CryptoOperations {
 
   // ## Decrypt - RAW ##
 
-  def anonDecryptRaw(
+  def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
   ): IO[DidFail, Array[Byte]]
 
-  def authDecryptRaw(
+  def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage

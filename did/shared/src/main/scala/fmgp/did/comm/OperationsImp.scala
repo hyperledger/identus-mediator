@@ -116,7 +116,13 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
             if (kidsNeeded.contains(vmr)) Some(vmr, k) else None
           }
         )
-      ret <- cryptoOperations.anonDecrypt(keys, msg)
+      data <- cryptoOperations.anonDecrypt(keys, msg)
+      ret <- ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
     } yield ret
   }
 
@@ -146,7 +152,13 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
         }
         .find { e => e.vmr == skid }
         .get // FIXME
-      ret <- cryptoOperations.authDecrypt(senderKey.key, keys, msg)
+      data <- cryptoOperations.authDecrypt(senderKey.key, keys, msg)
+      ret <- ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
     } yield ret
 
 }

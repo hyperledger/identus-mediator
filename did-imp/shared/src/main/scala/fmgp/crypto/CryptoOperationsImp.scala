@@ -126,7 +126,7 @@ object CryptoOperationsImp extends CryptoOperations {
   // ### decrypt ###
   // ###############
 
-  def anonDecryptRaw(
+  def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
   ): IO[DidFail, Array[Byte]] = {
@@ -156,7 +156,7 @@ object CryptoOperationsImp extends CryptoOperations {
       }
   }
 
-  def authDecryptRaw(
+  def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
