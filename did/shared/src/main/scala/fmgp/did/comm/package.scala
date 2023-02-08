@@ -13,4 +13,5 @@ package object comm {
   type JWM_PROTECTED = String // TODO Base64 (URL)
   type JWM_SIGNATURE = String // TODO create a opaque for type safe
 
+  type JWTToken = Json // TODO https://didcomm.org/book/v2/didrotation
 }

@@ -65,6 +65,24 @@ trait PlaintextMessage extends Message {
 
   def attachments: NotRequired[Seq[Attachment]]
 
+  /** DIDComm defines a specific header to handle DID rotation. This header is called from_prior and can be used in any
+    * message sent to the other party. That message must include the from_prior header that is a standard JWT token
+    * conformed with:
+    *   - Header:
+    *     - typ: jwt
+    *     - alg: verification algorithm such as EdDSA
+    *     - crv: curve name
+    *     - kid: key id from previous DID that is used in the signature of this JWT
+    *   - Payload:
+    *     - sub: the new DID
+    *     - iss: the previous DID
+    *     - iat: datetime in seconds
+    *   - Signature: from the previous DID and key defined in the kid
+    *
+    * For more information @see https://didcomm.org/book/v2/didrotation
+    */
+  def from_prior: NotRequired[JWTToken]
+
   // Extension: https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/l10n/main.md
   def `accept-lang`: NotRequired[Seq[LanguageCodeIANA]]
   def lang: NotRequired[LanguageCodeIANA] // IANA’s language codes  // IANA’s language subtag registry.
