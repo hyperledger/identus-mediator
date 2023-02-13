@@ -71,4 +71,8 @@ object Operations {
   ): ZIO[Operations & Agent & Resolver, DidFail, Message] =
     ZIO.serviceWithZIO[Operations](_.authDecrypt(msg))
 
+  def metaData(msg: EncryptedMessage) = msg.`protected`.obj match
+    case AnonProtectedHeader(epk, apv, typ, enc, alg)            =>
+    case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) =>
+
 }

@@ -19,6 +19,8 @@ import laika.api._
 import laika.format._
 import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
+import zio.http.Http.Empty
+import zio.http.Http.Static
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -36,11 +38,11 @@ import laika.parse.code.SyntaxHighlighting
   */
 object AppServer extends ZIOAppDefault {
 
-  val mdocMarkdown = Http.collectHttp[Request] { case req @ Method.GET -> !! / "mdoc" / path =>
+  val mdocMarkdown = Http.collectRoute[Request] { case req @ Method.GET -> !! / "mdoc" / path =>
     Http.fromResource(s"$path")
   }
 
-  val mdocHTML = Http.collectHttp[Request] { case req @ Method.GET -> !! / "doc" / path =>
+  val mdocHTML = Http.collectRoute[Request] { case req @ Method.GET -> !! / "doc" / path =>
     val transformer = Transformer
       .from(Markdown)
       .to(HTML)
@@ -57,11 +59,9 @@ object AppServer extends ZIOAppDefault {
     }
   }
 
-  val app: Http[
+  val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
     Hub[String] & AgentByHost & Operations & MessageDispatcher,
-    Throwable,
-    Request,
-    Response
+    Throwable
   ] = MediatorAgent.didCommApp ++ Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
@@ -169,11 +169,16 @@ object AppServer extends ZIOAppDefault {
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(
-        app.foldCauseHttp( // THIS is to log all the erros
-          cause => Http.fromZIO(ZIO.logErrorCause(cause)) *> Http.failCause(cause),
-          Http.succeed,
-          Http.empty
-        )
+        app
+          .tapUnhandledZIO(ZIO.logError("Unhandled Endpoint"))
+          .tapErrorCauseZIO(cause => ZIO.logErrorCause(cause)) // THIS is to log all the erros
+          .mapError(err =>
+            Response(
+              status = Status.BadRequest,
+              headers = Headers.empty,
+              body = Body.fromString(err.getMessage()),
+            )
+          )
       )
       .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations & MessageDispatcher]) =>
         env.add(myHub)
