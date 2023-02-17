@@ -10,29 +10,32 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.example._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import fmgp.did.resolver.peer.DIDPeer._
 import fmgp.did.resolver.peer.DidPeerResolver
 import com.raquo.airstream.ownership._
 import fmgp.crypto.error._
+import fmgp.did.resolver.peer.DIDPeer
 
 object ResolverTool {
 
-  val agentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
+  val didVar: Var[Option[DID]] = Var(initial = None)
   val customVar: Var[String] = Var(initial = "")
   val didDocumentVar: Var[Either[String, DIDDocument]] = Var(initial = Left(""))
 
-  val job = Signal
-    .combine(agentVar, customVar)
+  def job(owner: Owner) = Signal
+    .combine(didVar, customVar)
     .map {
-      case (Some(agent), custom) => didDocumentVar.update(_ => Right(agent.id.document))
+      case (Some(did), custom) =>
+        DIDPeer.fromDID(did) match
+          case Left(error) => didDocumentVar.update(_ => Left(error))
+          case Right(peer) => didDocumentVar.update(_ => Right(peer.document))
       case (None, custom) =>
         val program = {
           ZIO
-            .fromEither(DIDSubject.either(custom))
-            .flatMap(did => DidPeerResolver.didDocument(did))
+            .fromEither(FROMTO.either(custom))
+            .flatMap(did => DidPeerResolver().didDocument(did))
             .mapBoth(
               errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
               doc => didDocumentVar.update(_ => Right(doc))
@@ -40,20 +43,21 @@ object ResolverTool {
         }
         Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
-    code("DID Resolver Page (for 'did:peer')"),
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
+    code("DID Resolver Page (only 'did:peer' is supported)"),
     p(
       "Agent: ",
-      select(
-        value <-- agentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> agentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      Global.makeSelectElementDID(didVar),
+      " ",
+      code(child.text <-- didVar.signal.map(_.map(_.string).getOrElse("custom")))
     ),
-    pre(code(child.text <-- agentVar.signal.map(_.map(_.id.string).getOrElse("custom")))),
-    div(child <-- agentVar.signal.map {
+    div(child <-- didVar.signal.map {
       case Some(agent) => div()
       case None =>
         div(
@@ -73,6 +77,14 @@ object ResolverTool {
           case Right(doc)      => doc.toJsonPretty
           case Left(errorInfo) => errorInfo
         }
+      )
+    ),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        didDocumentVar.now() match
+          case Right(doc)      => doc.toJson
+          case Left(errorInfo) => errorInfo
       )
     )
   )

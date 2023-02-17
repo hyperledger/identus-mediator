@@ -1,10 +1,19 @@
 package fmgp.crypto
 
+import scala.concurrent.Future
+import scala.util.Try
+import scala.util.chaining._
+import scala.jdk.CollectionConverters._
+
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.JWSObject
 import com.nimbusds.jose.JWSSigner
-import com.nimbusds.jose.Payload
+import com.nimbusds.jose.{Payload => JosePayload}
+import com.nimbusds.jose.JWEHeader
+import com.nimbusds.jose.JWEAlgorithm
+import com.nimbusds.jose.EncryptionMethod
+import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.crypto.ECDSASigner
 import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jose.crypto.Ed25519Verifier
@@ -12,27 +21,16 @@ import com.nimbusds.jose.crypto.Ed25519Signer
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{Curve => JWKCurve}
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
+import com.nimbusds.jose.util.Base64URL
 import com.nimbusds.jose.util.StandardCharset
+
+import zio.json._
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm.EncryptedMessageGeneric
 import fmgp.did.comm._
 import fmgp.util._
-import zio.json._
-
-import scala.concurrent.Future
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import scala.util.chaining._
-import scala.collection.JavaConverters._
-
-import com.nimbusds.jose.JWEHeader
-import com.nimbusds.jose.JWEAlgorithm
-import com.nimbusds.jose.EncryptionMethod
-import com.nimbusds.jose.JOSEObjectType
 import fmgp.crypto.UtilsJVM.toJWK
-import com.nimbusds.jose.util.Base64URL
 
 given Conversion[Base64Obj[ProtectedHeader], JWEHeader] with
   def apply(x: Base64Obj[ProtectedHeader]) = {
@@ -133,7 +131,7 @@ object UtilsJVM {
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
       verifier.verify(
         haeder,
-        (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
+        (jwm.base64noSignature).getBytes(StandardCharset.UTF_8),
         Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
@@ -143,7 +141,7 @@ object UtilsJVM {
 
       val signer: JWSSigner = new ECDSASigner(ecKey) // Create the EC signer
       val haeder: JWSHeader = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(ecKey.getKeyID()).build()
-      val payloadObj = new Payload(plaintext.toJson)
+      val payloadObj = new JosePayload(plaintext.toJson)
       val jwsObject: JWSObject = new JWSObject(haeder, payloadObj) // Creates the JWS object with payload
 
       jwsObject.sign(signer)
@@ -152,7 +150,7 @@ object UtilsJVM {
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
           SignedMessage(
-            payload = payload,
+            payload = Payload.fromBase64url(payload),
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
       }
@@ -166,7 +164,7 @@ object UtilsJVM {
       val haeder = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(_key.getKeyID()).build()
       verifier.verify(
         haeder,
-        (jwm.signatures.head.`protected` + "." + jwm.payload).getBytes(StandardCharset.UTF_8),
+        (jwm.base64noSignature).getBytes(StandardCharset.UTF_8),
         Base64.fromBase64url(jwm.signatures.head.signature) // FIXME .head
       )
     }
@@ -176,7 +174,7 @@ object UtilsJVM {
 
       val signer: JWSSigner = new Ed25519Signer(okpKey) // Create the OKP signer
       val haeder: JWSHeader = new JWSHeader.Builder(alg.toJWSAlgorithm).keyID(okpKey.getKeyID()).build()
-      val payloadObj = new Payload(plaintext.toJson)
+      val payloadObj = new JosePayload(plaintext.toJson)
 
       val jwsObject: JWSObject = new JWSObject(haeder, payloadObj) // Creates the JWS object with payload
 
@@ -186,7 +184,7 @@ object UtilsJVM {
           assert(payload == payloadObj.toBase64URL.toString) // redundant check
           assert(signature == jwsObject.getSignature.toString) // redundant check
           SignedMessage(
-            payload = payload,
+            payload = Payload.fromBase64url(payload),
             Seq(JWMSignatureObj(`protected` = `protectedValue`, signature = signature)) // TODO haeder
           )
       }

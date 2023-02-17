@@ -1,4 +1,4 @@
-package fmgp.did.example
+package fmgp.did.demo
 
 import zio._
 import zio.json._
@@ -10,8 +10,6 @@ import fmgp.did.resolver.peer._
 import fmgp.multibase._
 import fmgp.multibase.Base.Base58BTC
 import fmgp.util.Base64
-import fmgp.did.example.Agent0Mediators
-import fmgp.did.example.Agent1Mediators
 
 /** didExampleJVM/runMain fmgp.did.example.ExampleMain */
 @main def ExampleMain() = {
@@ -41,12 +39,9 @@ import fmgp.did.example.Agent1Mediators
     afterDecryot <- authDecrypt(msg2).provideSomeLayer(Agent1Mediators.agentLayer)
   } yield ()
 
-  val operations: ULayer[Operations] = ZLayer.succeed(new MyOperations())
-  val resolvers = ZLayer.succeed(DidPeerResolver)
-
   Unsafe.unsafe { implicit unsafe => // Run side efect
     Runtime.default.unsafe
-      .run(program.provide(operations ++ resolvers))
+      .run(program.provide(Operations.layerDefault ++ DidPeerResolver.layer))
       .getOrThrowFiberFailure()
   }
 }

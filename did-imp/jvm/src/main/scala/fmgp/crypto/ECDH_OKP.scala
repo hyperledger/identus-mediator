@@ -1,10 +1,17 @@
 package fmgp.crypto
 
+import scala.util.Try
+import scala.util.chaining._
+import scala.collection.convert._
+import scala.jdk.CollectionConverters._
+import java.util.Collections
+
 import com.nimbusds.jose.crypto.impl.ECDH
 import com.nimbusds.jose.crypto.impl.ECDH1PU
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral
 import com.nimbusds.jose.jwk.OctetKeyPair
 import com.nimbusds.jose.jwk.{ECKey => JWKECKey}
+import javax.crypto.SecretKey
 
 import fmgp.did.VerificationMethodReferenced
 import fmgp.did.comm._
@@ -14,14 +21,6 @@ import fmgp.util.Base64
 
 import zio.json._
 
-import scala.util.Try
-import scala.util.chaining._
-import scala.collection.convert._
-import scala.collection.JavaConverters._
-
-import java.util.Collections
-
-import javax.crypto.SecretKey
 import fmgp.crypto.error._
 
 trait ECDH_UtilsOKP {

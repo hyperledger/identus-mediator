@@ -10,6 +10,7 @@ import zio._
 import zio.json._
 import zio.json.ast.Json
 
+/** didJVM/testOnly fmgp.did.comm.MessageSuite */
 class MessageSuite extends ZSuite {
   test("Parse PlaintextMessage") {
     EncryptedMessageExamples.plaintextMessage.fromJson[Message] match {

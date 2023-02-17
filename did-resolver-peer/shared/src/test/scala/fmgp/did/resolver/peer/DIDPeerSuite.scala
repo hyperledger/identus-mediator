@@ -86,6 +86,18 @@ class DIDPeerSuite extends ZSuite {
         )
   }
 
+  test("Parse DIDPeer with missing optional fields of the service endpoint") {
+    val s = DIDSubject(rootsid_ex_peer2_did)
+    DIDPeer.fromDID(s) match
+      case Left(value) => fail(value)
+      case Right(did) =>
+        assertEquals(did.string, s.string)
+        assertEquals(
+          Some(did.document.toJsonPretty),
+          rootsid_ex_peer2_didDocument.fromJson[Json].map(_.toJsonPretty).toOption
+        )
+  }
+
   test("Create DIDPeer apply keys") {
     val keyAgreement = OKPPrivateKey(
       kty = KTY.OKP,

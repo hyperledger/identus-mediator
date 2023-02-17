@@ -25,7 +25,7 @@ extension (msg: PlaintextMessage)
 sealed trait TrustPing {
   def piuri = TrustPing.piuri
   def id: MsgID
-  def to: DID
+  def to: TO
   def response_requested: Boolean // default is false
 
   // utils
@@ -62,8 +62,8 @@ object TrustPing {
 
 final case class TrustPingWithRequestedResponse(
     id: MsgID = MsgID(),
-    from: DID,
-    to: DID,
+    from: FROM,
+    to: TO,
 ) extends TrustPing {
   def response_requested: Boolean = true
 
@@ -86,8 +86,8 @@ final case class TrustPingWithRequestedResponse(
 
 final case class TrustPingWithOutRequestedResponse(
     id: MsgID = MsgID(),
-    from: Option[DID],
-    to: DID,
+    from: Option[FROM],
+    to: TO,
 ) extends TrustPing {
   def response_requested: Boolean = false
 
@@ -118,12 +118,15 @@ final case class TrustPingWithOutRequestedResponse(
 final case class TrustPingResponse(
     id: MsgID = MsgID(),
     thid: MsgID,
+    // to: Option[DIDSubject] // Should this field be required? (not in example)
 ) {
-  def toPlaintextMessage: PlaintextMessage =
+  def toPlaintextMessage(to: TO, from: Option[FROM]): PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = TrustPingResponse.piuri,
       thid = Some(thid),
+      to = Some(Set(to)),
+      from = from
     )
 
 }
@@ -135,6 +138,13 @@ object TrustPingResponse {
       Left(s"No able to create TrustPingResponse from a Message of the type '${msg.`type`}'")
     else
       msg.thid match
-        case None       => Left(s"'$piuri' MUST have the field 'thid'")
-        case Some(thid) => Right(new TrustPingResponse(id = msg.id, thid = thid))
+        case None => Left(s"'$piuri' MUST have the field 'thid'")
+        case Some(thid) =>
+          Right(
+            TrustPingResponse(
+              id = msg.id,
+              thid = thid,
+              // to = msg.to.flatMap(_.headOption)
+            )
+          )
 }

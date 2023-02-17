@@ -4,6 +4,7 @@ import munit._
 import zio.json._
 import fmgp.did.DIDDocument
 
+/** didJS/testOnly fmgp.did.comm.DIDCommSuite */
 class DIDCommSuite extends FunSuite {
 
   test("Example parse plaintextMessage") {
@@ -31,7 +32,7 @@ class DIDCommSuite extends FunSuite {
     ret match {
       case Left(error) => fail(error)
       case Right(obj) =>
-        assertEquals(obj.id.value, "did:example:alice")
+        assertEquals(obj.id.did, "did:example:alice")
         assert(obj.authentication.isDefined)
         assertEquals(obj.getAuthentications.size, 3)
         assert(obj.keyAgreement.isDefined)
@@ -44,7 +45,7 @@ class DIDCommSuite extends FunSuite {
     ret match {
       case Left(error) => fail(error)
       case Right(obj) =>
-        assertEquals(obj.id.value, "did:example:bob")
+        assertEquals(obj.id.did, "did:example:bob")
         assert(obj.keyAgreement.isDefined)
         assertEquals(obj.keyAgreement.get.size, 9)
     }

@@ -10,6 +10,7 @@ import org.scalajs.dom.HTMLElement
 import typings.mermaid
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
+import typings.std.stdBooleans.`false`
 
 @JSExportTopLevel("DAppStore")
 object DAppStore {
@@ -35,7 +36,7 @@ object DAppStore {
     div(child <-- statementVar.signal.map(e => getHtml(e)))
 
   def getHtml(statement: Option[Statement], indent: Int = 0): ReactiveHtmlElement[HTMLElement] =
-    div(className("mermaid"), statementToMermaid(statement), onMountCallback(ctx => { update }))
+    div(className("mermaid"), statementToMermaid(statement), onMountCallback(ctx => { Global.update("div.mermaid") }))
 
   def statementToMermaid(s: Option[Statement]): String = {
 
@@ -63,11 +64,4 @@ object DAppStore {
     aux
   }
 
-  @JSExport
-  def update = {
-    println("MermaidApp Update!!")
-    // val config = mermaid.mermaidAPIMod.mermaidAPI.Config().setStartOnLoad(false)
-    // mermaid.mod.default.initialize(config)
-    mermaid.mod.default.init("div.mermaid")
-  }
 }

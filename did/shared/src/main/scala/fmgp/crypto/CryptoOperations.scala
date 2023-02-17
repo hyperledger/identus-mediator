@@ -1,6 +1,7 @@
 package fmgp.crypto
 
 import zio._
+import zio.json._
 
 import fmgp.did._
 import fmgp.did.comm._
@@ -8,6 +9,10 @@ import fmgp.crypto.error._
 
 /** methods: sign verify anonEncrypt authEncrypt anonDecrypt authDecrypt */
 trait CryptoOperations {
+
+  // ############
+  // ### Sign ###
+  // ############
 
   def sign(
       key: PrivateKey,
@@ -56,30 +61,56 @@ trait CryptoOperations {
   // ### Decrypt ###
   // ###############
 
+  def decrypt(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Array[Byte]] = anonDecrypt(recipientKidsKeys, msg)
+
+  def decrypt(
+      senderKey: PublicKey,
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Array[Byte]] = authDecrypt(senderKey, recipientKidsKeys, msg)
+
+  def anonDecryptMessage(
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Message] = anonDecrypt(recipientKidsKeys, msg)
+    .flatMap(data =>
+      ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
+    )
+
+  def authDecryptMessage(
+      senderKey: PublicKey,
+      recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
+      msg: EncryptedMessage
+  ): IO[DidFail, Message] =
+    authDecrypt(senderKey, recipientKidsKeys, msg)
+      .flatMap(data =>
+        ZIO.fromEither {
+          String(data)
+            .fromJson[Message]
+            .left
+            .map(info => FailToParse(s"Decoding into a Message: $info"))
+        }
+      )
+
+  // ## Decrypt - RAW ##
+
   def anonDecrypt(
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message]
+  ): IO[DidFail, Array[Byte]]
 
   def authDecrypt(
       senderKey: PublicKey,
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PrivateKey)],
       msg: EncryptedMessage
-  ): IO[DidFail, Message]
-
-  /*TODO REMOVE
-  def anonDecryptOne(
-      key: PrivateKey,
-      encryptedKey: String,
-      msg: EncryptedMessage
-  ): IO[DidFail, Message]
-
-  def authDecryptOne(
-      recipientKey: PrivateKey,
-      senderKey: PublicKey,
-      encryptedKey: String,
-      msg: EncryptedMessage
-  ): IO[DidFail, Message]
-   */
+  ): IO[DidFail, Array[Byte]]
 
 }

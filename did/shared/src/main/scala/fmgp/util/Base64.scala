@@ -2,10 +2,14 @@ package fmgp.util
 
 import java.{util => ju}
 import zio.json._
+import scala.collection.compat.immutable.ArraySeq
+import scala.util.Try
 
 // Base64 URL
-// opaque type Base64 = Array[Byte]
-opaque type Base64 = Seq[Byte]
+// opaque type Base64 = ArraySeq[Byte] // Byte is primitive, but elements will be boxed/unboxed on their way in or out of the backing Array
+opaque type Base64 = Vector[Byte] //TODO benchmark this
+// opaque type Base64 = Array[Byte] // Not hash safe! Has different hash each instance.
+//opaque type Base64 = Seq[Byte]
 
 object Base64:
   /** Base64 url encoder RFC4648 */
@@ -25,28 +29,45 @@ object Base64:
 
   /** @param str
     *   Base64 URL string
+    *
+    * TODO: method copyArrayToImmutableIndexedSeq in class LowPriorityImplicits2 is deprecated since 2.13.0: Implicit
+    * conversions from Array to immutable.IndexedSeq are implemented by copying; Use the more efficient non-copying
+    * ArraySeq.unsafeWrapArray or an explicit toIndexedSeq call
     */
-  def apply(str: String): Base64 = str.getBytes
+  def apply(str: String): Base64 = str.getBytes.toVector
 
   /** @param str
     *   Base64 URL Byte
     */
-  def apply(bytes: Array[Byte]): Base64 = bytes
-  def fromBase64url(str: String): Base64 = str.getBytes
+  def apply(bytes: Array[Byte]): Base64 = bytes.toVector
+  def apply(bytes: Vector[Byte]): Base64 = bytes
+  // TODO rename fromBase64url to unsafeBase64url
+  def fromBase64url(str: String): Base64 = unsafeBase64url(str)
   def fromBase64(str: String): Base64 = encode(basicDecoder.decode(str.getBytes))
-  def encode(str: String): Base64 = urlEncoder.encode(str.getBytes)
-  def encode(data: Array[Byte]): Base64 = urlEncoder.encode(data)
+
+  inline def unsafeBase64url(str: String): Base64 = str.getBytes.toVector
+  def safeBase64url(str: String): Either[String, Base64] =
+    Try(Base64.urlDecoder.decode(str)).toEither match // try to par
+      case Right(value)                       => Right(unsafeBase64url(str))
+      case Left(ex: IllegalArgumentException) => Left("Fail to decode base64: " + ex.getMessage)
+      case Left(ex) /*should never happen*/   => Left("Fail to decode base64: " + ex.getMessage)
+
+  inline def encode(str: String): Base64 = urlEncoder.encode(str.getBytes).toVector
+  inline def encode(data: Array[Byte]): Base64 = urlEncoder.encode(data).toVector
+  inline def encode(data: Vector[Byte]): Base64 = urlEncoder.encode(data.toArray).toVector
 
   extension (bytes: Base64)
-    def urlBase64: String = String(bytes.toArray).filterNot(_ == '=')
-    def basicBase64: String = String(Base64.basicEncoder.encode(Base64.urlDecoder.decode(bytes.toArray)))
-    def bytes: Seq[Byte] = bytes
-    def byteArray: Array[Byte] = bytes.toArray
-    def decode: Seq[Byte] = Base64.urlDecoder.decode(bytes.toArray)
-    def decodeToString: String = String(Base64.urlDecoder.decode(bytes.toArray))
+    def bytes: Array[Byte] = bytes.toArray
+    def bytesArray: Array[Byte] = bytes.toArray
+    def bytesVec: Vector[Byte] = bytes
+    def urlBase64: String = String(bytesArray).filterNot(_ == '=')
+    def basicBase64: String = String(Base64.basicEncoder.encode(Base64.urlDecoder.decode(bytesArray)))
+    def decode: Array[Byte] = Base64.urlDecoder.decode(bytesArray)
+    def decodeToVector: Vector[Byte] = Base64.urlDecoder.decode(bytesArray).toVector
+    def decodeToString: String = String(Base64.urlDecoder.decode(bytesArray))
 
     /** Decodes this Base64 object to an unsigned big integer. */
-    def decodeToBigInt = BigInt(1, bytes.decode.toArray)
+    def decodeToBigInt = BigInt(1, bytes.decode)
     def decodeToHex = bytes.decode.map("%02X".format(_)).mkString
 
 /** Base64Obj keep the original base64 encoder (useful to preserve data for doing MAC checks) */

@@ -1,15 +1,14 @@
 package fmgp.did.comm
 
 import zio.json._
-import zio.json.ast.Json
 import fmgp.did._
 import fmgp.did.comm.extension._
 
 case class PlaintextMessageClass(
     id: Required[MsgID],
     `type`: PIURI,
-    to: NotRequired[Set[DIDSubject]] = None,
-    from: NotRequired[DIDSubject] = None,
+    to: NotRequired[Set[TO]] = None,
+    from: NotRequired[FROM] = None,
     thid: NotRequired[MsgID] = None,
     created_time: NotRequired[UTCEpoch] = None,
     expires_time: NotRequired[UTCEpoch] = None,
@@ -17,6 +16,9 @@ case class PlaintextMessageClass(
     attachments: NotRequired[Seq[Attachment]] = None,
 
     // # Extensions
+    // DID rotation
+    from_prior: NotRequired[JWTToken] = None,
+
     // l10n
     `accept-lang`: NotRequired[Seq[LanguageCodeIANA]] = None,
     lang: NotRequired[LanguageCodeIANA] = None, // IANA’s language codes  // IANA’s language subtag registry.

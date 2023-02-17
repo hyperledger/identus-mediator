@@ -14,12 +14,12 @@ object BaseNImpl {
       @tailrec
       def buildBase(res: String, bi: BigInt): String =
         if (bi <= 0) res
-        else buildBase(alphabet((bi % baseSize).toInt) + res, bi / baseSize)
+        else buildBase(alphabet((bi % baseSize).toInt).toString + res, bi / baseSize)
 
       @tailrec
       def confirmZeroByte(res: String, bytes: Array[Byte], idx: Int): String =
         if (bytes(idx) != 0 || idx >= bytes.length) res
-        else confirmZeroByte(ZERO + res, bytes, idx + 1)
+        else confirmZeroByte(ZERO.toString + res, bytes, idx + 1)
 
       confirmZeroByte(buildBase("", BigInt(1, data)), data, 0)
     }

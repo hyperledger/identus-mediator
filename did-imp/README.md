@@ -4,6 +4,7 @@ The plan is to eventually have a fully functional implementation for JVM and JS 
 
 ## TODO
 
+- Fix all FIXME and remove the ???
 - Have our implementation of:
   - AdditionalAuthenticatedData - https://www.rfc-editor.org/rfc/rfc7518#section-5
 - Keep meta information when decrypting a message

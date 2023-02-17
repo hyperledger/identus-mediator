@@ -1,10 +1,11 @@
 package fmgp.did
 
 import zio.json._
-import fmgp.crypto.PublicKey
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
+import fmgp.crypto.PublicKey
 import fmgp.crypto.OKPPublicKey
+import fmgp.did.comm.FROMTO
 
 /** MULTIBASE encoded public key.- https://datatracker.ietf.org/doc/html/draft-multiformats-multibase-03 */
 type MULTIBASE = String // TODO
@@ -48,6 +49,7 @@ object VerificationMethodReferencedWithKey {
 
 case class VerificationMethodReferenced(value: String) extends VerificationMethod {
   def did = DIDSubject(value.split('#').head)
+  def fromto = FROMTO(value.split('#').head) // FIXME
 }
 object VerificationMethodReferenced {
   given decoder: JsonDecoder[VerificationMethodReferenced] = JsonDecoder.string.map(VerificationMethodReferenced.apply)
@@ -60,7 +62,7 @@ object VerificationMethodReferenced {
 
 sealed trait VerificationMethodEmbedded extends VerificationMethod {
   def id: Required[DIDURLSyntax]
-  def controller: Required[DIDSubject]
+  def controller: Required[DIDController]
   def `type`: Required[String]
 
   // def publicKeyJwk: NotRequired[JSONWebKeyMap]
@@ -76,7 +78,7 @@ sealed trait VerificationMethodEmbedded extends VerificationMethod {
   */
 case class VerificationMethodEmbeddedJWK(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
-    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
+    controller: Required[DIDController], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
     publicKeyJwk: Required[PublicKey]
 ) extends VerificationMethodEmbedded {
@@ -94,7 +96,7 @@ object VerificationMethodEmbeddedJWK {
   */
 case class VerificationMethodEmbeddedMultibase(
     id: Required[DIDURLSyntax], // "did:example:123456789abcdefghi#keys-1",
-    controller: Required[DIDSubject], // "did:example:123456789abcdefghi",
+    controller: Required[DIDController], // "did:example:123456789abcdefghi",
     `type`: Required[String], // "Ed25519VerificationKey2020",
     publicKeyMultibase: Required[MULTIBASE]
 ) extends VerificationMethodEmbedded {

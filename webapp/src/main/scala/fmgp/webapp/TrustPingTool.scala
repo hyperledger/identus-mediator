@@ -10,16 +10,15 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.example._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.trustping2._
-import fmgp.did.resolver.peer.DIDPeer._
+import fmgp.did.resolver.peer.DIDPeer
 import fmgp.did.resolver.peer.DidPeerResolver
 
+import fmgp.did.AgentProvider
 object TrustPingTool {
 
-  val fromAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
-  val toAgentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
+  val toDIDVar: Var[Option[DID]] = Var(initial = None)
   val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
 
   val responseRequestedVar = Var(initial = true)
@@ -29,22 +28,22 @@ object TrustPingTool {
   def mTrustPing =
     Signal
       .combine(
-        fromAgentVar,
-        toAgentVar,
+        Global.agentVar,
+        toDIDVar,
         responseRequestedVar
       )
       .map {
         case (mFrom, None, responseRequested) => Left("Missing the 'TO'")
         case (None, Some(to), true)           => Left("Missing the 'FROM' (since response_requested is true)")
         case (Some(from), Some(to), true) =>
-          Right(TrustPingWithRequestedResponse(from = from.id, to = to.id))
+          Right(TrustPingWithRequestedResponse(from = from.id, to = to))
         case (mFrom, Some(to), false) =>
-          Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to.id))
+          Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to))
       }
 
-  val job = Signal
+  def job(owner: Owner) = Signal
     .combine(
-      fromAgentVar,
+      Global.agentVar,
       mTrustPing
     )
     .map {
@@ -59,7 +58,7 @@ object TrustPingTool {
                 .anonEncrypt(message)
                 .map(msg => encryptedMessageVar.update(_ => Some(msg)))
             Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(DidPeerResolver)))
+              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(DidPeerResolver())))
             }
       case (Some(agent), Right(tp: TrustPing)) =>
         tp.toPlaintextMessage match
@@ -70,32 +69,30 @@ object TrustPingTool {
                 .authEncrypt(message)
                 .map(msg => encryptedMessageVar.update(_ => Some(msg)))
             Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver)))
+              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver())))
             }
     }
-    .observe(App.owner)
+    .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("TrustPing Tool"),
     p(
+      overflowWrap.:=("anywhere"),
       "FROM: ",
-      select(
-        value <-- fromAgentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> fromAgentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      " ",
+      code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("none")))
     ),
-    pre(code(child.text <-- fromAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
-    // pre(code(child.text <-- fromAgentVar.signal.map(_.map(e => e.id.document.toJsonPretty).getOrElse("--")))),
     p(
+      overflowWrap.:=("anywhere"),
       "TO: ",
-      select(
-        value <-- toAgentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> toAgentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      Global.makeSelectElementDID(toDIDVar),
+      " ",
+      code(child.text <-- toDIDVar.signal.map(_.map(_.string).getOrElse("none"))),
     ),
-    pre(code(child.text <-- toAgentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
     p("Requested Response:"),
     input(
       typ("checkbox"),
@@ -109,6 +106,14 @@ object TrustPingTool {
       "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
     ),
     pre(code(child.text <-- encryptedMessageVar.signal.map(_.toJsonPretty))),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        encryptedMessageVar.now() match
+          case None        => "None"
+          case Some(value) => value.toJson
+      )
+    )
   )
 
   def apply(): HtmlElement = rootElement

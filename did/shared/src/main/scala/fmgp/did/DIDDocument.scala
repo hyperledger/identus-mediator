@@ -41,6 +41,14 @@ trait DIDDocument extends DID {
     case v: VerificationMethod                   => Seq(v)
     case seq: Seq[VerificationMethod] @unchecked => seq
   }
+
+  private inline def getServices = service.toSeq.flatten
+  def getDIDServiceDIDCommMessaging = getServices
+    .collect { case e: DIDServiceDIDCommMessaging => e }
+  def getDIDServiceDIDLinkedDomains = getServices
+    .collect { case e: DIDServiceDIDLinkedDomains => e }
+  def getDIDServiceDecentralizedWebNode = getServices
+    .collect { case e: DIDServiceDecentralizedWebNode => e }
 }
 
 object DIDDocument {

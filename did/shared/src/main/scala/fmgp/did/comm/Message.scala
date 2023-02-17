@@ -41,13 +41,13 @@ trait PlaintextMessage extends Message {
   /** type or piuri is a URI that associates the body of a plaintext message with a published and versioned schema */
   def `type`: PIURI
 
-  def to: NotRequired[Set[DIDSubject]]
+  def to: NotRequired[Set[TO]]
 
   /** OPTIONAL when the message is to be encrypted via anoncrypt;
     *
     * TODO REQUIRED when the message is encrypted via authcrypt
     */
-  def from: NotRequired[DIDSubject]
+  def from: NotRequired[FROM]
 
   /** Thread identifier */
   def thid: NotRequired[MsgID]
@@ -64,6 +64,24 @@ trait PlaintextMessage extends Message {
   def body: Required[JSON_RFC7159]
 
   def attachments: NotRequired[Seq[Attachment]]
+
+  /** DIDComm defines a specific header to handle DID rotation. This header is called from_prior and can be used in any
+    * message sent to the other party. That message must include the from_prior header that is a standard JWT token
+    * conformed with:
+    *   - Header:
+    *     - typ: jwt
+    *     - alg: verification algorithm such as EdDSA
+    *     - crv: curve name
+    *     - kid: key id from previous DID that is used in the signature of this JWT
+    *   - Payload:
+    *     - sub: the new DID
+    *     - iss: the previous DID
+    *     - iat: datetime in seconds
+    *   - Signature: from the previous DID and key defined in the kid
+    *
+    * For more information @see https://didcomm.org/book/v2/didrotation
+    */
+  def from_prior: NotRequired[JWTToken]
 
   // Extension: https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/l10n/main.md
   def `accept-lang`: NotRequired[Seq[LanguageCodeIANA]]
@@ -113,7 +131,8 @@ case class SignedMessage(
     payload: Payload,
     signatures: Seq[JWMSignatureObj]
 ) extends Message {
-  def base64 = signatures.head.`protected` + "." + payload + "." + signatures.head.signature
+  def base64 = signatures.head.`protected` + "." + payload.base64url + "." + signatures.head.signature
+  def base64noSignature = signatures.head.`protected` + "." + payload.base64url
 }
 
 object SignedMessage {
@@ -127,7 +146,7 @@ object JWMSignatureObj {
   given encoder: JsonEncoder[JWMSignatureObj] = DeriveJsonEncoder.gen[JWMSignatureObj]
 }
 
-case class JWMHeader(kid: String) //FIXME DIDSuject
+case class JWMHeader(kid: String) //FIXME DIDURI
 object JWMHeader {
   given decoder: JsonDecoder[JWMHeader] = DeriveJsonDecoder.gen[JWMHeader]
   given encoder: JsonEncoder[JWMHeader] = DeriveJsonEncoder.gen[JWMHeader]

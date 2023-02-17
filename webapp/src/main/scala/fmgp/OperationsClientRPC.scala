@@ -1,37 +1,22 @@
 package fmgp.did.comm
 
-import fmgp.crypto.error.DidFail
-
-import fmgp.did._
-import fmgp.crypto._
-import fmgp.crypto.error._
+import scala.scalajs.js
+import org.scalajs.dom._
 
 import zio._
 import zio.json._
 
+import fmgp.did._
 import fmgp.did.Resolver
-import typings.materialBase.materialBaseStrings.input
-
-import scala.scalajs.js
-import org.scalajs.dom._
-import org.scalajs.dom
+import fmgp.crypto._
+import fmgp.crypto.error._
 
 object OperationsClientRPC extends Operations {
-
-  def makeOps(
-      data: String,
-      url: String = "/ops"
-  ): IO[SomeThrowable, String] = ZIO
-    .fromPromiseJS(
-      dom.fetch(url, new RequestInit { method = HttpMethod.POST; body = data })
-    )
-    .flatMap(e => ZIO.fromPromiseJS(e.text()))
-    .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
 
   override def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] = for {
     agent <- ZIO.service[Agent]
     obj = SignOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
-    ret <- makeOps(data = obj.toJson)
+    ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[SignOpOutput])
@@ -44,7 +29,7 @@ object OperationsClientRPC extends Operations {
   } yield (out)
 
   override def verify(msg: SignedMessage): ZIO[Resolver, CryptoFailed, Boolean] = for {
-    ret <- makeOps(data = (VerifyOpInput(msg): OpsInputRPC).toJson)
+    ret <- Client.makeOps(data = (VerifyOpInput(msg): OpsInputRPC).toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[VerifyOpOutput])
@@ -60,7 +45,7 @@ object OperationsClientRPC extends Operations {
     agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
     obj = AuthEncryptOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
-    ret <- makeOps(data = obj.toJson)
+    ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[AuthEncryptOpOutput])
@@ -76,7 +61,7 @@ object OperationsClientRPC extends Operations {
     agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
     obj = AuthDecryptOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
-    ret <- makeOps(data = obj.toJson)
+    ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[AuthDecryptOpOutput])
@@ -91,7 +76,7 @@ object OperationsClientRPC extends Operations {
   override def anonEncrypt(msg: PlaintextMessage): ZIO[Resolver, DidFail, EncryptedMessage] = for {
     // agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
-    ret <- makeOps(data = (AnonEncryptOpInput(msg): OpsInputRPC).toJson)
+    ret <- Client.makeOps(data = (AnonEncryptOpInput(msg): OpsInputRPC).toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[AnonEncryptOpOutput])
@@ -107,7 +92,7 @@ object OperationsClientRPC extends Operations {
     agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
     obj = AnonDecryptOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
-    ret <- makeOps(data = obj.toJson)
+    ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
       .map(_.asInstanceOf[AnonDecryptOpOutput])

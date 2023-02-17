@@ -4,26 +4,30 @@ import zio._
 import zio.json._
 
 import fmgp.did._
+import fmgp.did.comm.FROMTO
 import fmgp.crypto.error._
 import fmgp.crypto._
 
-object MyOperations {
-  val layer: ULayer[Operations] = ZLayer.succeed(new MyOperations())
+/** TODO Fix all FIXME */
+object OperationsImp {
+  val layer: URLayer[CryptoOperations, Operations] =
+    ZLayer.fromFunction(OperationsImp(_))
 }
-class MyOperations extends Operations {
+
+class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
 
   def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] =
     for {
       agent <- ZIO.service[Agent]
       key = agent.keys.head // FIXME
-      ret <- RawOperations.sign(key, msg)
+      ret <- cryptoOperations.sign(key, msg)
     } yield ret
 
   def verify(msg: SignedMessage): ZIO[Resolver, CryptoFailed, Boolean] = {
     for {
       resolver <- ZIO.service[Resolver]
       doc <- resolver
-        .didDocument(DIDSubject(msg.signatures.head.header.get.kid))
+        .didDocument(FROMTO.force(msg.signatures.head.header.get.kid))
         .catchAll(error => ???) // FIXME
       key = {
         doc.keyAgreement.get.head match {
@@ -32,7 +36,7 @@ class MyOperations extends Operations {
           case e: VerificationMethodEmbeddedMultibase => ??? : PublicKey // FIXME
         }
       }
-      ret <- RawOperations.verify(key, msg)
+      ret <- cryptoOperations.verify(key, msg)
     } yield ret
   }
 
@@ -47,7 +51,7 @@ class MyOperations extends Operations {
         case e: VerificationMethodEmbeddedJWK       => (VerificationMethodReferenced(e.id), e.publicKeyJwk)
         case e: VerificationMethodEmbeddedMultibase => ??? // FIXME
       } // : Seq[(VerificationMethodReferenced, PublicKey)],
-      ret <- RawOperations.anonEncrypt(recipientKidsKeys, msg.toJson.getBytes)
+      ret <- cryptoOperations.anonEncrypt(recipientKidsKeys, msg.toJson.getBytes)
     } yield ret
   }
 
@@ -80,12 +84,20 @@ class MyOperations extends Operations {
       msgSeq = curve2SenderRecipientKeys.values.toSeq.map {
         case (None, b)                      => ZIO.none
         case (Some(sender), b) if b.isEmpty => ZIO.none
-        case (Some(VerificationMethodReferencedWithKey(senderKid, senderKey: ECPrivateKey)), recipientAux) =>
-          val recipient = recipientAux.asInstanceOf[Seq[VerificationMethodReferencedWithKey[ECPublicKey]]] // FIXME
-          RawOperations.authcryptEC((VerificationMethodReferenced(senderKid), senderKey), recipient, data).map(Some(_))
-        case (Some(VerificationMethodReferencedWithKey(senderKid, senderKey: OKPPrivateKey)), recipientAux) =>
-          val recipient = recipientAux.asInstanceOf[Seq[VerificationMethodReferencedWithKey[OKPPublicKey]]] // FIXME
-          RawOperations.authcryptOKP((VerificationMethodReferenced(senderKid), senderKey), recipient, data).map(Some(_))
+        case (Some(VerificationMethodReferencedWithKey(senderKid, senderKey)), recipient) =>
+          cryptoOperations
+            .authEncrypt((VerificationMethodReferenced(senderKid), senderKey), recipient.map(_.pair), data)
+            .map(Some(_))
+        // case (Some(VerificationMethodReferencedWithKey(senderKid, senderKey: ECPrivateKey)), recipientAux) =>
+        //   val recipient = recipientAux.asInstanceOf[Seq[VerificationMethodReferencedWithKey[ECPublicKey]]] // FIXME
+        //   RawOperations
+        //     .authcryptEC((VerificationMethodReferenced(senderKid), senderKey), recipient, data)
+        //     .map(Some(_))
+        // case (Some(VerificationMethodReferencedWithKey(senderKid, senderKey: OKPPrivateKey)), recipientAux) =>
+        //   val recipient = recipientAux.asInstanceOf[Seq[VerificationMethodReferencedWithKey[OKPPublicKey]]] // FIXME
+        //   RawOperations // FIXME cryptoOperations
+        //     .authcryptOKP((VerificationMethodReferenced(senderKid), senderKey), recipient, data)
+        //     .map(Some(_))
       }: Seq[ZIO[Any, CryptoFailed, Option[EncryptedMessage]]]
       ret <- ZIO.foreach(msgSeq)(e => e).map(_.flatten)
     } yield ret.head // FIXME HAED
@@ -104,7 +116,13 @@ class MyOperations extends Operations {
             if (kidsNeeded.contains(vmr)) Some(vmr, k) else None
           }
         )
-      ret <- RawOperations.anonDecrypt(keys, msg)
+      data <- cryptoOperations.anonDecrypt(keys, msg)
+      ret <- ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
     } yield ret
   }
 
@@ -125,8 +143,7 @@ class MyOperations extends Operations {
       skid = msg.`protected`.obj match
         case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ??? // FIXME
         case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => skid
-      senderDID = skid.did
-      doc <- resolver.didDocument(senderDID)
+      doc <- resolver.didDocument(skid.fromto)
       senderKey = doc.didCommKeys
         .map {
           case e: VerificationMethodReferenced        => ??? // FIXME
@@ -135,7 +152,13 @@ class MyOperations extends Operations {
         }
         .find { e => e.vmr == skid }
         .get // FIXME
-      ret <- RawOperations.authDecrypt(senderKey.key, keys, msg)
+      data <- cryptoOperations.authDecrypt(senderKey.key, keys, msg)
+      ret <- ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
     } yield ret
 
 }

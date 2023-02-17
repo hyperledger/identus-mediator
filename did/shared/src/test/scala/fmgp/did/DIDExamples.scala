@@ -127,7 +127,7 @@ object DIDExamples {
 
   val EX13_VerificationMethod_0 = VerificationMethodEmbeddedJWK(
     id = "did:example:123#_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A",
-    controller = DIDSubject("did:example:123"),
+    controller = "did:example:123",
     `type` = "JsonWebKey2020",
     publicKeyJwk = OKPPublicKey(
       kty = KTY.OKP,
@@ -139,7 +139,7 @@ object DIDExamples {
 
   val EX13_VerificationMethod_1 = VerificationMethodEmbeddedMultibase(
     id = "did:example:123456789abcdefghi#keys-1",
-    controller = DIDSubject("did:example:pqrstuvwxyz0987654321"),
+    controller = "did:example:pqrstuvwxyz0987654321",
     `type` = "Ed25519VerificationKey2020",
     publicKeyMultibase = "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
   )
@@ -170,7 +170,7 @@ object DIDExamples {
     "did:example:123456789abcdefghi#keys-1",
     {
       "id": "did:example:123#zC9ByQ8aJs8vrNXyDhPHHNNMSHPcaSgNpjjsBYpMMjsTdS",
-      "type": "X25519KeyAgreementKey2019", 
+      "type": "X25519KeyAgreementKey2019",
       "controller": "did:example:123",
       "publicKeyMultibase": "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE"
     }
@@ -185,7 +185,7 @@ object DIDExamples {
         VerificationMethodReferenced("did:example:123456789abcdefghi#keys-1"),
         VerificationMethodEmbeddedMultibase(
           id = "did:example:123#zC9ByQ8aJs8vrNXyDhPHHNNMSHPcaSgNpjjsBYpMMjsTdS",
-          controller = DIDSubject("did:example:123"),
+          controller = "did:example:123",
           `type` = "X25519KeyAgreementKey2019",
           publicKeyMultibase = "z9hFgmPVfmBZwRvFEyniQDBkz9LmV7gDEqytWyGZLmDXE",
         )

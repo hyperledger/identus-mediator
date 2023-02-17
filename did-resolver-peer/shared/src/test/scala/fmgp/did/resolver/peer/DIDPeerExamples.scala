@@ -102,4 +102,44 @@ object DIDPeerExamples {
     }
   ]
 }"""
+
+  /** missing optional fields of the service endpoint */
+  def rootsid_ex_peer2_did =
+    "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0"
+
+  val rootsid_ex_peer2_didDocument = """{
+    |  "id" : "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0",
+    |  "authentication" : [
+    |    {
+    |      "id" : "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0#6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE",
+    |      "controller" : "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0",
+    |      "type" : "JsonWebKey2020",
+    |      "publicKeyJwk" : {
+    |        "kty" : "OKP",
+    |        "crv" : "Ed25519",
+    |        "x" : "aoy9ByHYBC3xvQZ3FadD4S4TqhaHoRdp2Ix--9soIik"
+    |      }
+    |    }
+    |  ],
+    |  "keyAgreement" : [
+    |    {
+    |      "id" : "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0#6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ",
+    |      "controller" : "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0",
+    |      "type" : "JsonWebKey2020",
+    |      "publicKeyJwk" : {
+    |        "kty" : "OKP",
+    |        "crv" : "X25519",
+    |        "x" : "l19eKLVCxTFs7_kW1jBpfhWwQCGypJlQ3g5UEh6Z0Fg"
+    |      }
+    |    }
+    |  ],
+    |  "service": [
+    |    {
+    |      "id": "did:peer:2.Ez6LSms555YhFthn1WV8ciDBpZm86hK9tp83WojJUmxPGk1hZ.Vz6MkmdBjMyB4TS5UbbQw54szm8yvMMf1ftGV2sQVYAxaeWhE.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL21lZGlhdG9yLnJvb3RzaWQuY2xvdWQiLCJhIjpbImRpZGNvbW0vdjIiXX0#didcommmessaging-0",
+    |      "type": ["DIDCommMessaging"],
+    |      "serviceEndpoint": "https://mediator.rootsid.cloud",
+    |      "accept": ["didcomm/v2"]
+    |    }
+    |  ]
+    |}""".stripMargin
 }

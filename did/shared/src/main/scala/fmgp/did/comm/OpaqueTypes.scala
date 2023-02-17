@@ -77,3 +77,12 @@ object MsgID:
   extension (messageID: MsgID) def value: String = messageID
   given decoder: JsonDecoder[MsgID] = JsonDecoder.string.map(MsgID(_))
   given encoder: JsonEncoder[MsgID] = JsonEncoder.string.contramap[MsgID](_.value)
+
+opaque type Payload = Base64
+object Payload:
+  def fromBase64url(data: String): Payload = Base64.fromBase64url(data)
+  extension (data: Payload)
+    def content: String = data.decodeToString
+    def base64url: String = data.urlBase64
+  given decoder: JsonDecoder[Payload] = Base64.decoder
+  given encoder: JsonEncoder[Payload] = Base64.encoder

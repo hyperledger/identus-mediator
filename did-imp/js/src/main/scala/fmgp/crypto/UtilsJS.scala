@@ -10,15 +10,16 @@ import typings.jose.typesMod.CompactJWSHeaderParameters
 
 import fmgp.did.comm._
 import fmgp.crypto.error._
+import fmgp.util.Base64
 
 import zio._
 import zio.json._
 
 import scala.scalajs.js
+import scala.scalajs.js.JavaScriptException
 import scala.scalajs.js.JSConverters._
 import scala.util.chaining._
 import concurrent.ExecutionContext.Implicits.global
-import scala.scalajs.js.JavaScriptException
 
 object UtilsJS {
   // extension (ec: ECKey) {
@@ -128,7 +129,7 @@ object UtilsJS {
             .map(generalJWS =>
               // TODO REMOVE old .split('.') match { case Array(protectedValue, payload, signature) =>
               SignedMessage(
-                payload = generalJWS.payload,
+                payload = Payload.fromBase64url(generalJWS.payload),
                 generalJWS.signatures.toSeq
                   .map(v => JWMSignatureObj(`protected` = v.`protected`.get, signature = v.signature))
               )

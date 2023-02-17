@@ -14,7 +14,5 @@ class OpaqueTypesSuite extends ZSuite {
     val id1 = MsgID()
     val id2 = MsgID()
     assertNotEquals(id1, id2)
-    println(id1)
-    println(id2)
   }
 }

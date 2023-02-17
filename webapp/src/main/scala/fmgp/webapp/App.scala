@@ -9,9 +9,8 @@ import com.raquo.waypoint._
 import MyRouter._
 import com.raquo.airstream.ownership.ManualOwner
 
+import fmgp.webapp.Home
 object App {
-
-  val owner: ManualOwner = ManualOwner()
 
   def main( /*args: Array[String]*/ ): Unit = {
 
@@ -39,9 +38,13 @@ object App {
 
   private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
     .collectStatic(HomePage)(Home())
+    .collectSignal[OOBPage](page => OutOfBandTool(page))
+    .collectStatic(DocPage)(Doc())
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
+    .collectStatic(AgentDBPage)(AgentDB())
     .collectStatic(ResolverPage)(ResolverTool())
+    .collectStatic(EncryptPage)(EncryptTool())
     .collectStatic(DecryptPage)(DecryptTool())
     .collectStatic(BasicMessagePage)(BasicMessageTool())
     .collectStatic(TrustPingPage)(TrustPingTool())
@@ -49,9 +52,15 @@ object App {
 
   private val linkPages: List[Page] = List(
     HomePage,
+    OOBPage(
+      "eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ"
+    ), // class
+    DocPage,
     KeysPage,
     // DIDPage,
+    AgentDBPage,
     ResolverPage,
+    EncryptPage,
     DecryptPage,
     BasicMessagePage,
     TrustPingPage,

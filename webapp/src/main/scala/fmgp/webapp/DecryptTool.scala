@@ -6,31 +6,28 @@ import scala.scalajs.js.timers._
 import js.JSConverters._
 
 import com.raquo.laminar.api.L._
+import com.raquo.airstream.ownership._
 import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.example._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import fmgp.did.resolver.peer.DIDPeer._
 import fmgp.did.resolver.peer.DidPeerResolver
-import com.raquo.airstream.ownership._
 import fmgp.crypto.error._
 
+import fmgp.did.AgentProvider
 object DecryptTool {
-
-  val agentVar: Var[Option[AgentDIDPeer]] = Var(initial = None)
   val dataVar: Var[String] = Var(initial = "")
   val encryptedMessageVar: Signal[Either[String, EncryptedMessage]] =
-    // Var(initial = Left("<EncryptedMessage>"))
     dataVar.signal.map(_.fromJson[EncryptedMessage])
   val decryptMessageVar: Var[Option[Either[DidFail, Message]]] = Var(initial = None)
 
-  val job =
+  def job(owner: Owner) =
     Signal
       .combine(
-        agentVar,
+        Global.agentVar,
         encryptedMessageVar
       )
       .map {
@@ -51,37 +48,48 @@ object DecryptTool {
           )
           Unsafe.unsafe { implicit unsafe => // Run side efect
             Runtime.default.unsafe.fork(
-              program.provideEnvironment(ZEnvironment(agent, DidPeerResolver))
+              program.provideEnvironment(ZEnvironment(agent, DidPeerResolver()))
             )
           }
       }
-      .observe(App.owner)
+      .observe(owner)
 
   val rootElement = div(
+    onMountCallback { ctx =>
+      job(ctx.owner)
+      ()
+    },
     code("DecryptTool Page"),
     p(
+      overflowWrap.:=("anywhere"),
       "Agent: ",
-      select(
-        value <-- agentVar.signal.map(Global.getAgentName(_)),
-        onChange.mapToValue.map(e => AgentProvider.allAgents.get(e)) --> agentVar,
-        Global.dids.map { step => option(value := step, step) }
-      )
+      " ",
+      code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("NO AGENT IS SELECTED!")))
     ),
-    pre(code(child.text <-- agentVar.signal.map(_.map(_.id.string).getOrElse("none")))),
     p("Encrypted Message Data:"),
-    input(
-      placeholder("<EncryptedMessage>"),
-      `type`.:=("textbox"),
+    textArea(
+      rows := 20,
+      cols := 80,
       autoFocus(true),
+      placeholder("<EncryptedMessage>"),
       value <-- dataVar,
       inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> dataVar }
     ),
-    p("Message after decrypt"),
+    p("Message after decrypting:"),
     pre(code(child.text <-- decryptMessageVar.signal.map {
       case None                => "<none>"
       case Some(Left(didFail)) => didFail.toString
       case Some(Right(msg))    => msg.toJsonPretty
     })),
+    button(
+      "Copy to clipboard",
+      onClick --> Global.clipboardSideEffect(
+        decryptMessageVar.now() match
+          case None                => "None"
+          case Some(Left(didFail)) => didFail.toString
+          case Some(Right(msg))    => msg.toJson
+      )
+    )
   )
 
   def apply(): HtmlElement = rootElement

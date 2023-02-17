@@ -12,10 +12,27 @@ import scala.util.chaining._
   * @param `type`
   *   https://www.w3.org/TR/did-spec-registries/#service-types
   */
-trait DIDService extends DID {
+trait DIDService {
   def id: Required[URI]
   def `type`: Required[SetU[String]]
   def serviceEndpoint: Required[SetMapU[URI]]
+}
+
+/** DecentralizedWebNode is a type of DIDService
+  *
+  * @see
+  *   https://identity.foundation/decentralized-web-node/spec/#service-endpoints
+  *
+  * {{{
+  * "serviceEndpoint": {"nodes": ["https://dwn.example.com", "https://example.org/dwn"]}
+  * }}}
+  */
+trait DIDServiceDecentralizedWebNode extends DIDService {
+  // override def `type` = "DecentralizedWebNode"
+  def getNodes = serviceEndpoint match
+    case str: URI                         => Seq.empty
+    case seq: Seq[URI] @unchecked         => Seq.empty
+    case map: Map[String, URI] @unchecked => map.get("nodes")
 }
 
 /** https://www.w3.org/TR/did-spec-registries/#linkeddomains */
@@ -29,9 +46,19 @@ trait DIDServiceDIDCommMessaging extends DIDService {
   // override def `type` = "DIDCommMessaging"
   def routingKeys: NotRequired[Set[String]]
   def accept: NotRequired[Set[String]]
+
+  // extra
+  def getServiceEndpointAsURIs: Seq[URI] = serviceEndpoint match
+    case str: URI                         => Seq(str)
+    case seq: Seq[URI] @unchecked         => seq
+    case map: Map[String, URI] @unchecked => map.values.toSeq
 }
 
 object DIDService {
+  val TYPE_DecentralizedWebNode = "DecentralizedWebNode"
+  val TYPE_DIDCommMessaging = "DIDCommMessaging"
+  val TYPE_LinkedDomains = "LinkedDomains"
+
   given decoder: JsonDecoder[DIDService] =
     DIDServiceClass.decoder.map(e => e)
   given encoder: JsonEncoder[DIDService] =
@@ -56,10 +83,8 @@ final case class DIDServiceGeneric(
     accept: NotRequired[Set[String]] = None,
 ) extends DIDService
     with DIDServiceDIDCommMessaging
-    with DIDServiceDIDLinkedDomains {
-  // val (namespace, specificId) = DID.getNamespaceAndSpecificId(id)
-  val (namespace, specificId) = DIDSubject(id).pipe(did => (did.namespace, did.specificId))
-}
+    with DIDServiceDIDLinkedDomains
+    with DIDServiceDecentralizedWebNode
 object DIDServiceClass {
   import SetU.{given}
   import SetMapU.{given}

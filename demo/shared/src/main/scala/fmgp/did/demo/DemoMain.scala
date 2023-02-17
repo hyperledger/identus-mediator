@@ -7,7 +7,6 @@ import zio.json.ast.Json
 import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.comm._
-import fmgp.did.example._
 import fmgp.did.resolver.peer._
 
 @main def DemoMain() = {
@@ -46,15 +45,13 @@ import fmgp.did.resolver.peer._
     _ <- Console.printLine(s"auth msg: ${msg3.toJson /*Pretty*/}")
   } yield ()
 
-  val resolvers = ZLayer.succeed(DidPeerResolver)
-
   Unsafe.unsafe { implicit unsafe => // Run side efect
     Runtime.default.unsafe
       .run(
         program.provide(
-          MyOperations.layer ++
+          Operations.layerDefault ++
             Agent0Mediators.agentLayer ++
-            resolvers
+            DidPeerResolver.layer
         )
       )
       .getOrThrowFiberFailure()

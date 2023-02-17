@@ -9,7 +9,7 @@ extension (msg: PlaintextMessage)
   def toBasicMessage: Either[String, BasicMessage] =
     BasicMessage.fromPlaintextMessage(msg)
 
-/** The message message is sent by the sender to the recipient.
+/** The Basic Message is sent by the sender to the recipient.
   *
   * Note that the role is only specific to the creation of messages, and that both parties may play both roles.
   *
@@ -36,7 +36,7 @@ final case class BasicMessage(
 ) {
   def `type` = BasicMessage.piuri
 
-  def toPlaintextMessage(from: Option[DIDSubject], to: Set[DIDSubject]): Either[String, PlaintextMessage] =
+  def toPlaintextMessage(from: Option[FROM], to: Set[TO]): Either[String, PlaintextMessage] =
     BasicMessage
       .Body(content)
       .toJSON_RFC7159
