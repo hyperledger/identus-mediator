@@ -70,8 +70,18 @@ object PIURI:
   given decoder: JsonDecoder[PIURI] = JsonDecoder.string.map(PIURI(_))
   given encoder: JsonEncoder[PIURI] = JsonEncoder.string.contramap[PIURI](_.value)
 
+/** The Value is a short (<=32 bytes) string consisting entirely of unreserved URI characters.
+  *
+  * unreserved URI characters - https://datatracker.ietf.org/doc/html/rfc3986/#section-2.3:
+  *   - Characters that are allowed in a URI but do not have a reserved purpose are called unreserved. These include
+  *     uppercase and lowercase letters, decimal digits, hyphen, period, underscore, and tilde:
+  *   - unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+  */
 opaque type MsgID = String
 object MsgID:
+  /** @param value
+    *   MUST be a maximum of 64 unreserved URI characters // TODO
+    */
   def apply(value: String): MsgID = value
   def apply(): MsgID = java.util.UUID.randomUUID.toString() // Should be cross platform
   extension (messageID: MsgID) def value: String = messageID
