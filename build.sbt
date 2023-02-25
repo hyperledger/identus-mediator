@@ -265,13 +265,13 @@ lazy val docConfigure: Project => Project =
 addCommandAlias(
   "testJVM",
   ";didJVM/test; didExtraJVM/test; didImpJVM/test; " +
-    "didResolverPeerJVM/test; didResolverWebJVM/test; " +
+    "didResolverPeerJVM/test; didResolverWebJVM/test; didUniresolverJVM/test; " +
     "multiformatsJVM/test"
 )
 addCommandAlias(
   "testJS",
   ";didJS/test;  didExtraJS/test;  didImpJS/test;  " +
-    "didResolverPeerJS/test;  didResolverWebJS/test;  " +
+    "didResolverPeerJS/test;  didResolverWebJS/test;  didUniresolverJS/test;  " +
     "multiformatsJS/test"
 )
 addCommandAlias("testAll", ";testJVM;testJS")
@@ -287,6 +287,7 @@ lazy val root = project
   .aggregate(multiformats.js, multiformats.jvm) // publish
   .aggregate(didResolverPeer.js, didResolverPeer.jvm) // publish
   .aggregate(didResolverWeb.js, didResolverWeb.jvm) // publish
+  .aggregate(didUniresolver.js, didUniresolver.jvm) // NOT publish
   .aggregate(didExample.js, didExample.jvm)
   .aggregate(demo.jvm, demo.js)
   .aggregate(webapp)
@@ -390,8 +391,26 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )
-  .jvmSettings(
-    libraryDependencies += D.ziohttp.value,
+  .jvmSettings(libraryDependencies += D.ziohttp.value)
+  .dependsOn(did)
+  .configure(docConfigure)
+
+//https://dev.uniresolver.io/
+lazy val didUniresolver = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-resolver-uniresolver"))
+  .settings(publish / skip := true)
+  .configure(notYetPublishedConfigure)
+  .settings(
+    name := "did-uniresolver",
+    libraryDependencies += D.munit.value,
+    libraryDependencies += D.zioMunitTest.value,
+  )
+  .jvmSettings(libraryDependencies += D.ziohttp.value)
+  // .enablePlugins(ScalaJSBundlerPlugin).jsSettings(Test / npmDependencies += "node-fetch" -> "3.3.0")
+  .jsSettings( // TODO https://scalacenter.github.io/scalajs-bundler/reference.html#jsdom
+    libraryDependencies += D.dom.value,
+    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
+    Test / requireJsDomEnv := true,
   )
   .dependsOn(did)
   .configure(docConfigure)
@@ -425,7 +444,7 @@ lazy val webapp = project
 lazy val didExample = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-example"))
   .settings(publish / skip := true)
-  .dependsOn(did, didImp, didResolverPeer, didResolverWeb)
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didUniresolver)
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
@@ -459,7 +478,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Assets / WebKeys.packagePrefix := "public/",
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
-  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didExample)
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didUniresolver, didExample)
   .enablePlugins(WebScalaJSBundlerPlugin)
 
 ThisBuild / assemblyMergeStrategy := {

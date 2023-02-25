@@ -57,7 +57,7 @@ trait DID {
   def string = s"$scheme:$namespace:$specificId"
   def did = string
 
-  override def toString(): String = string
+  // override def toString(): String = string
 }
 object DID {
   given Conversion[DID, DIDSubject] = did => DIDSubject(did.scheme + ":" + did.namespace + ":" + did.specificId)

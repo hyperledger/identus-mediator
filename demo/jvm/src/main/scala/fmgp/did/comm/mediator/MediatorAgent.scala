@@ -23,9 +23,7 @@ case class MediatorAgent(
     messageDB: Ref[MessageDB],
 ) {
   val resolverLayer: ZLayer[Any, Nothing, DynamicResolver] =
-    DidPeerResolver.layer.map { peerResolver =>
-      ZEnvironment(DynamicResolver(peerResolver.get, didSocketManager))
-    }
+    DynamicResolver.resolverLayer(didSocketManager)
 
   private def _didSubjectAux = id
   private def _keyStoreAux = keyStore.keys.toSeq

@@ -14,6 +14,7 @@ import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import fmgp.did.resolver.peer.DIDPeer._
 import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.resolver.uniresolver._
 import com.raquo.airstream.ownership._
 import fmgp.crypto.error._
 import fmgp.did.resolver.peer.DIDPeer
@@ -32,15 +33,23 @@ object ResolverTool {
           case Left(error) => didDocumentVar.update(_ => Left(error))
           case Right(peer) => didDocumentVar.update(_ => Right(peer.document))
       case (None, custom) =>
-        val program = {
-          ZIO
-            .fromEither(FROMTO.either(custom))
-            .flatMap(did => DidPeerResolver().didDocument(did))
-            .mapBoth(
-              errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
-              doc => didDocumentVar.update(_ => Right(doc))
+        def program = (
+          for {
+            fromto <- ZIO.fromEither(FROMTO.either(custom))
+            resolver <- ZIO.service[Resolver]
+            doc <- resolver.didDocument(fromto)
+          } yield (doc)
+        ).mapBoth(
+          errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
+          doc => didDocumentVar.update(_ => Right(doc))
+        ).provide(
+          ZLayer.succeed(
+            MultiResolver(
+              Uniresolver.default,
+              DidPeerResolver.default,
             )
-        }
+          )
+        )
         Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
     }
     .observe(owner)
@@ -50,7 +59,11 @@ object ResolverTool {
       job(ctx.owner)
       ()
     },
-    code("DID Resolver Page (only 'did:peer' is supported)"),
+    code("DID Resolver Page"),
+    p(
+      "Supports 'did:peer' and any did method on the  ",
+      a(href := "https://dev.uniresolver.io/", target := "_blank", "Universal Resolver")
+    ),
     p(
       "Agent: ",
       Global.makeSelectElementDID(didVar),

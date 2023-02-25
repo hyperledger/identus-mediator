@@ -12,7 +12,7 @@ import fmgp.did.comm._
 ```
 
 
-## Parce a DID Document
+## Parse a DID Document
 
 ```scala mdoc:silent
 val documentString = """{

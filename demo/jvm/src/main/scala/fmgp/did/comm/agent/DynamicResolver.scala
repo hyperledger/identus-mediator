@@ -5,24 +5,33 @@ import zio._
 import fmgp.did._
 import fmgp.did.comm.FROMTO
 import fmgp.crypto.error._
+import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.resolver.uniresolver.Uniresolver
 
-final case class DynamicResolver(anotherResolver: Resolver, didSocketManager: Ref[DIDSocketManager]) extends Resolver {
-  override protected def didDocumentOf(did: FROMTO): IO[DidMethodNotSupported, DIDDocument] =
+final case class DynamicResolver(
+    resolver: Resolver,
+    didSocketManager: Ref[DIDSocketManager],
+) extends Resolver {
+  override protected def didDocumentOf(did: FROMTO): IO[DidFail, DIDDocument] =
     for {
-      cleanDoc <- anotherResolver.didDocument(did)
+      docFromResolver <- resolver.didDocument(did)
       sm <- didSocketManager.get
-
       doc = DIDDocumentClass(
-        id = cleanDoc.id,
-        alsoKnownAs = cleanDoc.alsoKnownAs,
-        controller = cleanDoc.controller,
-        verificationMethod = cleanDoc.verificationMethod,
-        authentication = cleanDoc.authentication,
-        assertionMethod = cleanDoc.assertionMethod,
-        keyAgreement = cleanDoc.keyAgreement,
-        capabilityInvocation = cleanDoc.capabilityInvocation,
-        capabilityDelegation = cleanDoc.capabilityDelegation,
-        service = cleanDoc.service, // FIXME TODO
+        id = docFromResolver.id,
+        alsoKnownAs = docFromResolver.alsoKnownAs,
+        controller = docFromResolver.controller,
+        verificationMethod = docFromResolver.verificationMethod,
+        authentication = docFromResolver.authentication,
+        assertionMethod = docFromResolver.assertionMethod,
+        keyAgreement = docFromResolver.keyAgreement,
+        capabilityInvocation = docFromResolver.capabilityInvocation,
+        capabilityDelegation = docFromResolver.capabilityDelegation,
+        service = docFromResolver.service, // TODO data from sm
       )
     } yield (doc)
+}
+
+object DynamicResolver {
+  def resolverLayer(didSocketManager: Ref[DIDSocketManager]): ZLayer[Any, Nothing, DynamicResolver] =
+    ZLayer.succeed(DynamicResolver(DidPeerResolver.default, didSocketManager))
 }
