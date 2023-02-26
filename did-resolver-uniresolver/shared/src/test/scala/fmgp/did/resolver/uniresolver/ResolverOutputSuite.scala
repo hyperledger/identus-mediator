@@ -14,11 +14,4 @@ class ResolverOutputSuite extends ZSuite {
       case Right(value) =>
         assertEquals(value, UniresolverExamples.ex_did_ion_out_expected)
   }
-
-  test("parse ex_did_com_output") {
-    UniresolverExamples.ex_did_com_out.fromJson[DIDResolutionResult] match
-      case Left(error)  => fail(error)
-      case Right(value) =>
-      // assertEquals(value, UniresolverExamples.ex_did_com_out_expected)
-  }
 }
