@@ -19,13 +19,11 @@ import fmgp.did.AgentProvider
 object TrustPingTool {
 
   val toDIDVar: Var[Option[DID]] = Var(initial = None)
-  val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
-
   val responseRequestedVar = Var(initial = true)
+  val mTrustPingVar: Var[Either[String, TrustPingWithRequestedResponse | TrustPingWithOutRequestedResponse]] =
+    Var(initial = Left("Inicial State"))
 
-  // def message = inicialTextVar.signal.map(e => BasicMessage(content = e))
-
-  def mTrustPing =
+  def job(owner: Owner) =
     Signal
       .combine(
         Global.agentVar,
@@ -40,39 +38,8 @@ object TrustPingTool {
         case (mFrom, Some(to), false) =>
           Right(TrustPingWithOutRequestedResponse(from = mFrom.map(_.id), to = to))
       }
-
-  def job(owner: Owner) = Signal
-    .combine(
-      Global.agentVar,
-      mTrustPing
-    )
-    .map {
-      case (_, Left(error))                                  => encryptedMessageVar.update(_ => None)
-      case (None, Right(tp: TrustPingWithRequestedResponse)) => ??? // Imposibel
-      case (None, Right(tp: TrustPingWithOutRequestedResponse)) =>
-        tp.toPlaintextMessage match
-          case Left(value) => ??? // Imposibel
-          case Right(message) =>
-            val program =
-              OperationsClientRPC
-                .anonEncrypt(message)
-                .map(msg => encryptedMessageVar.update(_ => Some(msg)))
-            Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(DidPeerResolver())))
-            }
-      case (Some(agent), Right(tp: TrustPing)) =>
-        tp.toPlaintextMessage match
-          case Left(value) => ??? // Imposibel
-          case Right(message) =>
-            val program =
-              OperationsClientRPC
-                .authEncrypt(message)
-                .map(msg => encryptedMessageVar.update(_ => Some(msg)))
-            Unsafe.unsafe { implicit unsafe => // Run side efect
-              Runtime.default.unsafe.fork(program.provideEnvironment(ZEnvironment(agent, DidPeerResolver())))
-            }
-    }
-    .observe(owner)
+      .map(e => mTrustPingVar.set(e))
+      .observe(owner)
 
   val rootElement = div(
     onMountCallback { ctx =>
@@ -100,20 +67,21 @@ object TrustPingTool {
       onInput.mapToChecked --> responseRequestedVar
     ),
     p("Basic Message"),
-    pre(code(child.text <-- mTrustPing.map(_.flatMap(_.toPlaintextMessage).map(_.toJsonPretty).merge))),
-    p(
-      "Encrypted Message",
-      "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
-    ),
-    pre(code(child.text <-- encryptedMessageVar.signal.map(_.toJsonPretty))),
+    pre(code(child.text <-- mTrustPingVar.signal.map(_.flatMap(_.toPlaintextMessage).map(_.toJsonPretty).merge))),
     button(
-      "Copy to clipboard",
-      onClick --> Global.clipboardSideEffect(
-        encryptedMessageVar.now() match
-          case None        => "None"
-          case Some(value) => value.toJson
-      )
-    )
+      "Copy Encrypt Tool",
+      disabled <-- mTrustPingVar.signal.map(_.isLeft),
+      onClick --> { _ =>
+        EncryptTool.dataTextVar.set(
+          mTrustPingVar
+            .now()
+            .map(_.toPlaintextMessage)
+            .map(_.toJsonPretty)
+            .merge
+        )
+      },
+      MyRouter.navigateTo(MyRouter.EncryptPage)
+    ),
   )
 
   def apply(): HtmlElement = rootElement
