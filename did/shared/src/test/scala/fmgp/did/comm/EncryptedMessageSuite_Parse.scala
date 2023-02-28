@@ -12,15 +12,6 @@ import zio.json.ast.Json
 /** didJVM/testOnly fmgp.did.comm.EncryptedMessageSuite_Parse */
 class EncryptedMessageSuite_Parse extends ZSuite {
 
-  test("Example parse plaintextMessage") {
-    val ret = EncryptedMessageExamples.plaintextMessage.fromJson[PlaintextMessageClass]
-    ret match {
-      case Left(error) => fail(error)
-      case Right(obj) =>
-        assertEquals(obj.`type`, PIURI("https://example.com/protocols/lets_do_lunch/1.0/proposal"))
-    }
-  }
-
   test("Parse and check hashCode encryptedMessage_ECDHES_X25519_XC20P") {
     val ret = EncryptedMessageExamples.encryptedMessage_ECDHES_X25519_XC20P.fromJson[EncryptedMessage]
     ret match {

@@ -42,7 +42,6 @@ Made for developers by developers.
 - did-rotation: https://identity.foundation/didcomm-messaging/spec/#did-rotation
   - support `from_prior`
   - support `sub` `iss` on JWT https://datatracker.ietf.org/doc/html/rfc7519
-- [TODO] [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
 - create module for protocols
 - method `did:jwk` https://github.com/quartzjer/did-jwk
 - routing:

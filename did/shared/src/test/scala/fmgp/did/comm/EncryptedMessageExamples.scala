@@ -6,19 +6,18 @@ import fmgp.crypto._
 
 object EncryptedMessageExamples {
 
-  def plaintextMessage = """{
-   "id":"1234567890",
-   "type":"https://example.com/protocols/lets_do_lunch/1.0/proposal",
-   "from":"did:example:alice",
-   "to":[
-      "did:example:bob"
-   ],
-   "created_time":1516269022,
-   "expires_time":1516385931,
-   "body":{
-      "messagespecificattribute":"and its value"
-   }
-}"""
+  def plaintextMessage =
+    """{
+      |  "id":"1234567890",
+      |  "type":"https://example.com/protocols/lets_do_lunch/1.0/proposal",
+      |  "from":"did:example:alice",
+      |  "to":["did:example:bob"],
+      |  "created_time":1516269022,
+      |  "expires_time":1516385931,
+      |  "body":{
+      |     "messagespecificattribute":"and its value"
+      |  }
+      |}""".stripMargin
 
   def allEncryptedMessage = Seq(
     encryptedMessage_ECDHES_X25519_XC20P,

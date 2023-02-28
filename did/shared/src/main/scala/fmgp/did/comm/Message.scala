@@ -8,6 +8,8 @@ import fmgp.crypto.OKP_EC_Key
 import zio.json.ast.Json
 import zio.json.ast.JsonCursor
 
+import fmgp.did.comm.ReturnRoute
+
 /** DID Comm Message */
 sealed trait Message
 
@@ -82,6 +84,23 @@ trait PlaintextMessage extends Message {
     * For more information @see https://didcomm.org/book/v2/didrotation
     */
   def from_prior: NotRequired[JWTToken]
+
+  /** Extension Return Route Header
+    *
+    * For HTTP transports, the presence of this message decorator indicates that the receiving agent MAY hold onto the
+    * connection and use it to return messages as designated. HTTP transports will only be able to receive at most one
+    * message at a time. Websocket transports are capable of receiving multiple messages over a single connection.
+    *
+    * @see
+    *   https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md
+    *
+    *   - none: Default. No messages should be returned over this connection. If return_route is omitted, this is the
+    *     default value.
+    *   - all: Send all messages for this DID over the connection.
+    *   - thread: Send all messages matching the DID and thread specified in the return_route_thread attribute.
+    *     - TODO what is return_route_thread?
+    */
+  def return_route: NotRequired[ReturnRoute]
 
   // Extension: https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/l10n/main.md
   def `accept-lang`: NotRequired[Seq[LanguageCodeIANA]]

@@ -4,6 +4,7 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm.extension._
 
+import fmgp.did.comm.ReturnRoute
 case class PlaintextMessageClass(
     id: Required[MsgID],
     `type`: PIURI,
@@ -18,6 +19,9 @@ case class PlaintextMessageClass(
     // # Extensions
     // DID rotation
     from_prior: NotRequired[JWTToken] = None,
+
+    // Return Route Header
+    return_route: NotRequired[ReturnRoute] = None,
 
     // l10n
     `accept-lang`: NotRequired[Seq[LanguageCodeIANA]] = None,
