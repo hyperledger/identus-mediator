@@ -25,6 +25,9 @@ object AgentProvider {
   |    Eve --> Frank
   |    Eve --> Victor[Victor verifier]
   |  end
+  |  subgraph localhost:8080
+  |    local
+  |  end
   |  subgraph fabio.did.fmgp.app
   |    Fabio
   |  end
@@ -33,6 +36,7 @@ object AgentProvider {
   |""".stripMargin
 
   def allAgents: Map[String, DIDPeer.AgentDIDPeer] = Map(
+    "local" -> local,
     "alice" -> alice,
     "bob" -> bob,
     "charlie" -> charlie,
@@ -139,13 +143,13 @@ object AgentProvider {
     Seq(DIDPeerServiceEncoded(s = eve.id.did))
   )
 
-  // // did:peer:2.Ez6LSm4qrZKu2svvVCMNGUwXG9FZRdRqrfU2AqyABFdgJ8xzV.Vz6Mks42Y68Na7B8xgV4RKedZGqXrKNp7ryymv3nDEnyZXBFY
-  // val x = DIDPeer2.makeAgent(
-  //   Seq(
-  //     keyAgreement("d5NNzHVrh13uEYd_IiEpW9xJPdjb60j-06AHcCdXT6c", "i4e1FMEyCC3uqBZvRH_yT2_soyvrhYxp6Mi33D4i-Eo"),
-  //     keyAuthentication("mnMNIGXhYLiIEzk4KjCewN5QTtEHgSd_V5dAvpy1-_M", "uzRMEeJho3oGJUiJWi_YvVwTlUrDpJ4Z2LZcqmseZCM")
-  //   ),
-  //   Seq(DIDPeerServiceEncoded(s = eve.id.did))
-  // )
+  // did:peer:2.Ez6LSm4qrZKu2svvVCMNGUwXG9FZRdRqrfU2AqyABFdgJ8xzV.Vz6Mks42Y68Na7B8xgV4RKedZGqXrKNp7ryymv3nDEnyZXBFY
+  val local = DIDPeer2.makeAgent(
+    Seq(
+      keyAgreement("d5NNzHVrh13uEYd_IiEpW9xJPdjb60j-06AHcCdXT6c", "i4e1FMEyCC3uqBZvRH_yT2_soyvrhYxp6Mi33D4i-Eo"),
+      keyAuthentication("mnMNIGXhYLiIEzk4KjCewN5QTtEHgSd_V5dAvpy1-_M", "uzRMEeJho3oGJUiJWi_YvVwTlUrDpJ4Z2LZcqmseZCM")
+    ),
+    Seq(DIDPeerServiceEncoded(s = "http://localhost:8080"))
+  )
 
 }

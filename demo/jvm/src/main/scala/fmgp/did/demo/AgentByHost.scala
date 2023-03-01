@@ -43,11 +43,13 @@ object AgentByHost {
       alice <- MediatorAgent.make(AgentProvider.alice)
       bob <- MediatorAgent.make(AgentProvider.bob)
       charlie <- MediatorAgent.make(AgentProvider.charlie)
+      local <- MediatorAgent.make(AgentProvider.local)
     } yield AgentByHost(
       Map(
         Host.alice -> alice,
         Host.bob -> bob,
         Host.charlie -> charlie,
+        Host("localhost:8080") -> local,
       )
     )
   )
