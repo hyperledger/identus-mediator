@@ -61,8 +61,8 @@ case class MediatorAgent(
 
   def receiveMessage(
       data: String,
-      mSocketID: Option[SocketID]
-  ): ZIO[Operations & MessageDispatcher, DidFail, Unit] =
+      mSocketID: Option[SocketID],
+  ): ZIO[Operations & MessageDispatcher, DidFail, Option[EncryptedMessage]] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
@@ -73,20 +73,21 @@ case class MediatorAgent(
             "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
               "; DID: " + "Message's recipients DIDs: " + message.recipientsSubject.mkString(",")
           ) *> ZIO.succeed(message)
-      ret <- receiveMessage(msg, mSocketID)
-    } yield (ret)
+      maybeSyncReplyMsg <- receiveMessage(msg, mSocketID)
+    } yield (maybeSyncReplyMsg)
 
   def receiveMessage(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
-  ): ZIO[Operations & MessageDispatcher, DidFail, Unit] =
+  ): ZIO[Operations & MessageDispatcher, DidFail, Option[EncryptedMessage]] =
     ZIO
       .logAnnotate("msgHash", msg.hashCode.toString) {
         for {
           _ <- ZIO.log(s"receiveMessage ${msg.hashCode()}")
-          _ <-
+          maybeSyncReplyMsg <-
             if (!msg.recipientsSubject.contains(id))
               ZIO.logError(s"This mediator '${id.string}' is not a recipient")
+                *> ZIO.none
             else
               for {
                 _ <- messageDB.update(db => db.add(msg))
@@ -101,9 +102,9 @@ case class MediatorAgent(
                 // TODO Store context of the decrypt unwarping
                 // TODO Store context with MsgID and PIURI
                 executer = protocolExecuter(plaintextMessage.`type`)
-                job <- executer.execute(plaintextMessage)
-              } yield ()
-        } yield ()
+                ret <- executer.execute(plaintextMessage)
+              } yield ret
+        } yield maybeSyncReplyMsg
       }
       .provideSomeLayer(resolverLayer ++ indentityLayer)
 
@@ -164,11 +165,16 @@ object MediatorAgent {
         for {
           agent <- AgentByHost.getAgentFor(req)
           data <- req.body.asString
-          ret <- agent
+          maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
             .mapError(fail => DidException(fail))
-        } yield Response.ok // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
+          ret = maybeSyncReplyMsg match
+            case None        => Response.ok
+            case Some(value) => Response.json(value.toJson)
+        } yield ret
+
+      // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
         for {
           agent <- AgentByHost.getAgentFor(req)

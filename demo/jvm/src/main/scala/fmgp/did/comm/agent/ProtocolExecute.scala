@@ -13,10 +13,12 @@ import fmgp.did.comm.protocol.trustping2._
 //TODO pick a better name // maybe "Protocol" only
 
 trait ProtocolExecuter[-R] {
+
+  /** @return can return a Sync Reply Msg */
   def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, DidFail, Unit] = program(plaintextMessage) *> ZIO.unit
+  ): ZIO[R1, DidFail, Option[EncryptedMessage]] = program(plaintextMessage) *> ZIO.none
 
   def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
@@ -46,49 +48,60 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, DidFail, Unit] =
+  ): ZIO[R1, DidFail, Option[EncryptedMessage]] =
     program(plaintextMessage)
       .tap(v => ZIO.logDebug(v.toJsonPretty)) // DEBUG
       .flatMap {
-        case None => ZIO.unit
+        case None => ZIO.none
         case Some(reply) =>
           for {
             msg <- reply.from match
               case Some(value) => authEncrypt(reply)
               case None        => anonEncrypt(reply)
             // TODO forward message
-            to <- reply.to match // TODO improve
-              case None => ZIO.unit
+            maybeSyncReplyMsg <- reply.to match // TODO improve
+              case None => ZIO.none
               case Some(send2DIDs) =>
-                ZIO.foreach(send2DIDs)(to =>
-                  for {
-                    messageDispatcher <- ZIO.service[MessageDispatcher]
-                    resolver <- ZIO.service[Resolver]
-                    doc <- resolver.didDocument(to)
-                    url =
-                      doc.service.toSeq.flatten // TODO .filter(_.`type`.contend(DIDService.TYPE_DIDCommMessaging))
-                      match {
-                        case head +: next =>
-                          head.serviceEndpoint match
-                            case s: String                      => s
-                            case s: Seq[URI] @unchecked         => s.head
-                            case s: Map[String, URI] @unchecked => s.head._2
+                ZIO
+                  .foreach(send2DIDs)(to =>
+                    for {
+                      messageDispatcher <- ZIO.service[MessageDispatcher]
+                      resolver <- ZIO.service[Resolver]
+                      doc <- resolver.didDocument(to)
+                      url =
+                        doc.service.toSeq.flatten // TODO .filter(_.`type`.contend(DIDService.TYPE_DIDCommMessaging))
+                        match {
+                          case head +: next =>
+                            head.serviceEndpoint match
+                              case s: String                      => s
+                              case s: Seq[URI] @unchecked         => s.head
+                              case s: Map[String, URI] @unchecked => s.head._2
+                        }
+                      _ <- ZIO.log(s"Send to url: $url")
+                      job <- messageDispatcher
+                        .send(
+                          msg,
+                          url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
+                          None
+                          // url match // FIXME REMOVE (use for local env)
+                          //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
+                          //   case https if https.startsWith("https://") =>
+                          //     Some(url.drop(8).split(':').head.split('/').head)
+                          //   case _ => None
+                        )
+                    } yield ()
+                  ) *> ZIO
+                  .succeed(msg)
+                  .when(
+                    plaintextMessage.return_route.contains(ReturnRoute.all)
+                      && {
+                        plaintextMessage.from.map(_.asTO) match {
+                          case None          => false
+                          case Some(replyTo) => send2DIDs.contains(replyTo)
+                        }
                       }
-                    _ <- ZIO.log(s"Send to url: $url")
-                    job <- messageDispatcher
-                      .send(
-                        msg,
-                        url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
-                        None
-                        // url match // FIXME REMOVE (use for local env)
-                        //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
-                        //   case https if https.startsWith("https://") =>
-                        //     Some(url.drop(8).split(':').head.split('/').head)
-                        //   case _ => None
-                      )
-                  } yield ()
-                ) *> ZIO.unit
-          } yield ()
+                  )
+          } yield maybeSyncReplyMsg
       }
 
   override def program[R1 <: R](
