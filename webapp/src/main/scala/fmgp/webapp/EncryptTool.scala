@@ -45,6 +45,7 @@ object EncryptTool {
   val encryptedMessageVar: Var[Option[Either[DidFail, EncryptedMessage]]] = Var(initial = None)
   val dataTextVar = Var(initial = example.toJsonPretty)
   val curlCommandVar: Var[Option[String]] = Var(initial = None)
+  val outputFromCallVar = Var[Option[EncryptedMessage]](initial = None)
 
   def plaintextMessage = dataTextVar.signal.map(_.fromJson[PlaintextMessage])
 
@@ -96,7 +97,15 @@ object EncryptTool {
       .toOption
       .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
       .flatMap(_.getServiceEndpointAsURIs.headOption)
-      .map { uri => Client.makeDIDCommPost(msg, uri) }
+      .map { uri =>
+        Client
+          .makeDIDCommPost(msg, uri)
+          .map(_.fromJson[EncryptedMessage])
+          .map {
+            case Left(value)  => outputFromCallVar.set(None)
+            case Right(value) => outputFromCallVar.set(Some(value))
+          }
+      }
       .foreach { program =>
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
@@ -134,6 +143,27 @@ object EncryptTool {
       value <-- dataTextVar,
       inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> dataTextVar }
     ),
+    div(child <-- plaintextMessage.map {
+      case Left(error) => pre(code(""))
+      case Right(msg) =>
+        msg.return_route match
+          case None =>
+            div(
+              pre(code("return_route is undefined (default)")),
+              button(
+                """Add "return_route":"all"""",
+                onClick --> { _ =>
+                  dataTextVar.set(
+                    msg
+                      .asInstanceOf[PlaintextMessageClass] // FIXME
+                      .copy(return_route = Some(ReturnRoute.all))
+                      .toJsonPretty
+                  )
+                }
+              ),
+            )
+          case Some(value) => new CommentNode("")
+    }),
     p("Plaintext Message (Or rrror report):"),
     pre(code(child.text <-- plaintextMessage.map {
       case Right(msg)  => msg.toJsonPretty
@@ -169,7 +199,7 @@ object EncryptTool {
             div(
               button("Copy to curl", onClick --> Global.clipboardSideEffect(curlStr)),
               button(
-                "Make the HTTP POST",
+                "Make HTTP POST",
                 onClick --> Sink.jsCallbackToSink(_ =>
                   encryptedMessageVar.now() match {
                     case Some(Right(eMsg)) => curlProgram(eMsg)
@@ -180,6 +210,21 @@ object EncryptTool {
             )
           case None => div("Valid message")
         }
+    ),
+    div(
+      child <-- outputFromCallVar.signal.map {
+        case None => new CommentNode("")
+        case Some(reply) =>
+          div(
+            p("Output of the HTTP Call"),
+            pre(code(reply.toJsonPretty)),
+            button(
+              "Copy reply to Decryot Tool",
+              onClick --> { _ => DecryptTool.dataVar.set(reply.toJsonPretty) },
+              MyRouter.navigateTo(MyRouter.DecryptPage)
+            )
+          )
+      }
     ),
   )
 
