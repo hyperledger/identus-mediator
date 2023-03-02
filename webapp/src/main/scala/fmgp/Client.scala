@@ -13,7 +13,10 @@ import fmgp.crypto.error._
 import fmgp.webapp.Global
 import fmgp.did.comm.EncryptedMessage
 
+// @scala.scalajs.js.annotation.JSExportTopLevel("DIDClientHttp")
 object Client {
+  // @scala.scalajs.js.annotation.JSExport var tmp: Any = _
+
   // curl 'http://localhost:8080/db' -H "host: alice.did.fmgp.app"
   def getDB(url: String = "/db"): IO[DidFail, Option[MessageDB]] =
     Global.agent2Host(Global.agentVar.now()) match
@@ -54,24 +57,20 @@ object Client {
   def makeDIDCommPost(
       data: EncryptedMessage,
       url: String
-  ): IO[SomeThrowable, String] =
+  ): IO[SomeThrowable, String] = {
+    val request = new RequestInit {
+      method = HttpMethod.POST
+      headers = new Headers().tap(_.append("content-type", "application/didcomm-encrypted+json"))
+      // headers = js.Array(js.Array("content-type", "application/didcomm-encrypted+json"))
+      body = data.toJson
+      // mode = RequestMode.`no-cors` // NOTE! this is make eveting not to work!
+      cache = RequestCache.`no-cache`
+    }
+
     ZIO
-      .fromPromiseJS(
-        fetch(
-          url, {
-            val header = new Headers()
-            header.append("content-type", "application/didcomm-encrypted+json") // FIXME this is not working why?
-            new RequestInit {
-              method = HttpMethod.POST
-              headers = header
-              body = data.toJson
-              mode = RequestMode.`no-cors`
-              cache = RequestCache.`no-cache`
-            }
-          }
-        )
-      )
+      .fromPromiseJS(fetch(url, request))
       .flatMap(e => ZIO.fromPromiseJS(e.text()))
       .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+  }
 
 }
