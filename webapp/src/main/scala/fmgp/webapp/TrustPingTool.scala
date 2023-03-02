@@ -68,19 +68,21 @@ object TrustPingTool {
     ),
     p("Basic Message"),
     pre(code(child.text <-- mTrustPingVar.signal.map(_.flatMap(_.toPlaintextMessage).map(_.toJsonPretty).merge))),
-    button(
-      "Copy Encrypt Tool",
-      disabled <-- mTrustPingVar.signal.map(_.isLeft),
-      onClick --> { _ =>
-        EncryptTool.dataTextVar.set(
-          mTrustPingVar
-            .now()
-            .map(_.toPlaintextMessage)
-            .map(_.toJsonPretty)
-            .merge
-        )
-      },
-      MyRouter.navigateTo(MyRouter.EncryptPage)
+    div(
+      child <-- {
+        mTrustPingVar.signal
+          .map(_.flatMap(_.toPlaintextMessage.map(_.toJsonPretty)))
+          .map {
+            case Left(error) => new CommentNode("")
+            case Right(json) =>
+              button(
+                "Copy Encrypt Tool",
+                disabled <-- mTrustPingVar.signal.map(_.isLeft),
+                onClick --> { _ => EncryptTool.dataTextVar.set(json) },
+                MyRouter.navigateTo(MyRouter.EncryptPage)
+              )
+          }
+      }
     ),
   )
 
