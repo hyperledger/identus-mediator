@@ -15,6 +15,7 @@ import fmgp.did.resolver.peer.DidPeerResolver
 import fmgp.did.resolver.peer.DIDPeer.AgentDIDPeer
 import fmgp.did.demo.AgentByHost
 import zio.http.socket.SocketApp
+import io.netty.handler.codec.http.HttpHeaderNames
 
 case class MediatorAgent(
     id: DIDSubject,
@@ -188,5 +189,13 @@ object MediatorAgent {
       // .copy(status = Status.BadRequest) but ok for now
 
     }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher, Throwable, Request, Response]
-  }
+  } @@
+    Middleware.cors(
+      zio.http.middleware.Cors.CorsConfig(
+        allowedOrigins = _ => true,
+        allowedMethods = Some(Set(Method.GET, Method.POST)),
+      )
+    ) @@
+    Middleware.removeHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString) @@
+    Middleware.addHeader(Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString, "*"))
 }

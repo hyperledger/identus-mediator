@@ -64,6 +64,7 @@ object Client {
       // headers = js.Array(js.Array("content-type", "application/didcomm-encrypted+json"))
       body = data.toJson
       // mode = RequestMode.`no-cors` // NOTE! this is make eveting not to work!
+      mode = RequestMode.cors
       cache = RequestCache.`no-cache`
     }
 
