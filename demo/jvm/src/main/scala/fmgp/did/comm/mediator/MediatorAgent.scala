@@ -93,13 +93,15 @@ case class MediatorAgent(
               for {
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
+                _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
+                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(plaintextMessage.toJson))
+                }
                 _ <- mSocketID match
                   case None => ZIO.unit
                   case Some(socketID) =>
                     plaintextMessage.from match
                       case None       => ZIO.unit
                       case Some(from) => didSocketManager.update { _.link(from.asFROMTO, socketID) }
-
                 // TODO Store context of the decrypt unwarping
                 // TODO Store context with MsgID and PIURI
                 executer = protocolExecuter(plaintextMessage.`type`)
@@ -134,6 +136,25 @@ case class MediatorAgent(
     }
     appAux.toResponse.provideSomeEnvironment { (env) => env.add(env.get[MediatorAgent].didSocketManager) }
   }
+
+  def websocketListenerApp: ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
+    val SOCKET_ID = "SocketID"
+    SocketApp {
+      case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
+        ZIO.logAnnotate(SOCKET_ID, ch.id) {
+          ch.writeAndFlush(WebSocketFrame.text("Greetings!")) *>
+            ch.writeAndFlush(WebSocketFrame.text(s"Tap into ${id.did}")) *>
+            DIDSocketManager.tapSocket(id, ch)
+        }
+      case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
+        ZIO.logAnnotate(SOCKET_ID, ch.id) { ZIO.logWarning(s"Ignored Message from '${ch.id}'") }
+      case channelEvent =>
+        ZIO.logAnnotate(SOCKET_ID, channelEvent.channel.id) {
+          ZIO.logError(s"Unknown event type: ${channelEvent.event}")
+        }
+    }.toResponse
+      .provideSomeEnvironment { (env) => env.add(env.get[MediatorAgent].didSocketManager) }
+  }
 }
 
 object MediatorAgent {
@@ -157,6 +178,16 @@ object MediatorAgent {
         for {
           agent <- AgentByHost.getAgentFor(req)
           ret <- agent.createSocketApp
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+        } yield (ret)
+      case req @ Method.GET -> !! / "tap" if req.headersAsList.exists { h =>
+            h.key == "content-type" &&
+            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+          } =>
+        // WebsocketServer.socketApp.toResponse
+        for {
+          agent <- AgentByHost.getAgentFor(req)
+          ret <- agent.websocketListenerApp
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
