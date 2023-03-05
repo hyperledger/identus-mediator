@@ -67,19 +67,24 @@ object AppServer extends ZIOAppDefault {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
       // http://localhost:8080/oob?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ
       case req @ Method.GET -> !! / "oob" =>
-        ZIO.succeed(OutOfBand.oob(req.url.encode) match
-          case Left(error)                          => Response.text(error).copy(status = Status.BadRequest)
-          case Right(OutOfBandPlaintext(msg, data)) => Response.json(msg.toJsonPretty)
-          case Right(OutOfBandSigned(msg, data))    => Response.json(msg.payload.content)
-        )
+        for {
+          _ <- ZIO.log("socket")
+          ret <- ZIO.succeed(OutOfBand.oob(req.url.encode) match
+            case Left(error)                          => Response.text(error).copy(status = Status.BadRequest)
+            case Right(OutOfBandPlaintext(msg, data)) => Response.json(msg.toJsonPretty)
+            case Right(OutOfBandSigned(msg, data))    => Response.json(msg.payload.content)
+          )
+        } yield (ret)
       case req @ Method.GET -> !! / "db" =>
         for {
+          _ <- ZIO.log("db")
           agent <- AgentByHost.getAgentFor(req)
           db <- agent.messageDB.get
           ret <- ZIO.succeed(Response.json(db.toJsonPretty))
         } yield (ret)
       case req @ Method.GET -> !! / "socket" =>
         for {
+          _ <- ZIO.log("socket")
           agent <- AgentByHost.getAgentFor(req)
           sm <- agent.didSocketManager.get
           ret <- ZIO.succeed(Response.text(sm.toJsonPretty))
@@ -106,9 +111,11 @@ object AppServer extends ZIOAppDefault {
         } yield (ret)
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
-        ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n"))).debug
+        ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
+          .tap(e => ZIO.log("ops"))
+          .tap(e => ZIO.logTrace(s"ops: $e"))
           .flatMap(e => OperationsServerRPC.ops(e))
           .map(e => Response.text(e))
       case Method.GET -> !! / "resolver" / did =>
@@ -117,7 +124,7 @@ object AppServer extends ZIOAppDefault {
           case Right(value) => ZIO.succeed(Response.text("DID:" + value)).debug
       case req @ Method.GET -> !! => { // html.Html.fromDomElement()
         val data = Source.fromResource(s"public/index.html").mkString("")
-        ZIO.succeed(Response.html(data))
+        ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
       }
     }
     ++ {
@@ -143,8 +150,9 @@ object AppServer extends ZIOAppDefault {
         |Yet another server simpler server to demo DID Comm v2.
         |Vist: https://github.com/FabioPinheiro/scala-did""".stripMargin
     )
+    _ <- ZIO.log(s"DID DEMO APP. See https://github.com/FabioPinheiro/scala-did")
     myHub <- Hub.sliding[String](5)
-    _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => Console.printLine("HUB: " + str))).fork
+    _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
     pord <- System
       .property("PORD")
       .flatMap {
@@ -159,8 +167,7 @@ object AppServer extends ZIOAppDefault {
         case Some(value) => ZIO.succeed(Some(value))
       }
       .map(_.flatMap(_.toIntOption).getOrElse(8080))
-
-    _ <- Console.printLine(s"Starting server on port: $port")
+    _ <- ZIO.log(s"Starting server on port: $port")
     server = {
       val config = ServerConfig(address = new java.net.InetSocketAddress(port))
       ServerConfig.live(config)(using Trace.empty) >>> Server.live
@@ -169,7 +176,7 @@ object AppServer extends ZIOAppDefault {
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(
-        app
+        app.annotateLogs
           .tapUnhandledZIO(ZIO.logError("Unhandled Endpoint"))
           .tapErrorCauseZIO(cause => ZIO.logErrorCause(cause)) // THIS is to log all the erros
           .mapError(err =>
@@ -189,8 +196,8 @@ object AppServer extends ZIOAppDefault {
       .provide(server)
       .debug
       .fork
-    _ <- Console.printLine(s"Server Started")
-    _ <- myServer.join *> Console.printLine(s"Server End")
+    _ <- ZIO.log(s"Server Started")
+    _ <- myServer.join *> ZIO.log(s"Server End")
   } yield ()
 
 }
