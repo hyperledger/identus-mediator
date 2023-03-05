@@ -31,6 +31,7 @@ java -jar /home/fabio/workspace/ScalaDID/demo/jvm/target/scala-3.2.2/scala-did-d
 - `flyctl open /demo`
 - `flyctl status -a scala-did-demo`
 - `flyctl image show -a scala-did-demo`
+- `flyctl logs -c demo/fly.toml`
 
 **deploy with flyctl**
 

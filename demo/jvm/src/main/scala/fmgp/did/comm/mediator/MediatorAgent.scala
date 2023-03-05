@@ -111,45 +111,51 @@ case class MediatorAgent(
       }
       .provideSomeLayer(resolverLayer ++ indentityLayer)
 
-  def createSocketApp: ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
+  def createSocketApp(
+      annotationMap: Seq[LogAnnotation]
+  ): ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
     val SOCKET_ID = "SocketID"
     val appAux = SocketApp {
       case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
-        ZIO.logAnnotate(SOCKET_ID, ch.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
           DIDSocketManager.registerSocket(ch)
         }
       case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-        ZIO.logAnnotate(SOCKET_ID, ch.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
           DIDSocketManager
             .newMessage(ch, text)
             .flatMap { case (socketID, encryptedMessage) => receiveMessage(encryptedMessage, Some(socketID)) }
             .mapError(ex => DidException(ex))
         }
       case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
-        ZIO.logAnnotate(SOCKET_ID, ch.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
           DIDSocketManager.unregisterSocket(ch)
         }
       case channelEvent =>
-        ZIO.logAnnotate(SOCKET_ID, channelEvent.channel.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, channelEvent.channel.id), annotationMap: _*) {
           ZIO.logError(s"Unknown event type: ${channelEvent.event}")
         }
     }
     appAux.toResponse.provideSomeEnvironment { (env) => env.add(env.get[MediatorAgent].didSocketManager) }
   }
 
-  def websocketListenerApp: ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
+  def websocketListenerApp(
+      annotationMap: Seq[LogAnnotation]
+  ): ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
     val SOCKET_ID = "SocketID"
     SocketApp {
       case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
-        ZIO.logAnnotate(SOCKET_ID, ch.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
           ch.writeAndFlush(WebSocketFrame.text("Greetings!")) *>
             ch.writeAndFlush(WebSocketFrame.text(s"Tap into ${id.did}")) *>
             DIDSocketManager.tapSocket(id, ch)
         }
       case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-        ZIO.logAnnotate(SOCKET_ID, ch.id) { ZIO.logWarning(s"Ignored Message from '${ch.id}'") }
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
+          ZIO.logWarning(s"Ignored Message from '${ch.id}'")
+        }
       case channelEvent =>
-        ZIO.logAnnotate(SOCKET_ID, channelEvent.channel.id) {
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, channelEvent.channel.id), annotationMap: _*) {
           ZIO.logError(s"Unknown event type: ${channelEvent.event}")
         }
     }.toResponse
@@ -177,7 +183,9 @@ object MediatorAgent {
           } =>
         for {
           agent <- AgentByHost.getAgentFor(req)
-          ret <- agent.createSocketApp
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          ret <- agent
+            .createSocketApp(annotationMap)
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
         } yield (ret)
       case req @ Method.GET -> !! / "tap" if req.headersAsList.exists { h =>
@@ -187,7 +195,9 @@ object MediatorAgent {
         // WebsocketServer.socketApp.toResponse
         for {
           agent <- AgentByHost.getAgentFor(req)
-          ret <- agent.websocketListenerApp
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          ret <- agent
+            .websocketListenerApp(annotationMap)
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>

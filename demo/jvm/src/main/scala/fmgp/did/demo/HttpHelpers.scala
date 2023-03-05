@@ -25,9 +25,13 @@ extension [R, Err](app: HttpApp[R, Err])
             "request-id",
             "fly-request-id",
             composeAnnotate(
-              "host",
-              "host",
-              handler.runZIO(r)
+              "user-agent",
+              "user-agent",
+              composeAnnotate(
+                "host",
+                "host",
+                handler.runZIO(r)
+              )
             )
           )
         )
