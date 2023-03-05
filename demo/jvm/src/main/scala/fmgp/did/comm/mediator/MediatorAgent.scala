@@ -146,9 +146,9 @@ case class MediatorAgent(
     SocketApp {
       case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-          ch.writeAndFlush(WebSocketFrame.text("Greetings!")) *>
-            ch.writeAndFlush(WebSocketFrame.text(s"Tap into ${id.did}")) *>
-            DIDSocketManager.tapSocket(id, ch)
+          // ch.writeAndFlush(WebSocketFrame.text("Greetings!")) *>
+          //   ch.writeAndFlush(WebSocketFrame.text(s"Tap into ${id.did}")) *>
+          DIDSocketManager.tapSocket(id, ch)
         }
       case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
@@ -188,13 +188,9 @@ object MediatorAgent {
             .createSocketApp(annotationMap)
             .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
         } yield (ret)
-      case req @ Method.GET -> !! / "tap" if req.headersAsList.exists { h =>
-            h.key == "content-type" &&
-            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
-          } =>
-        // WebsocketServer.socketApp.toResponse
+      case Method.GET -> !! / "tap" / host =>
         for {
-          agent <- AgentByHost.getAgentFor(req)
+          agent <- AgentByHost.getAgentFor(Host(host))
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
           ret <- agent
             .websocketListenerApp(annotationMap)

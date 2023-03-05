@@ -18,10 +18,13 @@ object MyHeaders extends HeaderNames {
 
 object AgentByHost {
 
-  def getAgentFor(req: Request) =
-    ZIO
-      .serviceWithZIO[AgentByHost](_.agentFromRequest(req))
-      .mapError(ex => DidException(ex))
+  def getAgentFor(req: Request) = ZIO
+    .serviceWithZIO[AgentByHost](_.agentFromRequest(req))
+    .mapError(ex => DidException(ex))
+
+  def getAgentFor(host: Host) = ZIO
+    .serviceWithZIO[AgentByHost](_.agentFromHost(host))
+    .mapError(ex => DidException(ex))
 
   def provideAgentFor[R, E <: Exception, A](req: Request, job: ZIO[R & MediatorAgent, E, A]) =
     for {
@@ -64,4 +67,9 @@ case class AgentByHost(agents: Map[Host, MediatorAgent]) {
         agents.get(host) match
           case None        => ZIO.fail(NoAgent(s"No Agent config for $host"))
           case Some(agent) => ZIO.succeed(agent)
+
+  def agentFromHost(host: Host): zio.ZIO[Any, NoAgent, MediatorAgent] =
+    agents.get(host) match
+      case None        => ZIO.fail(NoAgent(s"No Agent config for $host"))
+      case Some(agent) => ZIO.succeed(agent)
 }
