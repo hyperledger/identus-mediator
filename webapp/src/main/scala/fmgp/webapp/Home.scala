@@ -33,6 +33,7 @@ object Home {
       p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
       p("Navigate to ", b("Basic Message "), MyRouter.navigateTo(MyRouter.BasicMessagePage)),
       p("Navigate to ", b("Trust Ping "), MyRouter.navigateTo(MyRouter.TrustPingPage)),
+      p("Navigate to ", b("TapIntoStream Tool "), MyRouter.navigateTo(MyRouter.TapIntoStreamPage)),
       br(),
       p("DIDs: "),
       div(child <-- statementVar.signal.map(e => getHtml(e)))
