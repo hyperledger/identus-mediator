@@ -19,10 +19,13 @@ import fmgp.did.resolver.peer.DIDPeer
 object BasicMessageTool {
 
   val toDIDVar: Var[Option[DID]] = Var(initial = None)
+  val plaintextMessageVar: Var[Either[String, PlaintextMessage]] =
+    Var(initial = Left("Inicial State"))
   val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
   val inicialTextVar = Var(initial = "Hello, World!")
   def message = inicialTextVar.signal.map(e => BasicMessage(content = e))
-  def plaintextMessage =
+
+  def jobPlaintextMessage(owner: Owner) =
     Signal
       .combine(
         Global.agentVar,
@@ -33,6 +36,8 @@ object BasicMessageTool {
         case (mFrom, Some(to), msg) => msg.toPlaintextMessage(mFrom.map(_.id), Set(to))
         case (mFrom, None, msg)     => Left("Missing the 'TO'")
       }
+      .map(plaintextMessageVar.set(_))
+      .observe(owner)
 
   def job(owner: Owner) = Signal
     .combine(
@@ -66,6 +71,7 @@ object BasicMessageTool {
 
   val rootElement = div(
     onMountCallback { ctx =>
+      jobPlaintextMessage(ctx.owner)
       job(ctx.owner)
       ()
     },
@@ -94,7 +100,22 @@ object BasicMessageTool {
     p("Basic Message:"),
     pre(code(child.text <-- message.map(_.toString))),
     p("Plaintext Message:"),
-    pre(code(child.text <-- plaintextMessage.map(_.map(_.toJsonPretty).merge))),
+    pre(code(child.text <-- plaintextMessageVar.signal.map(_.map(_.toJsonPretty).merge))),
+    div(
+      child <-- {
+        plaintextMessageVar.signal
+          .map(_.map(e => e.toJsonPretty))
+          .map {
+            case Left(error) => new CommentNode("")
+            case Right(json) =>
+              button(
+                "Copy to Encrypt Tool",
+                onClick --> { _ => EncryptTool.dataTextVar.set(json) },
+                MyRouter.navigateTo(MyRouter.EncryptPage)
+              )
+          }
+      }
+    ),
     p(
       "Encrypted Message",
       "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
@@ -107,7 +128,7 @@ object BasicMessageTool {
           case None        => "None"
           case Some(value) => value.toJson
       )
-    )
+    ),
   )
 
   def apply(): HtmlElement = rootElement

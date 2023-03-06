@@ -66,7 +66,7 @@ object TrustPingTool {
       checked <-- responseRequestedVar,
       onInput.mapToChecked --> responseRequestedVar
     ),
-    p("Basic Message"),
+    p("TrustPint"),
     pre(code(child.text <-- mTrustPingVar.signal.map(_.flatMap(_.toPlaintextMessage).map(_.toJsonPretty).merge))),
     div(
       child <-- {
