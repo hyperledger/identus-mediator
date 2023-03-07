@@ -15,8 +15,10 @@ import fmgp.did.comm._
 import fmgp.did.comm.extension._
 import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.resolver.uniresolver.Uniresolver
 import fmgp.crypto.error.DidFail
 import com.raquo.airstream.core.Sink
+import fmgp.did.comm.protocol.routing2.ForwardMessage
 
 object EncryptTool {
   def example = PlaintextMessageClass(
@@ -42,12 +44,51 @@ object EncryptTool {
     // received_orders: NotRequired[Seq[ReceivedOrdersElement]] = None,
   )
 
-  val encryptedMessageVar: Var[Option[Either[DidFail, EncryptedMessage]]] = Var(initial = None)
+  val encryptedMessageVar: Var[Option[Either[DidFail, (PlaintextMessage, EncryptedMessage)]]] = Var(initial = None)
   val dataTextVar = Var(initial = example.toJsonPretty)
   val curlCommandVar: Var[Option[String]] = Var(initial = None)
   val outputFromCallVar = Var[Option[EncryptedMessage]](initial = None)
+  val forwardMessageVar = Var[Option[ForwardMessage]](initial = None)
 
   def plaintextMessage = dataTextVar.signal.map(_.fromJson[PlaintextMessage])
+
+  def jobNextForward(owner: Owner) = {
+    def program(pMsg: PlaintextMessage, eMsg: EncryptedMessage): ZIO[Any, DidFail, Option[ForwardMessage]] = {
+      pMsg.to.flatMap(_.headOption) match
+        case None => ZIO.none
+        case Some(originalTO) =>
+          for {
+            resolver <- ZIO.service[Resolver]
+            doc <- resolver.didDocument(originalTO)
+            mMediatorDid = doc.getDIDServiceDIDCommMessaging.headOption.toSeq
+              .flatMap(_.getServiceEndpointNextForward)
+              .headOption
+            forwardMessage = mMediatorDid.flatMap(mediatorDid =>
+              ForwardMessage
+                .buildForwardMessage(
+                  to = Set(mediatorDid.asTO),
+                  next = originalTO.asDIDURL.toDID,
+                  msg = eMsg,
+                )
+                .toOption
+            )
+          } yield forwardMessage
+    }.provide(ZLayer.succeed(DidPeerResolver.default))
+    // .provide(MultiResolver(DidPeerResolver.default, Uniresolver.default))
+
+    encryptedMessageVar.signal
+      .map {
+        case Some(Right((pMsg, eMsg))) =>
+          Unsafe.unsafe { implicit unsafe =>
+            Runtime.default.unsafe.fork(
+              program(pMsg: PlaintextMessage, eMsg: EncryptedMessage)
+                .map(forwardMessageVar.set(_))
+            )
+          } // Run side efect
+        case _ => None
+      }
+      .observe(owner)
+  }
 
   def calEncryptedViaRPC(owner: Owner) = Signal
     .combine(
@@ -57,17 +98,23 @@ object EncryptTool {
     .map {
       case (_, Left(_)) =>
         encryptedMessageVar.update(_ => None)
-      case (None, Right(msg)) =>
-        val programAux = OperationsClientRPC.anonEncrypt(msg)
-        val program = programAux.either.map(msg => encryptedMessageVar.update(_ => Some(msg)))
+      case (None, Right(pMsg)) =>
+        val program = OperationsClientRPC
+          .anonEncrypt(pMsg)
+          .either
+          .map(_.map((pMsg, _)))
+          .map(e => encryptedMessageVar.update(_ => Some(e)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
             program.provideEnvironment(ZEnvironment(DidPeerResolver()))
           )
         }
-      case (Some(agent), Right(msg)) =>
-        val programAux = OperationsClientRPC.authEncrypt(msg)
-        val program = programAux.either.map(msg => encryptedMessageVar.update(_ => Some(msg)))
+      case (Some(agent), Right(pMsg)) =>
+        val program = OperationsClientRPC
+          .authEncrypt(pMsg)
+          .either
+          .map(_.map((pMsg, _)))
+          .map(e => encryptedMessageVar.update(_ => Some(e)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
             program.provideEnvironment(ZEnvironment(agent, DidPeerResolver()))
@@ -78,14 +125,14 @@ object EncryptTool {
 
   def curlCommand(owner: Owner) = encryptedMessageVar.signal
     .map(_.flatMap(_.toOption))
-    .map(_.flatMap { em =>
+    .map(_.flatMap { (_, eMsg) =>
       DIDPeer2
-        .fromDID(em.recipientsSubject.head)
+        .fromDID(eMsg.recipientsSubject.head)
         .toOption
         .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
         .flatMap(_.getServiceEndpointAsURIs.headOption)
         .map { uri =>
-          s"""curl -X POST $uri -H 'content-type: application/didcomm-encrypted+json' -d '${em.toJson}'"""
+          s"""curl -X POST $uri -H 'content-type: application/didcomm-encrypted+json' -d '${eMsg.toJson}'"""
         }
     })
     .map(e => curlCommandVar.set(e))
@@ -119,6 +166,7 @@ object EncryptTool {
   val rootElement = div(
     onMountCallback { ctx =>
       calEncryptedViaRPC(ctx.owner) // side effect
+      jobNextForward(ctx.owner) // side effect
       curlCommand(ctx.owner) // side effect
       ()
     },
@@ -164,7 +212,7 @@ object EncryptTool {
             )
           case Some(value) => new CommentNode("")
     }),
-    p("Plaintext Message (Or rrror report):"),
+    p("Plaintext Message (Or error report):"),
     pre(code(child.text <-- plaintextMessage.map {
       case Right(msg)  => msg.toJsonPretty
       case Left(error) => s"Error: $error"
@@ -173,22 +221,33 @@ object EncryptTool {
       "Encrypted Message",
       "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
     ),
-    pre(
-      code(
-        child.text <-- encryptedMessageVar.signal.map {
-          case None              => "None"
-          case Some(Left(error)) => "Error when encrypting " + error.toJsonPretty
-          case Some(Right(eMsg)) => eMsg.toJsonPretty
-        }
-      )
-    ),
+    child <-- encryptedMessageVar.signal.map {
+      case None                   => "None"
+      case Some(Left(error))      => "Error when encrypting " + error.toJsonPretty
+      case Some(Right((_, eMsg))) => pre(code(eMsg.toJsonPretty))
+
+    },
+    child <-- forwardMessageVar.signal.map {
+      case None => "No ForwardMessage"
+      case Some(forwardMsg) =>
+        forwardMsg.toPlaintextMessage(None) match
+          case Left(error) => s"Error on ForwardMessage $error"
+          case Right(pMsg) =>
+            div(
+              button(
+                "Copy ForwardMessage into textbox",
+                onClick --> { _ => dataTextVar.set(pMsg.toJsonPretty) }
+              ),
+              pre(code(pMsg.toJsonPretty))
+            )
+    },
     button(
-      "Copy to clipboard",
+      "Copy EncryptedMessage to clipboard",
       onClick --> Global.clipboardSideEffect(
         encryptedMessageVar.now() match
-          case None              => "None"
-          case Some(Left(error)) => "Error when encrypting " + error.toJson
-          case Some(Right(eMsg)) => eMsg.toJson
+          case None                   => "None"
+          case Some(Left(error))      => "Error when encrypting " + error.toJson
+          case Some(Right((_, eMsg))) => eMsg.toJson
       )
     ),
     p(code(child.text <-- curlCommandVar.signal.map(_.getOrElse("curl")))),
@@ -202,8 +261,8 @@ object EncryptTool {
                 "Make HTTP POST",
                 onClick --> Sink.jsCallbackToSink(_ =>
                   encryptedMessageVar.now() match {
-                    case Some(Right(eMsg)) => curlProgram(eMsg)
-                    case _                 => // None
+                    case Some(Right((_, eMsg))) => curlProgram(eMsg)
+                    case _                      => // None
                   }
                 )
               )

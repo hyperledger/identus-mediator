@@ -101,34 +101,21 @@ object BasicMessageTool {
     pre(code(child.text <-- message.map(_.toString))),
     p("Plaintext Message:"),
     pre(code(child.text <-- plaintextMessageVar.signal.map(_.map(_.toJsonPretty).merge))),
-    div(
-      child <-- {
-        plaintextMessageVar.signal
-          .map(_.map(e => e.toJsonPretty))
-          .map {
-            case Left(error) => new CommentNode("")
-            case Right(json) =>
+    children <-- {
+      plaintextMessageVar.signal
+        .map(_.map(e => e.toJsonPretty))
+        .map {
+          case Left(error) => Seq.empty // new CommentNode("")
+          case Right(json) =>
+            Seq(
               button(
                 "Copy to Encrypt Tool",
                 onClick --> { _ => EncryptTool.dataTextVar.set(json) },
                 MyRouter.navigateTo(MyRouter.EncryptPage)
               )
-          }
-      }
-    ),
-    p(
-      "Encrypted Message",
-      "(NOTE: This is executed as a RPC call to the JVM server, since the JS version has not yet been fully implemented)"
-    ),
-    pre(code(child.text <-- encryptedMessageVar.signal.map(_.toJsonPretty))),
-    button(
-      "Copy to clipboard",
-      onClick --> Global.clipboardSideEffect(
-        encryptedMessageVar.now() match
-          case None        => "None"
-          case Some(value) => value.toJson
-      )
-    ),
+            )
+        }
+    }
   )
 
   def apply(): HtmlElement = rootElement
