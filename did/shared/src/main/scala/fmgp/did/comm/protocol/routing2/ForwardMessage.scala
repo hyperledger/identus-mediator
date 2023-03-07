@@ -69,7 +69,7 @@ object ForwardMessage {
   }
 
   def fromPlaintextMessage(msg: PlaintextMessage): Either[String, ForwardMessage] = {
-    if (msg.`type` != piuri) Left(s"No able to create BasicMessage from a Message of the type '${msg.`type`}'")
+    if (msg.`type` != piuri) Left(s"No able to create ForwardMessage from a Message of the type '${msg.`type`}'")
     else
       msg.body.as[Body].map { body =>
         ForwardMessage(

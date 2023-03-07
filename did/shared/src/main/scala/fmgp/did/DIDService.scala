@@ -52,6 +52,16 @@ trait DIDServiceDIDCommMessaging extends DIDService {
     case str: URI                         => Seq(str)
     case seq: Seq[URI] @unchecked         => seq
     case map: Map[String, URI] @unchecked => map.values.toSeq
+
+  def getServiceEndpointNextForward = getServiceEndpointAsURIs.flatMap(uri =>
+    uri match {
+      case s"did:$rest" =>
+        fmgp.did.comm.FROMTO.either(uri) match
+          case Left(_)       => None // uri
+          case Right(fromto) => Some(fromto)
+      case other => None // other
+    }
+  )
 }
 
 object DIDService {
