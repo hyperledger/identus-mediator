@@ -29,11 +29,17 @@ object Home {
         MyRouter.navigateTo(MyRouter.AgentDBPage)
       ),
       p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage)),
+      p("Navigate to ", b("OOB Tool "), MyRouter.navigateTo(MyRouter.OOBPage(""))),
       p("Navigate to ", b("Encrypt Tool "), MyRouter.navigateTo(MyRouter.EncryptPage)),
       p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
       p("Navigate to ", b("Basic Message "), MyRouter.navigateTo(MyRouter.BasicMessagePage)),
       p("Navigate to ", b("Trust Ping "), MyRouter.navigateTo(MyRouter.TrustPingPage)),
-      p("Navigate to ", b("TapIntoStream Tool "), MyRouter.navigateTo(MyRouter.TapIntoStreamPage)),
+      p(
+        "Navigate to ",
+        b("TapIntoStream Tool "),
+        MyRouter.navigateTo(MyRouter.TapIntoStreamPage),
+        " (tap into all Alice's income messages)"
+      ),
       br(),
       p("DIDs: "),
       div(child <-- statementVar.signal.map(e => getHtml(e)))
