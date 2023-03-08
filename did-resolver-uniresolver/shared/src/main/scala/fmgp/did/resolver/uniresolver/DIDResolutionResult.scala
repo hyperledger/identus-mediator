@@ -9,7 +9,7 @@ import fmgp.did.DIDDocument
   * https://github.com/decentralized-identity/universal-resolver/
   */
 case class DIDResolutionResult(
-    `@context`: String,
+    `@context`: String = "https://w3id.org/did-resolution/v1",
     didDocument: DIDDocument,
     didResolutionMetadata: Json,
     didDocumentMetadata: Json

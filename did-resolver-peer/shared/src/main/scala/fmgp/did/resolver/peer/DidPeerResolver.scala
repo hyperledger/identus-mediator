@@ -18,6 +18,7 @@ class DidPeerResolver extends Resolver {
 object DidPeerResolver {
   val default = new DidPeerResolver()
   val layer: ULayer[Resolver] = ZLayer.succeed(default)
+  val layerDidPeerResolver: ULayer[DidPeerResolver] = ZLayer.succeed(default)
 
   /** see https://identity.foundation/peer-did-method-spec/#generation-method */
   def didDocument(didPeer: DIDPeer): UIO[DIDDocument] = didPeer match {

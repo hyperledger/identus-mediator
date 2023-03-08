@@ -21,6 +21,8 @@ import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
 import zio.http.Http.Empty
 import zio.http.Http.Static
+import fmgp.did.resolver.DidPeerUniresolverDriver
+import fmgp.did.resolver.peer.DidPeerResolver
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -60,7 +62,7 @@ object AppServer extends ZIOAppDefault {
   }
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & AgentByHost & Operations & MessageDispatcher,
+    Hub[String] & AgentByHost & Operations & MessageDispatcher & DidPeerResolver,
     Throwable
   ] = MediatorAgent.didCommApp ++ Http
     .collectZIO[Request] {
@@ -137,7 +139,6 @@ object AppServer extends ZIOAppDefault {
         case _ => false
       }
     }
-    ++ mdocMarkdown ++ mdocHTML
 
   override val run = for {
     _ <- Console.printLine(
@@ -176,7 +177,13 @@ object AppServer extends ZIOAppDefault {
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(
-        app.annotateLogs
+        (
+          Http.Empty
+            ++ app
+            ++ mdocMarkdown
+            ++ mdocHTML
+            ++ DidPeerUniresolverDriver.resolverPeer
+        ).annotateLogs
           .tapUnhandledZIO(ZIO.logError("Unhandled Endpoint"))
           .tapErrorCauseZIO(cause => ZIO.logErrorCause(cause)) // THIS is to log all the erros
           .mapError(err =>
@@ -187,12 +194,11 @@ object AppServer extends ZIOAppDefault {
             )
           )
       )
-      .provideSomeEnvironment { (env: ZEnvironment[Server & AgentByHost & Operations & MessageDispatcher]) =>
-        env.add(myHub)
-      }
+      .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcher.layer)
+      .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(server)
       .debug
       .fork
