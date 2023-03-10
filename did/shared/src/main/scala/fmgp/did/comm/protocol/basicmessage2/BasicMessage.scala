@@ -36,31 +36,28 @@ final case class BasicMessage(
 ) {
   def `type` = BasicMessage.piuri
 
-  def toPlaintextMessage(from: Option[FROM], to: Set[TO]): Either[String, PlaintextMessage] =
-    BasicMessage
-      .Body(content)
-      .toJSON_RFC7159
-      .map(body =>
-        PlaintextMessageClass(
-          id = id,
-          `type` = `type`,
-          to = Some(to),
-          from = from,
-          created_time = created_time,
-          body = body,
-          // FIXME lang: NotRequired[String] = lang,
-        )
-      )
+  def toPlaintextMessage(from: Option[FROM], to: Set[TO]): PlaintextMessage =
+    PlaintextMessageClass(
+      id = id,
+      `type` = `type`,
+      to = Some(to),
+      from = from,
+      created_time = created_time,
+      body = BasicMessage.Body(content).toJSON_RFC7159,
+      // FIXME lang: NotRequired[String] = lang,
+    )
+
 }
 
 object BasicMessage {
   def piuri = PIURI("https://didcomm.org/basicmessage/2.0/message")
 
   protected final case class Body(content: String) {
-    def toJSON_RFC7159: Either[String, JSON_RFC7159] =
-      this.toJsonAST.flatMap(_.as[JSON_RFC7159])
+
+    /** toJSON_RFC7159 MUST not fail! */
+    def toJSON_RFC7159: JSON_RFC7159 = this.toJsonAST.flatMap(_.as[JSON_RFC7159]).getOrElse(JSON_RFC7159())
   }
-  object Body {
+  protected object Body {
     given decoder: JsonDecoder[Body] = DeriveJsonDecoder.gen[Body]
     given encoder: JsonEncoder[Body] = DeriveJsonEncoder.gen[Body]
   }

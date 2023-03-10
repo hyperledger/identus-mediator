@@ -29,16 +29,17 @@ sealed trait TrustPing {
   def response_requested: Boolean // default is false
 
   // utils
-  def toPlaintextMessage: Either[String, PlaintextMessage]
+  def toPlaintextMessage: PlaintextMessage
 }
 
 object TrustPing {
   def piuri = PIURI("https://didcomm.org/trust-ping/2.0/ping")
   protected final case class Body(response_requested: Option[Boolean]) {
-    def toJSON_RFC7159: Either[String, JSON_RFC7159] =
-      this.toJsonAST.flatMap(_.as[JSON_RFC7159])
+
+    /** toJSON_RFC7159 MUST not fail! */
+    def toJSON_RFC7159: JSON_RFC7159 = this.toJsonAST.flatMap(_.as[JSON_RFC7159]).getOrElse(JSON_RFC7159())
   }
-  object Body {
+  protected[trustping2] object Body {
     given decoder: JsonDecoder[Body] = DeriveJsonDecoder.gen[Body]
     given encoder: JsonEncoder[Body] = DeriveJsonEncoder.gen[Body]
   }
@@ -67,19 +68,14 @@ final case class TrustPingWithRequestedResponse(
 ) extends TrustPing {
   def response_requested: Boolean = true
 
-  def toPlaintextMessage: Either[String, PlaintextMessage] =
-    TrustPing
-      .Body(Some(response_requested))
-      .toJSON_RFC7159
-      .map(body =>
-        PlaintextMessageClass(
-          id = id,
-          `type` = piuri,
-          to = Some(Set(to)),
-          from = Some(from),
-          body = body,
-        )
-      )
+  def toPlaintextMessage: PlaintextMessage =
+    PlaintextMessageClass(
+      id = id,
+      `type` = piuri,
+      to = Some(Set(to)),
+      from = Some(from),
+      body = TrustPing.Body(Some(response_requested)).toJSON_RFC7159,
+    )
 
   def makeRespond = TrustPingResponse(thid = id)
 }
@@ -91,19 +87,14 @@ final case class TrustPingWithOutRequestedResponse(
 ) extends TrustPing {
   def response_requested: Boolean = false
 
-  def toPlaintextMessage: Either[String, PlaintextMessage] =
-    TrustPing
-      .Body(Some(response_requested))
-      .toJSON_RFC7159
-      .map(body =>
-        PlaintextMessageClass(
-          id = id,
-          `type` = piuri,
-          to = Some(Set(to)),
-          from = from.map(e => e),
-          body = body,
-        )
-      )
+  def toPlaintextMessage: PlaintextMessage =
+    PlaintextMessageClass(
+      id = id,
+      `type` = piuri,
+      to = Some(Set(to)),
+      from = from.map(e => e),
+      body = TrustPing.Body(Some(response_requested)).toJSON_RFC7159,
+    )
 
 }
 

@@ -40,30 +40,27 @@ final case class ForwardMessage(
 ) {
   def `type` = ForwardMessage.piuri
 
-  def toPlaintextMessage(from: Option[FROM]): Either[String, PlaintextMessage] =
-    ForwardMessage
-      .Body(next)
-      .toJSON_RFC7159
-      .map(body =>
-        PlaintextMessageClass(
-          id = id,
-          `type` = `type`,
-          to = Some(to),
-          body = body,
-          expires_time = expires_time,
-          attachments = Some(attachments),
-        )
-      )
+  def toPlaintextMessage(from: Option[FROM]): PlaintextMessage =
+    PlaintextMessageClass(
+      id = id,
+      `type` = `type`,
+      to = Some(to),
+      body = ForwardMessage.Body(next).toJSON_RFC7159,
+      expires_time = expires_time,
+      attachments = Some(attachments),
+    )
+
 }
 
 object ForwardMessage {
   def piuri = PIURI("https://didcomm.org/routing/2.0/forward")
 
   protected final case class Body(next: DIDSubject) {
-    def toJSON_RFC7159: Either[String, JSON_RFC7159] =
-      this.toJsonAST.flatMap(_.as[JSON_RFC7159])
+
+    /** toJSON_RFC7159 MUST not fail! */
+    def toJSON_RFC7159: JSON_RFC7159 = this.toJsonAST.flatMap(_.as[JSON_RFC7159]).getOrElse(JSON_RFC7159())
   }
-  object Body {
+  protected object Body {
     given decoder: JsonDecoder[Body] = DeriveJsonDecoder.gen[Body]
     given encoder: JsonEncoder[Body] = DeriveJsonEncoder.gen[Body]
   }
@@ -109,12 +106,9 @@ object ForwardMessage {
     buildForwardMessage(next = next, msg = msg, to = Set(to)) match
       case Left(error1) => ZIO.fail(FailToEncodeMessage(piuri, error1))
       case Right(forwardMessage) =>
-        forwardMessage.toPlaintextMessage(from = None) match
-          case Left(error2) => ZIO.fail(FailToEncodeMessage(piuri, error2))
-          case Right(fMsg) =>
-            for {
-              ops <- ZIO.service[Operations]
-              encryptedMessage <- ops.anonEncrypt(fMsg)
-            } yield encryptedMessage
+        for {
+          ops <- ZIO.service[Operations]
+          encryptedMessage <- ops.anonEncrypt(forwardMessage.toPlaintextMessage(from = None))
+        } yield encryptedMessage
 
 }

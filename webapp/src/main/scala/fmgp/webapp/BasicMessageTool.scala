@@ -33,7 +33,7 @@ object BasicMessageTool {
         message
       )
       .map {
-        case (mFrom, Some(to), msg) => msg.toPlaintextMessage(mFrom.map(_.id), Set(to))
+        case (mFrom, Some(to), msg) => Right(msg.toPlaintextMessage(mFrom.map(_.id), Set(to)))
         case (mFrom, None, msg)     => Left("Missing the 'TO'")
       }
       .map(plaintextMessageVar.set(_))
@@ -49,7 +49,7 @@ object BasicMessageTool {
       case (mFrom, None, msg) =>
         encryptedMessageVar.update(_ => None)
       case (None, Some(to), msg) =>
-        val tmp = msg.toPlaintextMessage(None, Set(to)).toOption.get
+        val tmp = msg.toPlaintextMessage(None, Set(to))
         val programAux = OperationsClientRPC.anonEncrypt(tmp)
         val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
@@ -58,7 +58,7 @@ object BasicMessageTool {
           )
         }
       case (Some(from), Some(to), msg) =>
-        val tmp = msg.toPlaintextMessage(Some(from.id), Set(to)).toOption.get
+        val tmp = msg.toPlaintextMessage(Some(from.id), Set(to))
         val programAux = OperationsClientRPC.authEncrypt(tmp)
         val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
         Unsafe.unsafe { implicit unsafe => // Run side efect

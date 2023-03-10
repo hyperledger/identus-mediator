@@ -67,11 +67,11 @@ object TrustPingTool {
       onInput.mapToChecked --> responseRequestedVar
     ),
     p("TrustPint"),
-    pre(code(child.text <-- mTrustPingVar.signal.map(_.flatMap(_.toPlaintextMessage).map(_.toJsonPretty).merge))),
+    pre(code(child.text <-- mTrustPingVar.signal.map(_.map(_.toPlaintextMessage.toJsonPretty).merge))),
     div(
       child <-- {
         mTrustPingVar.signal
-          .map(_.flatMap(_.toPlaintextMessage.map(_.toJsonPretty)))
+          .map(_.map(_.toPlaintextMessage.toJsonPretty))
           .map {
             case Left(error) => new CommentNode("")
             case Right(json) =>
