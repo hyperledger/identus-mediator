@@ -1,80 +1,37 @@
 package fmgp.webapp
 
-import org.scalajs.dom
-import scala.scalajs.js
-import scala.scalajs.js.timers._
-import js.JSConverters._
-
-import com.raquo.laminar.api.L._
 import zio._
 import zio.json._
+import com.raquo.laminar.api.L._
 
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
-import fmgp.did.resolver.peer.DIDPeer._
-import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.resolver.peer.DIDPeer
+import fmgp.did.resolver.peer._
 
 object BasicMessageTool {
 
   val toDIDVar: Var[Option[DID]] = Var(initial = None)
-  val plaintextMessageVar: Var[Either[String, PlaintextMessage]] =
-    Var(initial = Left("Inicial State"))
-  val encryptedMessageVar: Var[Option[EncryptedMessage]] = Var(initial = None)
+  val plaintextMessageVar: Var[Either[String, PlaintextMessage]] = Var(initial = Left("Inicial State"))
   val inicialTextVar = Var(initial = "Hello, World!")
-  def message = inicialTextVar.signal.map(e => BasicMessage(content = e))
-
-  def jobPlaintextMessage(owner: Owner) =
-    Signal
-      .combine(
-        Global.agentVar,
-        toDIDVar,
-        message
-      )
-      .map {
-        case (mFrom, Some(to), msg) => Right(msg.toPlaintextMessage(mFrom.map(_.id), Set(to)))
-        case (mFrom, None, msg)     => Left("Missing the 'TO'")
-      }
-      .map(plaintextMessageVar.set(_))
-      .observe(owner)
-
-  def job(owner: Owner) = Signal
+  def message = Signal
     .combine(
       Global.agentVar,
       toDIDVar,
-      message
+      inicialTextVar
     )
     .map {
-      case (mFrom, None, msg) =>
-        encryptedMessageVar.update(_ => None)
-      case (None, Some(to), msg) =>
-        val tmp = msg.toPlaintextMessage(None, Set(to))
-        val programAux = OperationsClientRPC.anonEncrypt(tmp)
-        val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
-        Unsafe.unsafe { implicit unsafe => // Run side efect
-          Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(DidPeerResolver()))
-          )
-        }
-      case (Some(from), Some(to), msg) =>
-        val tmp = msg.toPlaintextMessage(Some(from.id), Set(to))
-        val programAux = OperationsClientRPC.authEncrypt(tmp)
-        val program = programAux.map(msg => encryptedMessageVar.update(_ => Some(msg)))
-        Unsafe.unsafe { implicit unsafe => // Run side efect
-          Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(from, DidPeerResolver()))
-          )
-        }
+      case (mFrom, Some(to), msgStr) => Right(BasicMessage(to = Set(to), from = mFrom.map(_.id), content = msgStr))
+      case (mFrom, None, msgSTR)     => Left("Missing the 'TO'")
     }
+
+  def jobPlaintextMessage(owner: Owner) = message
+    .map(_.map(_.toPlaintextMessage))
+    .map(plaintextMessageVar.set(_))
     .observe(owner)
 
   val rootElement = div(
-    onMountCallback { ctx =>
-      jobPlaintextMessage(ctx.owner)
-      job(ctx.owner)
-      ()
-    },
+    onMountCallback(ctx => { jobPlaintextMessage(ctx.owner); () }),
     code("BasicMessage Page"),
     p(
       overflowWrap.:=("anywhere"),

@@ -9,34 +9,36 @@ extension (msg: PlaintextMessage)
   def toBasicMessage: Either[String, BasicMessage] =
     BasicMessage.fromPlaintextMessage(msg)
 
-/** The Basic Message is sent by the sender to the recipient.
-  *
-  * Note that the role is only specific to the creation of messages, and that both parties may play both roles.
-  *
-  * {{{
-  *  {
-  * "id": "123456780",
-  * "type": "https://didcomm.org/basicmessage/2.0/message",
-  * "lang": "en",
-  * "created_time": 1547577721,
-  * "body": {
-  * "content": "Your hovercraft is full of eels."
-  * }
-  * }
-  * }}}
-  *
-  * @param lang
-  *   See [https://identity.foundation/didcomm-messaging/spec/#internationalization-i18n]
-  */
+  /** The Basic Message is sent by the sender to the recipient.
+    *
+    * Note that the role is only specific to the creation of messages, and that both parties may play both roles.
+    *
+    * {{{
+    *  {
+    * "id": "123456780",
+    * "type": "https://didcomm.org/basicmessage/2.0/message",
+    * "lang": "en",
+    * "created_time": 1547577721,
+    * "body": {
+    * "content": "Your hovercraft is full of eels."
+    * }
+    * }
+    * }}}
+    *
+    * @param lang
+    *   See [https://identity.foundation/didcomm-messaging/spec/#internationalization-i18n]
+    */
 final case class BasicMessage(
     id: MsgID = MsgID(),
+    to: Set[TO],
+    from: Option[FROM],
     lang: NotRequired[String] = None,
     created_time: NotRequired[UTCEpoch] = None,
     content: String,
 ) {
   def `type` = BasicMessage.piuri
 
-  def toPlaintextMessage(from: Option[FROM], to: Set[TO]): PlaintextMessage =
+  def toPlaintextMessage: PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = `type`,
@@ -66,13 +68,19 @@ object BasicMessage {
     if (msg.`type` != piuri)
       Left(s"No able to create BasicMessage from a Message of the type '${msg.`type`}'")
     else
-      msg.body.as[Body].map { body =>
-        BasicMessage(
-          id = msg.id,
-          lang = None, // TODO FIXME
-          created_time = msg.created_time,
-          content = body.content
-        )
-      }
+      msg.to.toSeq.flatten match // Note: toSeq is from the match
+        case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
+        case tos =>
+          msg.body.as[Body].map { body =>
+            BasicMessage(
+              id = msg.id,
+              to = tos.toSet,
+              from = msg.from,
+              lang = None,
+              created_time = msg.created_time,
+              content = body.content
+            )
+          }
+
   }
 }
