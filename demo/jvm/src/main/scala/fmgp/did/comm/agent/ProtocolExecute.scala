@@ -142,7 +142,7 @@ class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Se
               _ <- ZIO.logInfo(ping.toString())
               agent <- ZIO.service[Agent]
               ret = ping.makeRespond
-            } yield Some(ret.toPlaintextMessage(to = ping.from.asTO, from = Some(agent.id)))
+            } yield Some(ret.toPlaintextMessage)
       case `piuriTrustPingResponse` =>
         for {
           job <- TrustPingResponse.fromPlaintextMessage(plaintextMessage) match

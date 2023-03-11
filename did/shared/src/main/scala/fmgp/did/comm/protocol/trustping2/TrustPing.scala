@@ -77,7 +77,7 @@ final case class TrustPingWithRequestedResponse(
       body = TrustPing.Body(Some(response_requested)).toJSON_RFC7159,
     )
 
-  def makeRespond = TrustPingResponse(thid = id)
+  def makeRespond = TrustPingResponse(thid = id, to = from.asTO, from = Some(to.asFROM))
 }
 
 final case class TrustPingWithOutRequestedResponse(
@@ -109,9 +109,10 @@ final case class TrustPingWithOutRequestedResponse(
 final case class TrustPingResponse(
     id: MsgID = MsgID(),
     thid: MsgID,
-    // to: Option[DIDSubject] // Should this field be required? (not in example)
+    to: TO,
+    from: Option[FROM],
 ) {
-  def toPlaintextMessage(to: TO, from: Option[FROM]): PlaintextMessage =
+  def toPlaintextMessage: PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = TrustPingResponse.piuri,
@@ -128,14 +129,19 @@ object TrustPingResponse {
     if (msg.`type` != piuri)
       Left(s"No able to create TrustPingResponse from a Message of the type '${msg.`type`}'")
     else
-      msg.thid match
-        case None => Left(s"'$piuri' MUST have the field 'thid'")
-        case Some(thid) =>
-          Right(
-            TrustPingResponse(
-              id = msg.id,
-              thid = thid,
-              // to = msg.to.flatMap(_.headOption)
-            )
-          )
+      msg.to.toSeq.flatten match // Note: toSeq is from the match
+        case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
+        case firstTo +: Seq() =>
+          msg.thid match
+            case None => Left(s"'$piuri' MUST have the field 'thid'")
+            case Some(thid) =>
+              Right(
+                TrustPingResponse(
+                  id = msg.id,
+                  thid = thid,
+                  to = firstTo,
+                  from = msg.from,
+                )
+              )
+        case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }
