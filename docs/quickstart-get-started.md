@@ -10,11 +10,12 @@ import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2._
 
 // Initialize a new message
-val message = new BasicMessage(content = "Hello, World!")
-  .toPlaintextMessage(
-    Some(FROM("did:example:456")),
-    Set(TO("did:example:123"))
-  )
+val message = new BasicMessage(
+  to = Set(TO("did:example:123")),
+  content = "Hello, World!",
+  from = Some(FROM("did:example:456")), 
+)
+
 
 message.toJsonPretty
 
