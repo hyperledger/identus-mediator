@@ -230,7 +230,7 @@ object EncryptTool {
     child <-- forwardMessageVar.signal.map {
       case None => "No ForwardMessage"
       case Some(forwardMsg) =>
-        val pMsg = forwardMsg.toPlaintextMessage(None).toJsonPretty
+        val pMsg = forwardMsg.toPlaintextMessage.toJsonPretty
         div(
           button("Copy ForwardMessage into textbox", onClick --> { _ => dataTextVar.set(pMsg) }),
           pre(code(pMsg))

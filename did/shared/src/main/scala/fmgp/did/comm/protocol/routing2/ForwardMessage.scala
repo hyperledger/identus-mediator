@@ -34,13 +34,14 @@ extension (msg: EncryptedMessage)
 final case class ForwardMessage(
     id: MsgID = MsgID(),
     to: Set[TO] = Set.empty,
+    from: Option[FROM],
     next: DIDSubject, // TODO is this on the type TO?
     expires_time: NotRequired[UTCEpoch] = None,
     attachments: Seq[Attachment],
 ) {
   def `type` = ForwardMessage.piuri
 
-  def toPlaintextMessage(from: Option[FROM]): PlaintextMessage =
+  def toPlaintextMessage: PlaintextMessage =
     PlaintextMessageClass(
       id = id,
       `type` = `type`,
@@ -72,6 +73,7 @@ object ForwardMessage {
         ForwardMessage(
           id = msg.id,
           to = msg.to.getOrElse(Set.empty),
+          from = msg.from,
           next = body.next,
           expires_time = msg.expires_time,
           attachments = msg.attachments.getOrElse(Seq.empty), // TODO error?
@@ -92,6 +94,7 @@ object ForwardMessage {
         ForwardMessage(
           id = id,
           to = to,
+          from = None,
           next = next,
           attachments = Seq(attachment),
         )
@@ -108,7 +111,7 @@ object ForwardMessage {
       case Right(forwardMessage) =>
         for {
           ops <- ZIO.service[Operations]
-          encryptedMessage <- ops.anonEncrypt(forwardMessage.toPlaintextMessage(from = None))
+          encryptedMessage <- ops.anonEncrypt(forwardMessage.toPlaintextMessage)
         } yield encryptedMessage
 
 }
