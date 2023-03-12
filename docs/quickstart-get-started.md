@@ -17,7 +17,7 @@ val message = new BasicMessage(
 )
 
 
-message.toJsonPretty
+message.toPlaintextMessage.toJsonPretty
 
 // TODO Send the message
 // didcomm.send(message).onComplete {
