@@ -21,31 +21,9 @@ import com.raquo.airstream.core.Sink
 import fmgp.did.comm.protocol.routing2.ForwardMessage
 
 object EncryptTool {
-  def example = PlaintextMessageClass(
-    id = MsgID(),
-    `type` = PIURI("basic"),
-    to = Some(Set(Global.agentVar.now().flatMap(o => TO.either(o.id.string).toOption).getOrElse(TO("did:TO:123")))),
-    from = Some(FROM("did:FROM:123")),
-    thid = Some(MsgID()),
-    created_time = Some(123456789),
-    expires_time = Some(123456789),
-    body = JSON_RFC7159(),
-    attachments = Some(Seq.empty[Attachment]),
-    // # Extensions
-    `accept-lang` = Some(Seq("PT")),
-    lang = Some("PT"), // IANA’s language codes  // IANA’s language subtag registry.
-    // l10n = Some(L10n(
-    //   inline = Some(Seq[L10nInline),
-    //   service = Some(L10nService),
-    //   table = Some(L10nTable)
-    //   )),
-    // sender_order: NotRequired[SenderOrder] = None,
-    // sent_count: NotRequired[SentCount] = None,
-    // received_orders: NotRequired[Seq[ReceivedOrdersElement]] = None,
-  )
 
   val encryptedMessageVar: Var[Option[Either[DidFail, (PlaintextMessage, EncryptedMessage)]]] = Var(initial = None)
-  val dataTextVar = Var(initial = example.toJsonPretty)
+  val dataTextVar = Var(initial = MessageTemplate.exPlaintextMessage.toJsonPretty)
   val curlCommandVar: Var[Option[String]] = Var(initial = None)
   val outputFromCallVar = Var[Option[EncryptedMessage]](initial = None)
   val forwardMessageVar = Var[Option[ForwardMessage]](initial = None)
@@ -178,11 +156,51 @@ object EncryptTool {
       code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("none")))
     ),
     p(
-      "Plaintext Text:",
+      "Templates:",
       button(
-        "RESET",
-        onClick --> Observer(_ => dataTextVar.set(example.toJsonPretty))
-      )
+        "PlaintextMessage",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "ForwardMessage",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exForwardMessage.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "BasicMessage",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exBasicMessage.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "MediateRequest",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateRequest.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "MediateGrant",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateGrant.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "MediateDeny",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateDeny.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "Status",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exStatus.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "StatusRequest",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exStatusRequest.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "MessageDelivery",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMessageDelivery.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "MessagesReceived",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMessagesReceived.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "LiveModeChange",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exLiveModeChange.toPlaintextMessage.toJsonPretty))
+      ),
     ),
     textArea(
       rows := 20,
