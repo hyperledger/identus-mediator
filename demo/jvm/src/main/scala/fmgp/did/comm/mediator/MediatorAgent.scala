@@ -23,8 +23,19 @@ case class MediatorAgent(
     didSocketManager: Ref[DIDSocketManager],
     messageDB: Ref[MessageDB],
 ) {
-  val resolverLayer: ZLayer[Any, Nothing, DynamicResolver] =
+  val resolverLayer: ULayer[DynamicResolver] =
     DynamicResolver.resolverLayer(didSocketManager)
+
+  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
+  val protocolHandlerLayer: ULayer[ProtocolExecuter[Services] & Ref[MediatorDB]] =
+    ZLayer.succeed(
+      ProtocolExecuterCollection[Services](
+        BasicMessageExecuter,
+        new TrustPingExecuter,
+        MediatorCoordinationExecuter,
+        ForwardMessageExecuter,
+      )
+    ) ++ ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB()))
 
   private def _didSubjectAux = id
   private def _keyStoreAux = keyStore.keys.toSeq
@@ -35,8 +46,6 @@ case class MediatorAgent(
 
   val messageDispatcherLayer: ZLayer[Client, DidFail, MessageDispatcher] =
     MessageDispatcher.layer.mapError(ex => SomeThrowable(ex))
-
-  def protocolExecuter = ProtocolExecuter.getExecuteFor _
 
   // TODO move to another place & move validations and build a contex
   def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, DidFail, PlaintextMessage] =
@@ -104,12 +113,12 @@ case class MediatorAgent(
                       case Some(from) => didSocketManager.update { _.link(from.asFROMTO, socketID) }
                 // TODO Store context of the decrypt unwarping
                 // TODO Store context with MsgID and PIURI
-                executer = protocolExecuter(plaintextMessage.`type`)
-                ret <- executer.execute(plaintextMessage)
+                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
+                ret <- protocolHandler.execute(plaintextMessage)
               } yield ret
         } yield maybeSyncReplyMsg
       }
-      .provideSomeLayer(resolverLayer ++ indentityLayer)
+      .provideSomeLayer(resolverLayer ++ indentityLayer ++ protocolHandlerLayer)
 
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]

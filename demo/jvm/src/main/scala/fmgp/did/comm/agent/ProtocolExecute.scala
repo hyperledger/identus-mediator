@@ -14,6 +14,8 @@ import fmgp.did.comm.protocol.trustping2._
 
 trait ProtocolExecuter[-R] {
 
+  def suportedPIURI: Seq[PIURI]
+
   /** @return can return a Sync Reply Msg */
   def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
@@ -27,20 +29,27 @@ trait ProtocolExecuter[-R] {
 }
 
 object ProtocolExecuter {
-
   type Services = Resolver & Agent & Operations & MessageDispatcher
+}
+case class ProtocolExecuterCollection[-R](executers: ProtocolExecuter[R]*) extends ProtocolExecuter[R] {
 
-  def getExecuteFor(piuri: PIURI): ProtocolExecuter[Services] = {
-    // the val is from the match to be definitely stable
-    val piuriBasicMessage = BasicMessage.piuri
-    val piuriTrustPing = TrustPing.piuri
-    val piuriTrustPingResponse = TrustPingResponse.piuri
-    piuri match
-      case `piuriBasicMessage`      => BasicMessageExecuter
-      case `piuriTrustPing`         => new TrustPingExecuter
-      case `piuriTrustPingResponse` => new TrustPingExecuter
-      case anyPiuri                 => NullProtocolExecute
-  }
+  override def suportedPIURI: Seq[PIURI] = executers.flatMap(_.suportedPIURI)
+
+  def selectExecutersFor(piuri: PIURI) = executers.find(_.suportedPIURI.contains(piuri))
+
+  override def execute[R1 <: R](
+      plaintextMessage: PlaintextMessage,
+  ): ZIO[R1, DidFail, Option[EncryptedMessage]] =
+    selectExecutersFor(plaintextMessage.`type`) match
+      case None     => NullProtocolExecute.execute(plaintextMessage)
+      case Some(px) => px.execute(plaintextMessage)
+
+  override def program[R1 <: R](
+      plaintextMessage: PlaintextMessage,
+  ): ZIO[R1, DidFail, Option[PlaintextMessage]] =
+    selectExecutersFor(plaintextMessage.`type`) match
+      case None     => NullProtocolExecute.program(plaintextMessage)
+      case Some(px) => px.program(plaintextMessage)
 }
 
 trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends ProtocolExecuter[R] {
@@ -111,11 +120,15 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
 }
 
 object NullProtocolExecute extends ProtocolExecuter[Any] {
+
+  override def suportedPIURI = Seq()
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) =
     ZIO.fail(MissingProtocol(plaintextMessage.`type`))
 }
 
 object BasicMessageExecuter extends ProtocolExecuter[Any] {
+
+  override def suportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) = for {
     job <- BasicMessage.fromPlaintextMessage(plaintextMessage) match
       case Left(error) => ZIO.fail(FailToParse(error))
@@ -124,6 +137,8 @@ object BasicMessageExecuter extends ProtocolExecuter[Any] {
 }
 
 class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services] {
+
+  override def suportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
 
   override def program[R1 <: Agent](
       plaintextMessage: PlaintextMessage

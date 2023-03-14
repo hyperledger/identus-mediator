@@ -37,7 +37,7 @@ final case class ForwardMessage(
     from: Option[FROM],
     next: DIDSubject, // TODO is this on the type TO?
     expires_time: NotRequired[UTCEpoch] = None,
-    attachments: Seq[Attachment],
+    attachments: Seq[Attachment], // TODO make it type-safe -> MUST be a single Message
 ) {
   def `type` = ForwardMessage.piuri
 
