@@ -20,7 +20,15 @@ class ForwardMessageSuite extends FunSuite {
     val fMsg2 = msg.toAttachmentJson match
       case Left(error) => fail(error)
       case Right(attachment) =>
-        Right(ForwardMessage(id = id, next = msg.recipientsSubject.head, attachments = Seq(attachment)))
+        Right(
+          ForwardMessage(
+            id = id,
+            to = Set.empty,
+            from = None,
+            next = msg.recipientsSubject.head,
+            attachments = Seq(attachment)
+          )
+        )
 
     assertEquals(fMsg1, fMsg2)
     assertEquals(fMsg1.hashCode, fMsg2.hashCode)
