@@ -114,6 +114,7 @@ object AppServer extends ZIOAppDefault {
       case req @ Method.GET -> !! / "headers" =>
         val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
+      case req @ Method.GET -> !! / "healthz" => ZIO.succeed(Response.ok)
       case req @ Method.POST -> !! / "ops" =>
         req.body.asString
           .tap(e => ZIO.log("ops"))
