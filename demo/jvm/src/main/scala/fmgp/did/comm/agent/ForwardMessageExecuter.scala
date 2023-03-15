@@ -23,31 +23,7 @@ object ForwardMessageExecuter extends ProtocolExecuterWithServices[ProtocolExecu
       for {
         _ <- ZIO.logInfo("ForwardMessage")
         db <- ZIO.service[Ref[MediatorDB]]
-        readAttachments = m.attachments match
-          case Seq() => Left(FailToParse("ForwardMessage with no attachments"))
-          case firstAttachment +: Seq() =>
-            firstAttachment.data match {
-              case AttachmentDataJWS(jws, links) =>
-                Left(FailToParse("ForwardMessage of the type jws not implemented"))
-              case AttachmentDataLinks(links, hash) =>
-                Left(FailToParse("ForwardMessage of the type Links not implemented"))
-              case AttachmentDataBase64(base64) =>
-                base64.decodeToString.fromJson[EncryptedMessage] match
-                  case Left(error) =>
-                    Left(FailToParse(s"ForwardMessage does not contain a EncryptedMessage in Attachments: $error"))
-                  case Right(nextMsg) => Right(nextMsg)
-              case AttachmentDataJson(json) =>
-                json.as[EncryptedMessage] match
-                  case Left(error) =>
-                    Left(FailToParse(s"ForwardMessage does not contain a EncryptedMessage in Attachments: $error"))
-                  case Right(nextMsg) => Right(nextMsg)
-              case AttachmentDataAny(jws, hash, links, base64, json) =>
-                Left(FailToParse("ForwardMessage as Attachments of unknown type"))
-            }
-          case firstAttachments +: tail => Left(FailToParse("ForwardMessage with multi attachments"))
-        _ <- readAttachments match
-          case Left(error)    => ZIO.fail(error) // TODO return error msg
-          case Right(nextMsg) => db.update(_.store(m.next, nextMsg))
+        _ <- db.update(_.store(m.next, m.msg))
       } yield None
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.none

@@ -6,6 +6,7 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.crypto.error._
+import fmgp.util.Base64
 
 extension (msg: PlaintextMessage)
   def toForwardMessage: Either[String, ForwardMessage] =
@@ -31,15 +32,19 @@ extension (msg: EncryptedMessage)
   * @param lang
   *   See [https://identity.foundation/didcomm-messaging/spec/#routing-protocol-20]
   */
-final case class ForwardMessage(
-    id: MsgID = MsgID(),
-    to: Set[TO] = Set.empty,
-    from: Option[FROM],
-    next: DIDSubject, // TODO is this on the type TO?
-    expires_time: NotRequired[UTCEpoch] = None,
-    attachments: Seq[Attachment], // TODO make it type-safe -> MUST be a single Message
-) {
+
+sealed trait ForwardMessage {
+  def id: MsgID
+  def to: Set[TO]
+  def from: Option[FROM]
+  def next: DIDSubject
+  def expires_time: NotRequired[UTCEpoch]
+  def msg: EncryptedMessage
+
+  // methods
   def `type` = ForwardMessage.piuri
+
+  def toAttachments: Attachment
 
   def toPlaintextMessage: PlaintextMessage =
     PlaintextMessageClass(
@@ -48,9 +53,36 @@ final case class ForwardMessage(
       to = Some(to),
       body = ForwardMessage.Body(next).toJSON_RFC7159,
       expires_time = expires_time,
-      attachments = Some(attachments),
+      attachments = Some(Seq(toAttachments)),
     )
+}
 
+final case class ForwardMessageBase64(
+    id: MsgID = MsgID(),
+    to: Set[TO] = Set.empty,
+    from: Option[FROM],
+    next: DIDSubject, // TODO is this on the type TO?
+    expires_time: NotRequired[UTCEpoch] = None,
+    msg: EncryptedMessage,
+) extends ForwardMessage {
+  def toAttachments: Attachment = Attachment(
+    data = AttachmentDataBase64(Base64.encode(msg.toJson))
+  )
+
+}
+
+final case class ForwardMessageJson(
+    id: MsgID = MsgID(),
+    to: Set[TO] = Set.empty,
+    from: Option[FROM],
+    next: DIDSubject, // TODO is this on the type TO? //IMPROVE next MUST? be one o recipients
+    expires_time: NotRequired[UTCEpoch] = None,
+    msg: EncryptedMessage,
+) extends ForwardMessage {
+  def toAttachments: Attachment = Attachment(
+    /** toJSON_RFC7159 MUST not fail! */
+    data = AttachmentDataJson(msg.toJsonAST.getOrElse(JSON_RFC7159()))
+  )
 }
 
 object ForwardMessage {
@@ -68,17 +100,65 @@ object ForwardMessage {
 
   def fromPlaintextMessage(msg: PlaintextMessage): Either[String, ForwardMessage] = {
     if (msg.`type` != piuri) Left(s"No able to create ForwardMessage from a Message of the type '${msg.`type`}'")
-    else
-      msg.body.as[Body].map { body =>
-        ForwardMessage(
-          id = msg.id,
-          to = msg.to.getOrElse(Set.empty),
-          from = msg.from,
-          next = body.next,
-          expires_time = msg.expires_time,
-          attachments = msg.attachments.getOrElse(Seq.empty), // TODO error?
-        )
-      }
+    else {
+
+      msg.body
+        .as[Body]
+        .left
+        .map(error => s"'$piuri' fail to parse body due to: $error")
+        .flatMap { body =>
+          msg.attachments match
+            case None =>
+              Left(s"'$piuri' MUST have Attachments (with one attachment that include the message to foward)")
+            case Some(Seq()) => Left(s"'$piuri' MUST have one Attachment (with the message to foward)")
+            case Some(firstAttachment +: Seq()) =>
+              firstAttachment.data match {
+                case AttachmentDataJWS(jws, links) =>
+                  Left(s"'$piuri' MUST of the Attachment type Base64 or Json (instead of JWT)")
+                case AttachmentDataLinks(links, hash) =>
+                  Left(s"'$piuri' MUST of the Attachment type Base64 or Json (instead of Link)")
+                case AttachmentDataBase64(base64) =>
+                  base64.decodeToString.fromJson[EncryptedMessage] match
+                    case Left(error) =>
+                      Left(s"'$piuri' fail to parse the attachment (base64) as an EncryptedMessage due to: $error")
+                    case Right(nextMsg) =>
+                      Right(
+                        ForwardMessageBase64(
+                          id = msg.id,
+                          to = msg.to.getOrElse(Set.empty),
+                          from = msg.from,
+                          next = body.next,
+                          expires_time = msg.expires_time,
+                          msg = nextMsg,
+                        )
+                      )
+                case AttachmentDataJson(json) =>
+                  json.as[EncryptedMessage] match
+                    case Left(error) =>
+                      Left(s"'$piuri' fail to parse the attachment (json) as an EncryptedMessage due to: $error")
+                    case Right(nextMsg) =>
+                      Right(
+                        ForwardMessageJson(
+                          id = msg.id,
+                          to = msg.to.getOrElse(Set.empty),
+                          from = msg.from,
+                          next = body.next,
+                          expires_time = msg.expires_time,
+                          msg = nextMsg,
+                        )
+                      )
+                case AttachmentDataAny(jws, hash, links, base64, json) =>
+                  Left(s"'$piuri' has attachments of unknown type") // TODO shound we still try?
+              }
+            case Some(firstAttachments +: tail) =>
+              Left(s"'$piuri' MUST have only one attachment (instead of multi attachment)")
+            case Some(value) => // IMPOSIBLE
+              Left(
+                s"ERROR: '$piuri' fail to parse Attachment - This case SHOULD be IMPOSIBLE. value='$value"
+              )
+        }
+
+    }
   }
 
   def buildForwardMessage(
@@ -90,13 +170,13 @@ object ForwardMessage {
     if (!msg.recipientsSubject.contains(next))
       Left("'next' shound be one of the recipients")
     else
-      msg.toAttachmentJson.map(attachment =>
-        ForwardMessage(
+      Right(
+        ForwardMessageJson(
           id = id,
           to = to,
           from = None,
           next = next,
-          attachments = Seq(attachment),
+          msg = msg,
         )
       )
 

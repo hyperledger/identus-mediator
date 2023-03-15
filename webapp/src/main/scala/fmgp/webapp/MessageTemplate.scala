@@ -43,15 +43,19 @@ object MessageTemplate {
     // received_orders: NotRequired[Seq[ReceivedOrdersElement]] = None,
   )
 
-  def exForwardMessage = ForwardMessage(
+  def exForwardMessageJson = ForwardMessageJson(
     to = Set(to),
     next = to.toDID,
     from = None,
     expires_time = Some(987654321),
-    attachments = Seq(
-      Attachment(data = AttachmentDataBase64(Base64.encode(obj_encryptedMessage_ECDHES_X25519_XC20P.toJson))),
-      Attachment(data = AttachmentDataJson(obj_encryptedMessage_ECDHES_X25519_XC20P.toJsonAST.getOrElse(???))),
-    ),
+    msg = obj_encryptedMessage_ECDHES_X25519_XC20P,
+  )
+  def exForwardMessageBase64 = ForwardMessageBase64(
+    to = Set(to),
+    next = to.toDID,
+    from = None,
+    expires_time = Some(987654321),
+    msg = obj_encryptedMessage_ECDHES_X25519_XC20P,
   )
 
   def exBasicMessage = BasicMessage(from = mFrom, to = Set(to), content = "Hello, World!")

@@ -162,8 +162,14 @@ object EncryptTool {
         onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exPlaintextMessage.toJsonPretty))
       ),
       button(
-        "ForwardMessage",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exForwardMessage.toPlaintextMessage.toJsonPretty))
+        "ForwardMessageBase64",
+        onClick --> Observer(_ =>
+          dataTextVar.set(MessageTemplate.exForwardMessageBase64.toPlaintextMessage.toJsonPretty)
+        )
+      ),
+      button(
+        "ForwardMessageJson",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exForwardMessageJson.toPlaintextMessage.toJsonPretty))
       ),
       button(
         "BasicMessage",
