@@ -3,6 +3,7 @@ package fmgp.crypto
 import zio.json._
 
 import fmgp.did.comm.PIURI
+import fmgp.did.DIDSubject
 
 package error {
 
@@ -18,7 +19,8 @@ package error {
 
   case class FailToParse(error: String) extends DidFail
 
-  case class DidMethodNotSupported(method: String) extends DidFail
+  case class DidMethodNotSupported(method: String) extends DidFail // rename
+  case class DIDSubjectNotSupported(did: DIDSubject) extends DidFail
 
   case class NoAgent(info: String) extends DidFail
 

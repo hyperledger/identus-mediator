@@ -159,7 +159,7 @@ case class OKPPublicKey(kty: KTY.OKP.type, crv: Curve, x: String, kid: Option[St
 case class OKPPrivateKey(kty: KTY.OKP.type, crv: Curve, d: String, x: String, kid: Option[String])
     extends OKPKey
     with PrivateKey {
-  def toPublicKey = OKPPublicKey(kty = kty, crv = crv, x = x, kid = kid)
+  def toPublicKey: OKPPublicKey = OKPPublicKey(kty = kty, crv = crv, x = x, kid = kid)
 }
 
 case class ECPublicKey(kty: KTY.EC.type, crv: Curve, x: String, y: String, kid: Option[String])
@@ -168,7 +168,7 @@ case class ECPublicKey(kty: KTY.EC.type, crv: Curve, x: String, y: String, kid: 
 case class ECPrivateKey(kty: KTY.EC.type, crv: Curve, d: String, x: String, y: String, kid: Option[String])
     extends ECKey
     with PrivateKey {
-  def toPublicKey = ECPublicKey(kty = kty, crv = crv, x = x, y = y, kid = kid)
+  def toPublicKey: ECPublicKey = ECPublicKey(kty = kty, crv = crv, x = x, y = y, kid = kid)
 }
 
 object PublicKey {

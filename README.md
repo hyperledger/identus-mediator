@@ -55,6 +55,10 @@ Made for developers by developers.
     - bluetooth
 - maybe implement ["KERI lite"](https://docs.google.com/presentation/d/1ksqVxeCAvqLjr67htWZ4JYaSnI8TUZIO7tDMF5npHTo/edit#slide=id.g1ca1fd90f33_0_0)
 - be part of the Adopters in https://github.com/sbt/sbt-ci-release/
+- Remove field `kty` from `ECPublicKey` and `OKPPublicKey`. Make custom json encoder/decoder
+- Webapp UI:
+  - resolver the did 'from' in the OOB botton
+  - OOB text box -> url
 
 ## Benefits of type safety
 
