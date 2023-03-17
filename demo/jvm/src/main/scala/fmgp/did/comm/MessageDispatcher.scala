@@ -45,8 +45,11 @@ class MyMessageDispatcher(client: Client) extends MessageDispatcher {
           headers = contentTypeHeader ++ xForwardedHostHeader,
           content = Body.fromCharSequence(msg.toJson),
         )
+        .tapError(ex => ZIO.logWarning(s"Fail when calling '$destination': ${ex.toString}"))
         .mapError(ex => SomeThrowable(ex))
-      data <- res.body.asString.mapError(ex => SomeThrowable(ex))
+      data <- res.body.asString
+        .tapError(ex => ZIO.logError(s"Fail parce http response body: ${ex.toString}"))
+        .mapError(ex => SomeThrowable(ex))
       _ <- res.status.isError match
         case true  => ZIO.logError(data)
         case false => ZIO.logInfo(data)

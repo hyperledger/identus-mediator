@@ -15,9 +15,13 @@ sealed trait Message
 
 object Message {
   given decoder: JsonDecoder[Message] =
-    PlaintextMessageClass.decoder.widen[Message] <>
-      SignedMessage.decoder.widen[Message] <>
-      EncryptedMessageGeneric.decoder.widen[Message]
+    //   PlaintextMessageClass.decoder.widen[Message] <>
+    //     SignedMessage.decoder.widen[Message] <>
+    //     EncryptedMessageGeneric.decoder.widen[Message]
+    PlaintextMessageClass.decoder
+      .widen[Message]
+      .orElseAndWarpErrors(SignedMessage.decoder.widen[Message])
+      .orElseAndWarpErrors(EncryptedMessageGeneric.decoder.widen[Message])
 
   given encoder: JsonEncoder[Message] = new JsonEncoder[Message] {
     override def unsafeEncode(b: Message, indent: Option[Int], out: zio.json.internal.Write): Unit = {
