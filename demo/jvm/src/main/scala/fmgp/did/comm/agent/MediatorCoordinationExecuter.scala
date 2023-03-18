@@ -6,6 +6,7 @@ import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.Operations._
+import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.mediatorcoordination2._
 
 /** Store all forwarded message */
@@ -35,7 +36,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
 
   override def program[R1 <: Ref[MediatorDB]](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, DidFail, Option[PlaintextMessage]] = {
+  ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
     val piuriMediateRequest = MediateRequest.piuri
     val piuriMediateGrant = MediateGrant.piuri
@@ -46,17 +47,17 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
       case `piuriMediateGrant`   => plaintextMessage.toMediateGrant
       case `piuriMediateDeny`    => plaintextMessage.toMediateDeny
     }).map {
-      case m: MediateGrant => ZIO.logWarning("MediateGrant") *> ZIO.none
-      case m: MediateDeny  => ZIO.logWarning("MediateDeny") *> ZIO.none
+      case m: MediateGrant => ZIO.logWarning("MediateGrant") *> ZIO.succeed(NoReply)
+      case m: MediateDeny  => ZIO.logWarning("MediateDeny") *> ZIO.succeed(NoReply)
       case m: MediateRequest =>
         for {
-          _ <- ZIO.logInfo("MediateGrant")
+          _ <- ZIO.logInfo("MediateRequest")
           mediateGrant = m.makeRespondMediateGrant
           db <- ZIO.service[Ref[MediatorDB]]
           _ = db.update(_.enroll(mediateGrant.to.asDIDURL.toDID))
-        } yield Some(mediateGrant.toPlaintextMessage)
+        } yield SyncReplyOnly(mediateGrant.toPlaintextMessage)
     } match
-      case Left(error)    => ZIO.logError(error) *> ZIO.none
+      case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
       case Right(program) => program
   }
 

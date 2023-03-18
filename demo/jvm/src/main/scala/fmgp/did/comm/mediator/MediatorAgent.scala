@@ -93,7 +93,7 @@ case class MediatorAgent(
     ZIO
       .logAnnotate("msgHash", msg.hashCode.toString) {
         for {
-          _ <- ZIO.log(s"receiveMessage ${msg.hashCode()}")
+          _ <- ZIO.log(s"receiveMessage with hashCode: ${msg.hashCode}")
           maybeSyncReplyMsg <-
             if (!msg.recipientsSubject.contains(id))
               ZIO.logError(s"This mediator '${id.string}' is not a recipient")
@@ -112,9 +112,11 @@ case class MediatorAgent(
                       case None       => ZIO.unit
                       case Some(from) => didSocketManager.update { _.link(from.asFROMTO, socketID) }
                 // TODO Store context of the decrypt unwarping
-                // TODO Store context with MsgID and PIURI
+                // TODO SreceiveMessagetore context with MsgID and PIURI
                 protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
-                ret <- protocolHandler.execute(plaintextMessage)
+                ret <- protocolHandler
+                  .execute(plaintextMessage)
+                  .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
               } yield ret
         } yield maybeSyncReplyMsg
       }
@@ -162,6 +164,10 @@ case class MediatorAgent(
       case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
           ZIO.logWarning(s"Ignored Message from '${ch.id}'")
+        }
+      case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
+        ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
+          DIDSocketManager.unregisterSocket(ch)
         }
       case channelEvent =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, channelEvent.channel.id), annotationMap: _*) {
@@ -214,8 +220,8 @@ object MediatorAgent {
           data <- req.body.asString
           maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
             .mapError(fail => DidException(fail))
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
           ret = maybeSyncReplyMsg match
             case None        => Response.ok
             case Some(value) => Response.json(value.toJson)

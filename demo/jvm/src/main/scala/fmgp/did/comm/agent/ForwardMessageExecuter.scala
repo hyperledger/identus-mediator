@@ -5,6 +5,7 @@ import zio.json._
 import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
+import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.routing2._
 
 object ForwardMessageExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & Ref[MediatorDB]] {
@@ -13,7 +14,7 @@ object ForwardMessageExecuter extends ProtocolExecuterWithServices[ProtocolExecu
 
   override def program[R1 <: Ref[MediatorDB]](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, DidFail, Option[PlaintextMessage]] = {
+  ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
     val piuriForwardMessage = ForwardMessage.piuri
 
@@ -26,8 +27,8 @@ object ForwardMessageExecuter extends ProtocolExecuterWithServices[ProtocolExecu
         _ <- db.update(_.store(m.next, m.msg))
       } yield None
     } match
-      case Left(error)    => ZIO.logError(error) *> ZIO.none
-      case Right(program) => program
+      case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
+      case Right(program) => program *> ZIO.succeed(NoReply)
   }
 
 }

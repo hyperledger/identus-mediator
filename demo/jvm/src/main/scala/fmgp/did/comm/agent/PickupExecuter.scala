@@ -6,6 +6,7 @@ import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.Operations._
+import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.pickup3._
 
 object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & Ref[MediatorDB]] {
@@ -21,7 +22,7 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
 
   override def program[R1 <: Ref[MediatorDB]](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, DidFail, Option[PlaintextMessage]] = {
+  ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
     val piuriStatusRequest = StatusRequest.piuri
     val piuriStatus = Status.piuri
@@ -38,8 +39,8 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
       case `piuriMessagesReceived` => plaintextMessage.toMessagesReceived
       case `piuriLiveModeChange`   => plaintextMessage.toLiveModeChange
     }).map {
-      case m: StatusRequest => ZIO.none // FIXME
-      case m: Status        => ZIO.logInfo("Status") *> ZIO.none
+      case m: StatusRequest => ZIO.succeed(NoReply) // FIXME
+      case m: Status        => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
           _ <- ZIO.logInfo("MediateGrant")
@@ -57,11 +58,11 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
             recipient_did = m.recipient_did,
             attachments = messages.map(m => (m.hashCode.toString, m)).toMap,
           )
-        } yield Some(deliveryRequest.toPlaintextMessage)
+        } yield SyncReplyOnly(deliveryRequest.toPlaintextMessage)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
           ZIO.succeed(
-            Some(
+            Reply(
               MessagesReceived(
                 thid = m.id,
                 from = m.to.asFROM,
@@ -70,11 +71,11 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
               ).toPlaintextMessage
             )
           )
-      case m: MessagesReceived => ZIO.logInfo("MessagesReceived") *> ZIO.none
-      case m: LiveModeChange   => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.none // TODO
+      case m: MessagesReceived => ZIO.logInfo("MessagesReceived") *> ZIO.succeed(NoReply)
+      case m: LiveModeChange   => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
 
     } match
-      case Left(error)    => ZIO.logError(error) *> ZIO.none
+      case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
       case Right(program) => program
   }
 
