@@ -57,19 +57,19 @@ object OperationsClientRPC extends Operations {
     }
   } yield (out)
 
-  override def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Message] = for {
+  override def authDecryptRaw(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Array[Byte]] = for {
     agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
-    obj = AuthDecryptOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
+    obj = AuthDecryptRawOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
     ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
-      .map(_.asInstanceOf[AuthDecryptOpOutput])
+      .map(_.asInstanceOf[AuthDecryptRawOpOutput])
       .left
       .map(ex => CryptoFailToParse(ex)) match {
-      case Right(AuthDecryptOpOutput(Right(value))) => ZIO.succeed(value)
-      case Right(AuthDecryptOpOutput(Left(value)))  => ZIO.fail(value)
-      case Left(value)                              => ZIO.fail(value)
+      case Right(AuthDecryptRawOpOutput(Right(value))) => ZIO.succeed(value)
+      case Right(AuthDecryptRawOpOutput(Left(value)))  => ZIO.fail(value)
+      case Left(value)                                 => ZIO.fail(value)
     }
   } yield (out)
 
@@ -88,19 +88,19 @@ object OperationsClientRPC extends Operations {
     }
   } yield (out)
 
-  override def anonDecrypt(msg: EncryptedMessage): ZIO[Agent, DidFail, Message] = for {
+  override def anonDecryptRaw(msg: EncryptedMessage): ZIO[Agent, DidFail, Array[Byte]] = for {
     agent <- ZIO.service[Agent]
     // resolver <- ZIO.service[Resolver]
-    obj = AnonDecryptOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
+    obj = AnonDecryptRawOpInput(AgentSimple(agent.id, agent.keys), msg): OpsInputRPC
     ret <- Client.makeOps(data = obj.toJson)
     out <- OpsOutputPRC.decoder
       .decodeJson(ret)
-      .map(_.asInstanceOf[AnonDecryptOpOutput])
+      .map(_.asInstanceOf[AnonDecryptRawOpOutput])
       .left
       .map(ex => CryptoFailToParse(ex)) match {
-      case Right(AnonDecryptOpOutput(Right(value))) => ZIO.succeed(value)
-      case Right(AnonDecryptOpOutput(Left(value)))  => ZIO.fail(value)
-      case Left(value)                              => ZIO.fail(value)
+      case Right(AnonDecryptRawOpOutput(Right(value))) => ZIO.succeed(value)
+      case Right(AnonDecryptRawOpOutput(Left(value)))  => ZIO.fail(value)
+      case Left(value)                                 => ZIO.fail(value)
     }
   } yield (out)
 

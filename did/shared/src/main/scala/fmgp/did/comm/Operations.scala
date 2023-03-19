@@ -18,11 +18,30 @@ trait Operations {
 
   def authEncrypt(msg: PlaintextMessage): ZIO[Agent & Resolver, DidFail, EncryptedMessage]
 
+  def anonDecryptRaw(msg: EncryptedMessage): ZIO[Agent, DidFail, Array[Byte]]
+  def authDecryptRaw(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Array[Byte]]
+
   /** decrypt */
-  def anonDecrypt(msg: EncryptedMessage): ZIO[Agent, DidFail, Message]
+  def anonDecrypt(msg: EncryptedMessage): ZIO[Agent, DidFail, Message] =
+    anonDecryptRaw(msg).flatMap(data =>
+      ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
+    )
 
   /** decrypt verify sender */
-  def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Message]
+  def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Message] =
+    authDecryptRaw(msg).flatMap(data =>
+      ZIO.fromEither {
+        String(data)
+          .fromJson[Message]
+          .left
+          .map(info => FailToParse(s"Decoding into a Message: $info"))
+      }
+    )
 
   def verify2PlaintextMessage(
       msg: SignedMessage

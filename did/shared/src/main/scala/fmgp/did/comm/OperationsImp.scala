@@ -104,7 +104,7 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
   }
 
   /** decrypt */
-  def anonDecrypt(msg: EncryptedMessage): ZIO[Agent, DidFail, Message] = {
+  def anonDecryptRaw(msg: EncryptedMessage): ZIO[Agent, DidFail, Array[Byte]] = {
     for {
       agent <- ZIO.service[Agent]
       did = agent.id
@@ -117,17 +117,10 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
           }
         )
       data <- cryptoOperations.anonDecrypt(keys, msg)
-      ret <- ZIO.fromEither {
-        String(data)
-          .fromJson[Message]
-          .left
-          .map(info => FailToParse(s"Decoding into a Message: $info"))
-      }
-    } yield ret
+    } yield data
   }
 
-  /** decrypt verify sender */
-  def authDecrypt(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Message] =
+  def authDecryptRaw(msg: EncryptedMessage): ZIO[Agent & Resolver, DidFail, Array[Byte]] =
     for {
       agent <- ZIO.service[Agent]
       did = agent.id
@@ -153,12 +146,6 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
         .find { e => e.vmr == skid }
         .get // FIXME
       data <- cryptoOperations.authDecrypt(senderKey.key, keys, msg)
-      ret <- ZIO.fromEither {
-        String(data)
-          .fromJson[Message]
-          .left
-          .map(info => FailToParse(s"Decoding into a Message: $info"))
-      }
-    } yield ret
+    } yield data
 
 }

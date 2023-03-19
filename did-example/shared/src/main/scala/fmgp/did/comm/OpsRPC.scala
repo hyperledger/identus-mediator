@@ -35,42 +35,13 @@ case class VerifyOpInput( /*resolver: Resolver,*/ msg: SignedMessage) extends Op
 case class VerifyOpOutput(ret: Either[CryptoFailed, Boolean]) extends OpsOutputPRC
 case class AuthEncryptOpInput(agent: AgentSimple, /*resolver: Resolver,*/ msg: PlaintextMessage) extends OpsInputRPC
 case class AuthEncryptOpOutput(ret: Either[DidFail, EncryptedMessage]) extends OpsOutputPRC
-case class AuthDecryptOpInput(agent: AgentSimple, /*resolver: Resolver,*/ msg: EncryptedMessage) extends OpsInputRPC
-case class AuthDecryptOpOutput(ret: Either[DidFail, Message]) extends OpsOutputPRC
+// case class AuthDecryptOpInput(agent: AgentSimple, /*resolver: Resolver,*/ msg: EncryptedMessage) extends OpsInputRPC
+//case class AuthDecryptOpOutput(ret: Either[DidFail, Message]) extends OpsOutputPRC
+case class AuthDecryptRawOpInput(agent: AgentSimple, /*resolver: Resolver,*/ msg: EncryptedMessage) extends OpsInputRPC
+case class AuthDecryptRawOpOutput(ret: Either[DidFail, Array[Byte]]) extends OpsOutputPRC
 case class AnonEncryptOpInput( /*resolver: Resolver,*/ msg: PlaintextMessage) extends OpsInputRPC
 case class AnonEncryptOpOutput(ret: Either[DidFail, EncryptedMessage]) extends OpsOutputPRC
-case class AnonDecryptOpInput(agent: AgentSimple, msg: EncryptedMessage) extends OpsInputRPC
-case class AnonDecryptOpOutput(ret: Either[DidFail, Message]) extends OpsOutputPRC
-
-object OpsRPC {
-  // given JsonDecoder[SignOpInput] = DeriveJsonDecoder.gen[SignOpInput]
-  // given JsonEncoder[SignOpInput] = DeriveJsonEncoder.gen[SignOpInput]
-  // given JsonDecoder[SignOpOutput] = DeriveJsonDecoder.gen[SignOpOutput]
-  // given JsonEncoder[SignOpOutput] = DeriveJsonEncoder.gen[SignOpOutput]
-
-  // given JsonDecoder[VerifyOpInput] = DeriveJsonDecoder.gen[VerifyOpInput]
-  // given JsonEncoder[VerifyOpInput] = DeriveJsonEncoder.gen[VerifyOpInput]
-  // given JsonDecoder[VerifyOpOutput] = DeriveJsonDecoder.gen[VerifyOpOutput]
-  // given JsonEncoder[VerifyOpOutput] = DeriveJsonEncoder.gen[VerifyOpOutput]
-
-  // given JsonDecoder[AuthEncryptOpInput] = DeriveJsonDecoder.gen[AuthEncryptOpInput]
-  // given JsonEncoder[AuthEncryptOpInput] = DeriveJsonEncoder.gen[AuthEncryptOpInput]
-  // given JsonDecoder[AuthEncryptOpOutput] = DeriveJsonDecoder.gen[AuthEncryptOpOutput]
-  // given JsonEncoder[AuthEncryptOpOutput] = DeriveJsonEncoder.gen[AuthEncryptOpOutput]
-
-  // given JsonDecoder[AuthDecryptOpInput] = DeriveJsonDecoder.gen[AuthDecryptOpInput]
-  // given JsonEncoder[AuthDecryptOpInput] = DeriveJsonEncoder.gen[AuthDecryptOpInput]
-  // given JsonDecoder[AuthDecryptOpOutput] = DeriveJsonDecoder.gen[AuthDecryptOpOutput]
-  // given JsonEncoder[AuthDecryptOpOutput] = DeriveJsonEncoder.gen[AuthDecryptOpOutput]
-
-  // given JsonDecoder[AnonEncryptOpInput] = DeriveJsonDecoder.gen[AnonEncryptOpInput]
-  // given JsonEncoder[AnonEncryptOpInput] = DeriveJsonEncoder.gen[AnonEncryptOpInput]
-  // given JsonDecoder[AnonEncryptOpOutput] = DeriveJsonDecoder.gen[AnonEncryptOpOutput]
-  // given JsonEncoder[AnonEncryptOpOutput] = DeriveJsonEncoder.gen[AnonEncryptOpOutput]
-
-  // given JsonDecoder[AnonDecryptOpInput] = DeriveJsonDecoder.gen[AnonDecryptOpInput]
-  // given JsonEncoder[AnonDecryptOpInput] = DeriveJsonEncoder.gen[AnonDecryptOpInput]
-  // given JsonDecoder[AnonDecryptOpOutput] = DeriveJsonDecoder.gen[AnonDecryptOpOutput]
-  // given JsonEncoder[AnonDecryptOpOutput] = DeriveJsonEncoder.gen[AnonDecryptOpOutput]
-
-}
+// case class AnonDecryptOpInput(agent: AgentSimple, msg: EncryptedMessage) extends OpsInputRPC
+// case class AnonDecryptOpOutput(ret: Either[DidFail, Message]) extends OpsOutputPRC
+case class AnonDecryptRawOpInput(agent: AgentSimple, msg: EncryptedMessage) extends OpsInputRPC
+case class AnonDecryptRawOpOutput(ret: Either[DidFail, Array[Byte]]) extends OpsOutputPRC
