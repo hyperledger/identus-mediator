@@ -18,6 +18,7 @@ import fmgp.did.resolver.uniresolver._
 import com.raquo.airstream.ownership._
 import fmgp.crypto.error._
 import fmgp.did.resolver.peer.DIDPeer
+import fmgp.did.resolver.hardcode.HardcodeResolver
 
 object ResolverTool {
 
@@ -27,30 +28,29 @@ object ResolverTool {
 
   def job(owner: Owner) = Signal
     .combine(didVar, customVar)
-    .map {
-      case (Some(did), custom) =>
-        DIDPeer.fromDID(did) match
-          case Left(error) => didDocumentVar.update(_ => Left(error))
-          case Right(peer) => didDocumentVar.update(_ => Right(peer.document))
-      case (None, custom) =>
-        def program = (
-          for {
-            fromto <- ZIO.fromEither(FROMTO.either(custom))
-            resolver <- ZIO.service[Resolver]
-            doc <- resolver.didDocument(fromto)
-          } yield (doc)
-        ).mapBoth(
-          errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
-          doc => didDocumentVar.update(_ => Right(doc))
-        ).provide(
-          ZLayer.succeed(
-            MultiResolver(
-              Uniresolver.default,
-              DidPeerResolver.default,
-            )
+    .map { case (mDid, custom) =>
+      def program = (
+        for {
+          fromto <- ZIO
+            .fromOption(mDid)
+            .map(e => FROMTO(e.string))
+            .orElse(ZIO.fromEither(FROMTO.either(custom)))
+          resolver <- ZIO.service[Resolver]
+          doc <- resolver.didDocument(fromto)
+        } yield (doc)
+      ).mapBoth(
+        errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
+        doc => didDocumentVar.update(_ => Right(doc))
+      ).provide(
+        ZLayer.succeed(
+          MultiResolver(
+            HardcodeResolver.default,
+            Uniresolver.default,
+            DidPeerResolver.default,
           )
         )
-        Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
+      )
+      Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
     }
     .observe(owner)
 

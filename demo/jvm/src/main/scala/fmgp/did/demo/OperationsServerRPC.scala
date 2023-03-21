@@ -7,6 +7,8 @@ import fmgp.did.comm._
 import zio._
 import zio.json._
 import fmgp.did.resolver.peer._
+import fmgp.did.resolver.hardcode.HardcodeResolver
+import fmgp.did.resolver.uniresolver.Uniresolver
 
 object OperationsServerRPC {
 
@@ -57,7 +59,15 @@ object OperationsServerRPC {
         } yield (result.toJson)
         tmp
           .provideSomeLayer(Operations.layerDefault)
-          .provideSomeLayer(DidPeerResolver.layer)
+          .provideSomeLayer(
+            ZLayer.succeed(
+              MultiResolver(
+                HardcodeResolver.default,
+                Uniresolver.default,
+                DidPeerResolver.default,
+              )
+            )
+          )
     }
 
 }

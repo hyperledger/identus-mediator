@@ -6,6 +6,7 @@ import fmgp.did.Agent
 import fmgp.did.resolver.peer.DIDPeer2
 import fmgp.did.resolver.peer.DIDPeerServiceEncoded
 import fmgp.did.resolver.peer.DIDPeer
+import fmgp.did.resolver.hardcode.HardcodeResolver
 
 object AgentProvider {
 
@@ -35,7 +36,7 @@ object AgentProvider {
   |  end
   |""".stripMargin
 
-  def allAgents: Map[String, DIDPeer.AgentDIDPeer] = Map(
+  def allAgents: Map[String, Agent] = Map(
     "local" -> local,
     "alice" -> alice,
     "bob" -> bob,
@@ -46,9 +47,11 @@ object AgentProvider {
     "ivan" -> ivan,
     "pat" -> pat,
     "victor" -> victor,
+    "exampleAlice" -> exampleAlice,
+    "exampleBob" -> exampleBob,
   )
 
-  def allIdentities: Map[String, DIDPeer] =
+  def allIdentities: Map[String, DID] =
     allAgents.view.mapValues(_.id).toMap ++
       DIDPeer
         .fromDID(
@@ -152,4 +155,13 @@ object AgentProvider {
     Seq(DIDPeerServiceEncoded(s = "http://localhost:8080"))
   )
 
+  val exampleAlice = new Agent {
+    override def id: DID = DidExample.senderDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExample.senderSecrets.keys.toSeq
+  }
+
+  val exampleBob = new Agent {
+    override def id: DID = DidExample.recipientDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExample.recipientSecrets.keys.toSeq
+  }
 }
