@@ -156,6 +156,13 @@ object EncryptTool {
       code(child.text <-- Global.agentVar.signal.map(_.map(_.id.string).getOrElse("none")))
     ),
     p(
+      overflowWrap.:=("anywhere"),
+      "Send TO (used by Templates): ",
+      Global.makeSelectElementTO(Global.recipientVar),
+      " ",
+      code(child.text <-- Global.recipientVar.signal.map(_.map(_.toDID.string).getOrElse("none"))),
+    ),
+    p(
       "Templates:",
       button(
         "PlaintextMessage",

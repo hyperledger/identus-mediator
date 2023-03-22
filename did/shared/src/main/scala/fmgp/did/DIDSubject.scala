@@ -27,6 +27,9 @@ object DIDSubject {
     // inline def inline_namespace: String = parseString(id)._1
     // inline def inline_specificId: String = parseString(id)._2
     inline def subject: String = parseString(id)._2
+    // inline def asTO = fmgp.did.comm.TO.unsafe_apply(id)
+    // inline def asFROM = fmgp.did.comm.FROM.unsafe_apply(id)
+    // inline def asFROMTO = fmgp.did.comm.FROMTO.unsafe_apply(id)
 
     def toDID: DID = new {
       val (namespace, specificId) = parseString(id) // FIXME unsafe

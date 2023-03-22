@@ -15,8 +15,8 @@ import fmgp.util.Base64
 
 object MessageTemplate {
   def mFrom: Option[FROM] = Global.agentVar.now().flatMap(o => FROM.either(o.id.string).toOption)
-  def from: FROM = mFrom.getOrElse(FROM("did:FROM:123"))
-  def to: TO = Global.agentVar.now().flatMap(o => TO.either(o.id.string).toOption).getOrElse(TO("did:TO:123"))
+  def from: FROM = mFrom.getOrElse(DidExample.senderDIDDocument.id.toDID)
+  def to: TO = Global.recipientVar.now().getOrElse(DidExample.recipientDIDDocument.id.toDID)
   def thid: MsgID = MsgID("thid-responding-to-msg-id")
 
   def exPlaintextMessage = PlaintextMessageClass(
