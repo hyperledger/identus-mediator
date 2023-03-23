@@ -106,7 +106,7 @@ lazy val V = new {
 
   val laika = "0.19.0"
 
-  val laminar = "0.14.5"
+  val laminar = "15.0.1"
   val waypoint = "0.5.0"
   val upickle = "3.0.0"
   // https://www.npmjs.com/package/material-components-web
