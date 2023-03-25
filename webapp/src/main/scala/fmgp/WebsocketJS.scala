@@ -40,6 +40,8 @@ case class WebsocketJSLive(
 
 object WebsocketJSLive {
 
+  import scalajs.js.internal.UnitOps.unitOrOps // This shound not be needed
+
   val wsUrl =
     org.scalajs.dom.window.location.origin
       .getOrElse("http://localhost:8080")
