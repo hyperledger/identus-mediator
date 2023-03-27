@@ -33,9 +33,9 @@ object DecryptTool {
       )
       .map {
         case (None, _) =>
-          decryptMessageVar.update(_ => None)
+          decryptMessageVar.set(None) // side effect!
         case (Some(agent), Left(error)) =>
-          decryptMessageVar.update(_ => Some(Left(FailToParse("Fail to parse Encrypted Message: " + error))))
+          decryptMessageVar.set(Some(Left(FailToParse("Fail to parse Encrypted Message: " + error)))) // side effect!
         case (Some(agent), Right(msg)) =>
           val program = {
             msg.`protected`.obj match
@@ -54,8 +54,11 @@ object DecryptTool {
                     Operations.parseMessage(data)
                   }
           }.mapBoth(
-            error => decryptMessageVar.update(_ => Some(Left(error))),
-            msg => decryptMessageVar.update(_ => Some(Right(msg)))
+            error => {
+              decryptDataVar.set(None) // side effect!
+              decryptMessageVar.set(Some(Left(error))) // side effect!
+            },
+            msg => decryptMessageVar.set(Some(Right(msg))) // side effect!
           )
           Unsafe.unsafe { implicit unsafe => // Run side efect
             Runtime.default.unsafe.fork(

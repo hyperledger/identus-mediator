@@ -44,7 +44,6 @@ object MyRouter {
     Route.static(AgentDBPage, root / "db" / endOfSegments, Router.localFragmentBasePath),
     Route.static(ResolverPage, root / "resolver" / endOfSegments, Router.localFragmentBasePath),
     Route.static(EncryptPage, root / "encrypt" / endOfSegments, Router.localFragmentBasePath),
-    Route.static(DecryptPage, root / "didcomm" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(BasicMessagePage, root / "basicmessage" / endOfSegments, Router.localFragmentBasePath),
     Route.static(TrustPingPage, root / "trustping" / endOfSegments, Router.localFragmentBasePath),
