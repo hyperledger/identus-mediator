@@ -27,11 +27,11 @@ object WebsocketJS {
 }
 
 case class WebsocketJSLive(
-    income: Var[Seq[PlaintextMessage]],
+    income: Var[Seq[TapMessage]],
     state: Var[Option[Websocket.State]],
 ) extends WebsocketJS {
   override def onMessage(message: String): UIO[Unit] =
-    message.fromJson[PlaintextMessage] match
+    message.fromJson[TapMessage] match
       case Left(ex) => Console.printLine(message).orDie *> Console.printLine(s"Error parsing the obj World: $ex").orDie
       case Right(value) => ZIO.succeed(income.update(s => s :+ value))
 
@@ -47,7 +47,7 @@ object WebsocketJSLive {
       .getOrElse("http://localhost:8080")
       .replaceFirst("http", "ws") + "/tap/alice.did.fmgp.app"
 
-  val messages = Var[Seq[PlaintextMessage]](initial = Seq.empty)
+  val messages = Var[Seq[TapMessage]](initial = Seq.empty)
   val state = Var[Option[Websocket.State]](initial = None)
 
   lazy val autoReconnect = Websocket.AutoReconnect(wsUrl, WebsocketJSLive(messages, state))

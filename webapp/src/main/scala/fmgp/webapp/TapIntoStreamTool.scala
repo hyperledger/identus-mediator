@@ -37,7 +37,7 @@ object TapIntoStreamTool {
       //   Some(FROM("did:peer:123456789qwertyuiopasdfghjklzxcvbnm")),
       //   "TODO WIP",
       // ),
-      children <-- ws.wsJS.income.signal.map(_.map { msg =>
+      children <-- ws.wsJS.income.signal.map(_.map(_.decrypted).map { msg =>
         BasicMessage.fromPlaintextMessage(msg) match
           case Left(ex)  => incomeMgs(msg.id, msg.from, msg.`type`.value)
           case Right(bm) => incomeMgs(msg.id, msg.from, bm.content)

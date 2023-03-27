@@ -103,7 +103,7 @@ case class MediatorAgent(
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
                 _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
-                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(plaintextMessage.toJson))
+                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
                 }
                 _ <- mSocketID match
                   case None => ZIO.unit
