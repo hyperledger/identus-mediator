@@ -29,21 +29,17 @@ object CryptoOperationsImp extends CryptoOperations {
       data: Array[Byte]
   ): IO[CryptoFailed, EncryptedMessage] =
     recipientKidsKeys
-      .foldRight(
-        (Seq.empty[(VerificationMethodReferenced, ECKey)], Seq.empty[(VerificationMethodReferenced, OKPKey)])
-      ) { (e, acu) =>
-        e._2 match
-          case ecKey: ECKey   => (acu._1 :+ (e._1, ecKey), acu._2)
-          case okpKey: OKPKey => (acu._1, acu._2 :+ (e._1, okpKey))
+      .groupBy(_._2.crv)
+      .map {
+        case (_: ECCurve, keys) =>
+          anoncryptEC(keys.asInstanceOf[Seq[(VerificationMethodReferenced, ECKey)]], data)
+        case (_: OKPCurve, keys) =>
+          anoncryptOKP(keys.asInstanceOf[Seq[(VerificationMethodReferenced, OKPKey)]], data)
       }
-      .pipe(e => (e._1.sortBy(_._1.value), e._2.sortBy(_._1.value))) // order recipients by name
-      .pipe {
-        case (Seq(), Seq())    => ZIO.fail(NoKeys)
-        case (ecKeys, Seq())   => anoncryptEC(ecKeys, data)
-        case (Seq(), okpKeys)  => anoncryptOKP(okpKeys, data)
-        case (ecKeys, okpKeys) => ZIO.fail(IncompatibleKeys)
-      }
+      .headOption // TODO return multi messages!
+      .getOrElse(ZIO.fail(NoKeys))
 
+  // TODO accept the list of keys and return multi messages
   override def authEncrypt(
       senderKidKey: (VerificationMethodReferenced, PrivateKey),
       recipientKidsKeys: Seq[(VerificationMethodReferenced, PublicKey)],
@@ -51,16 +47,20 @@ object CryptoOperationsImp extends CryptoOperations {
   ): IO[CryptoFailed, EncryptedMessage] =
     (senderKidKey._2) match {
       case (ecSenderKey: ECKey) =>
-        val recipientKeys = recipientKidsKeys.map {
-          case (vmr, key: ECPublicKey)  => VerificationMethodReferencedWithKey(vmr.value, key)
-          case (vmr, key: OKPPublicKey) => ??? // FIXME
-        }
+        inline def recipientKeys = recipientKidsKeys
+          .groupBy(_._2.crv)
+          .get(ecSenderKey.crv)
+          .toSeq
+          .flatten
+          .map(e => VerificationMethodReferencedWithKey(e._1.value, e._2.asInstanceOf[ECPublicKey]))
         authcryptEC((senderKidKey._1, ecSenderKey), recipientKeys, data)
       case okpSenderKey: OKPKey =>
-        val recipientKeys = recipientKidsKeys.map {
-          case (vmr, key: ECPublicKey)  => ??? // FIXME
-          case (vmr, key: OKPPublicKey) => VerificationMethodReferencedWithKey(vmr.value, key)
-        }
+        inline def recipientKeys = recipientKidsKeys
+          .groupBy(_._2.crv)
+          .get(okpSenderKey.crv)
+          .toSeq
+          .flatten
+          .map(e => VerificationMethodReferencedWithKey(e._1.value, e._2.asInstanceOf[OKPPublicKey]))
         authcryptOKP((senderKidKey._1, okpSenderKey), recipientKeys, data)
     }
 
