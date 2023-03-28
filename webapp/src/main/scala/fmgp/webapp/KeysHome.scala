@@ -14,8 +14,6 @@ import fmgp.crypto._
 import com.raquo.laminar.CollectionCommand
 
 object KeysHome {
-  def onEnterPress = onKeyPress.filter(_.keyCode == dom.ext.KeyCode.Enter)
-
   val keyStoreVar: Var[KeyStore] = Var(initial = KeyStore(Set.empty))
   def childrenSignal: Signal[Seq[Node]] = keyStoreVar.signal.map(_.keys.toSeq.map(_.toJson).map(code(_)))
 
@@ -53,7 +51,7 @@ object KeysHome {
           autoFocus(true),
           inContext { thisNode =>
             // Note: mapTo below accepts parameter by-name, evaluating it on every enter key press
-            onEnterPress.mapTo(thisNode.ref.value).filter(_.nonEmpty) -->
+            AppUtils.onEnterPress.mapTo(thisNode.ref.value).filter(_.nonEmpty) -->
               commandObserver.contramap[String] { text =>
                 thisNode.ref.value = "" // clear input
                 text

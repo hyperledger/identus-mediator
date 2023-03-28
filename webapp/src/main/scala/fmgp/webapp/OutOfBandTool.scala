@@ -35,6 +35,17 @@ object OutOfBandTool {
             overflowWrap.:=("anywhere"),
             pre(code(s"OOB data: '${e.query_oob}'"))
           ),
+          input(
+            placeholder("OOB data"),
+            autoFocus(true),
+            value := e.query_oob,
+            inContext { thisNode =>
+              // Note: mapTo below accepts parameter by-name, evaluating it on every enter key press
+              AppUtils.onEnterPress.mapTo(thisNode.ref.value) --> { data =>
+                MyRouter.router.pushState(MyRouter.OOBPage(data))
+              }
+            }
+          ),
           p("Message:"),
           OutOfBand.safeBase64(e.query_oob) match
             case Left(value)                          => value
