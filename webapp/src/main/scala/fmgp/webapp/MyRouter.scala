@@ -23,12 +23,20 @@ object MyRouter {
   case object BasicMessagePage extends Page("BasicMessage", "message")
   case object TrustPingPage extends Page("TrustPing", "network_ping")
   case object TapIntoStreamPage extends Page("TapIntoStream", "chat")
-
   case object DAppStorePage extends Page("DAppStore", "share")
 
-  given HomePageRW: ReadWriter[HomePage.type] = macroRW
+  given homePageRW: ReadWriter[HomePage.type] = macroRW
   given oobPageRW: ReadWriter[OOBPage] = macroRW
+  given docPageRW: ReadWriter[DocPage.type] = macroRW
+  given keysPageRW: ReadWriter[KeysPage.type] = macroRW
+  given agentDBPageRW: ReadWriter[AgentDBPage.type] = macroRW
   given resolverPageRW: ReadWriter[ResolverPage] = macroRW
+  given encryptPageRW: ReadWriter[EncryptPage.type] = macroRW
+  given decryptPageRW: ReadWriter[DecryptPage.type] = macroRW
+  given basicMessagePageRW: ReadWriter[BasicMessagePage.type] = macroRW
+  given trustPingPageRW: ReadWriter[TrustPingPage.type] = macroRW
+  given tapIntoStreamPageRW: ReadWriter[TapIntoStreamPage.type] = macroRW
+  given dAppStorePageRW: ReadWriter[DAppStorePage.type] = macroRW
   given rw: ReadWriter[Page] = macroRW
 
   private val routes = List(
