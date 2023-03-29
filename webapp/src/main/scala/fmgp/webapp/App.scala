@@ -20,15 +20,15 @@ object App {
 
     lazy val appElement = {
       div(
-        AppUtils.drawer(linkPages, MyRouter.router.$currentPage),
+        AppUtils.drawer(linkPages, MyRouter.router.currentPageSignal),
         AppUtils.drawerScrim,
-        AppUtils.topBarHeader(MyRouter.router.$currentPage.map {
+        AppUtils.topBarHeader(MyRouter.router.currentPageSignal.map {
           case p: HomePage.type => "scala-did"
           case p                => p.title
         }),
         com.raquo.laminar.api.L.main(
           className("mdc-top-app-bar--fixed-adjust"),
-          child <-- $selectedApp.$view
+          child <-- $selectedApp.signal
         )
       )
     }
@@ -37,7 +37,7 @@ object App {
     renderOnDomContentLoaded(container, appElement)
   }
 
-  private val $selectedApp = SplitRender(MyRouter.router.$currentPage)
+  private val $selectedApp = SplitRender(MyRouter.router.currentPageSignal)
     .collectStatic(HomePage)(Home())
     .collectSignal[OOBPage](page => OutOfBandTool(page))
     .collectStatic(DocPage)(Doc())
