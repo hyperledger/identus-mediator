@@ -10,6 +10,7 @@ import MyRouter._
 import com.raquo.airstream.ownership.ManualOwner
 
 import fmgp.webapp.Home
+import fmgp.did.DidExample
 object App {
 
   def main( /*args: Array[String]*/ ): Unit = {
@@ -43,7 +44,7 @@ object App {
     .collectStatic(KeysPage)(KeysHome())
     // .collectStatic(DIDPage)(DIDHome())
     .collectStatic(AgentDBPage)(AgentDB())
-    .collectStatic(ResolverPage)(ResolverTool())
+    .collectSignal[ResolverPage](page => ResolverTool(page))
     .collectStatic(EncryptPage)(EncryptTool())
     .collectStatic(DecryptPage)(DecryptTool())
     .collectStatic(BasicMessagePage)(BasicMessageTool())
@@ -58,9 +59,10 @@ object App {
     ), // class
     DocPage,
     KeysPage,
-    // DIDPage,
     AgentDBPage,
-    ResolverPage,
+    ResolverPage(
+      "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9hbGljZS5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+    ),
     EncryptPage,
     DecryptPage,
     BasicMessagePage,

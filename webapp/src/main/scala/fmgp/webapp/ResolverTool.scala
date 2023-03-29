@@ -19,22 +19,23 @@ import com.raquo.airstream.ownership._
 import fmgp.crypto.error._
 import fmgp.did.resolver.peer.DIDPeer
 import fmgp.did.resolver.hardcode.HardcodeResolver
+import fmgp.webapp.MyRouter.ResolverPage
 
 object ResolverTool {
 
   val didVar: Var[Option[DID]] = Var(initial = None)
-  val customVar: Var[String] = Var(initial = "")
+  // val customVar: Var[String] = Var(initial = "")
   val didDocumentVar: Var[Either[String, DIDDocument]] = Var(initial = Left(""))
 
-  def job(owner: Owner) = Signal
-    .combine(didVar, customVar)
+  def job(owner: Owner, resolverPagePageSignal: Signal[ResolverPage]) = Signal
+    .combine(didVar, resolverPagePageSignal)
     .map { case (mDid, custom) =>
       def program = (
         for {
           fromto <- ZIO
             .fromOption(mDid)
             .map(e => FROMTO(e.string))
-            .orElse(ZIO.fromEither(FROMTO.either(custom)))
+            .orElse(ZIO.fromEither(FROMTO.either(custom.did)))
           resolver <- ZIO.service[Resolver]
           doc <- resolver.didDocument(fromto)
         } yield (doc)
@@ -54,9 +55,9 @@ object ResolverTool {
     }
     .observe(owner)
 
-  val rootElement = div(
+  def apply(resolverPagePageSignal: Signal[ResolverPage]): HtmlElement = div(
     onMountCallback { ctx =>
-      job(ctx.owner)
+      job(ctx.owner, resolverPagePageSignal: Signal[ResolverPage])
       ()
     },
     code("DID Resolver Page"),
@@ -70,19 +71,27 @@ object ResolverTool {
       " ",
       code(child.text <-- didVar.signal.map(_.map(_.string).getOrElse("custom")))
     ),
-    div(child <-- didVar.signal.map {
-      case Some(agent) => div()
+    div(child <-- didVar.signal.flatMap {
+      case Some(agent) => Signal.fromValue(div())
       case None =>
-        div(
-          p("Input the custom did"),
-          input(
-            placeholder("did:peer:..."),
-            `type`.:=("textbox"),
-            autoFocus(true),
-            value <-- customVar,
-            inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> customVar }
-          ),
+        resolverPagePageSignal.map(e =>
+          div(
+            p("Input the custom did"),
+            input(
+              placeholder("did:peer:..."),
+              `type`.:=("textbox"),
+              autoFocus(true),
+              value := e.did,
+              inContext { thisNode =>
+                // Note: mapTo below accepts parameter by-name, evaluating it on every enter key press
+                AppUtils.onEnterPress.mapTo(thisNode.ref.value) --> { data =>
+                  MyRouter.router.pushState(MyRouter.ResolverPage(did = data))
+                }
+              }
+            ),
+          )
         )
+
     }),
     pre(
       code(
@@ -101,6 +110,4 @@ object ResolverTool {
       )
     )
   )
-
-  def apply(): HtmlElement = rootElement
 }

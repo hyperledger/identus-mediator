@@ -28,7 +28,7 @@ object Home {
         " (only works for alice, bob and charlie)",
         MyRouter.navigateTo(MyRouter.AgentDBPage)
       ),
-      p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage)),
+      p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage(""))),
       p("Navigate to ", b("OOB Tool "), MyRouter.navigateTo(MyRouter.OOBPage(""))),
       p("Navigate to ", b("Encrypt Tool "), MyRouter.navigateTo(MyRouter.EncryptPage)),
       p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
