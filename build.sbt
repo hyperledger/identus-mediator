@@ -95,7 +95,7 @@ lazy val V = new {
   val zio = "2.0.10"
   val zioJson = "0.4.2"
   val zioMunitTest = "0.1.1"
-  val zioHttp = "0.0.4"
+  val zioHttp = "0.0.5"
   val zioPrelude = "1.0.0-RC18"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time

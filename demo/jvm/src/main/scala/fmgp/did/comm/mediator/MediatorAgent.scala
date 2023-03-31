@@ -242,12 +242,12 @@ object MediatorAgent {
 
     }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher, Throwable, Request, Response]
   } @@
-    Middleware.cors(
+    HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
         allowedOrigins = _ => true,
         allowedMethods = Some(Set(Method.GET, Method.POST)),
       )
     ) @@
-    Middleware.removeHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString) @@
-    Middleware.addHeader(Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString, "*"))
+    HttpAppMiddleware.removeHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString) @@
+    HttpAppMiddleware.addHeader(Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString, "*"))
 }
