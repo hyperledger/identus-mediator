@@ -26,7 +26,7 @@ object App {
           case p: HomePage.type => "scala-did"
           case p                => p.title
         }),
-        com.raquo.laminar.api.L.main(
+        mainTag(
           className("mdc-top-app-bar--fixed-adjust"),
           child <-- $selectedApp.$view
         )
