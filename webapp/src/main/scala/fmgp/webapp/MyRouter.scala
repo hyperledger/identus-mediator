@@ -72,7 +72,7 @@ object MyRouter {
     deserializePage = pageStr => read(pageStr)(rw), // deserialize the above
     routeFallback = { (_: String) => HomePage },
   )(
-    $popStateEvent = windowEvents.onPopState, // this is how Waypoint avoids an explicit dependency on Laminar
+    popStateEvents = windowEvents(_.onPopState), // this is how Waypoint avoids an explicit dependency on Laminar
     owner = unsafeWindowOwner // this router will live as long as the window
   )
 

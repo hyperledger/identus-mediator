@@ -5,7 +5,7 @@ import scala.scalajs.js
 import scala.scalajs.js.timers._
 import js.JSConverters._
 
-import com.raquo.domtypes.generic.codecs.StringAsIsCodec
+import com.raquo.laminar.codecs.StringAsIsCodec
 import com.raquo.laminar.api.L._
 import com.raquo.airstream.ownership._
 import com.raquo.airstream.core._
@@ -24,7 +24,7 @@ import fmgp.did.AgentProvider
 object AgentDB {
   val dbVar: Var[Option[MessageDB]] = Var(initial = None)
 
-  val scope: Prop[String] = customProp("scope", StringAsIsCodec)
+  val scope: HtmlProp[String] = htmlProp("scope", StringAsIsCodec)
 
   def emSignal = {
     def projection(

@@ -4,8 +4,8 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.annotation.JSExport
 
 import org.scalajs.dom
+import com.raquo.laminar.codecs._
 import com.raquo.laminar.api.L._
-import com.raquo.domtypes.generic.codecs._
 
 import MyRouter._
 
@@ -80,16 +80,16 @@ object AppUtils {
     )
     typings.materialMenu.mod.MDCMenu.attachTo(options.ref)
 
-    header(
+    headerTag(
       className("mdc-top-app-bar"),
       div(
         className("mdc-top-app-bar__row"),
-        section(
+        sectionTag(
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-start"),
           menuButton,
           span(className("mdc-top-app-bar__title"), child.text <-- title)
         ),
-        section(
+        sectionTag(
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-end"),
           role("toolbar"),
           a(
@@ -119,7 +119,7 @@ object AppUtils {
 
   val drawerScrim = div(className("mdc-drawer-scrim"))
   def drawer(linkPages: List[Page], currentPage: Signal[Page]) =
-    aside(
+    asideTag(
       className("mdc-drawer mdc-drawer--modal"),
       div(
         className("mdc-drawer__header"),
@@ -128,14 +128,14 @@ object AppUtils {
       ),
       div(
         className("mdc-drawer__content"),
-        nav(
+        navTag(
           className("mdc-list"),
           linkPages.map(page =>
             a(
               className <-- currentPage.map { p =>
                 if (p == page) "mdc-list-item mdc-list-item--activated" else "mdc-list-item"
               },
-              aria.customProp("current", StringAsIsCodec)("page"),
+              aria.current := "page",
               tabIndex(0),
               span(className("mdc-list-item__ripple")),
               i(
