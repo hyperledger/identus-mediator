@@ -11,6 +11,7 @@ Made for developers by developers.
  - **CI** automate builds and tests all pushes to the master branch also as all PRs created.
  - **Scala Steward** automate the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
 
+The future version of **DID Comm v2.1** is been track&develop in the branch [`didcomm-v2.1`](https://github.com/FabioPinheiro/scala-did/tree/didcomm-v2.1)
 
 **More documentation:**
 - [LICENSE](LICENSE) - Apache License, Version 2.0
