@@ -67,7 +67,7 @@ trait PlaintextMessage extends Message {
     *
     * This attribute MUST be present, even if empty. It MUST be a JSON object conforming to RFC 7159.
     */
-  def body: Required[JSON_RFC7159]
+  def body: NotRequired[JSON_RFC7159]
 
   def attachments: NotRequired[Seq[Attachment]]
 

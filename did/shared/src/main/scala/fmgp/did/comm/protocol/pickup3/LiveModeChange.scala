@@ -23,7 +23,7 @@ final case class LiveModeChange(id: MsgID = MsgID(), from: FROM, to: TO, live_de
       id = id,
       to = Some(Set(to)),
       from = Some(from),
-      body = LiveModeChange.Body(live_delivery = live_delivery).toJSON_RFC7159
+      body = Some(LiveModeChange.Body(live_delivery = live_delivery).toJSON_RFC7159)
     )
 }
 object LiveModeChange {
@@ -45,20 +45,21 @@ object LiveModeChange {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: Seq() =>
-          msg.body
-            .as[Body]
-            .flatMap(body =>
-              msg.from match
-                case None => Left(s"'$piuri' MUST have field 'from' with one element")
-                case Some(from) =>
-                  Right(
-                    LiveModeChange(
-                      id = msg.id,
-                      from = from,
-                      to = firstTo,
-                      live_delivery = body.live_delivery
+          msg.from match
+            case None => Left(s"'$piuri' MUST have field 'from' with one element")
+            case Some(from) =>
+              msg.body match
+                case None => Left(s"'$piuri' MUST have field 'body'")
+                case Some(b) =>
+                  b.as[Body].flatMap { body =>
+                    Right(
+                      LiveModeChange(
+                        id = msg.id,
+                        from = from,
+                        to = firstTo,
+                        live_delivery = body.live_delivery
+                      )
                     )
-                  )
-            )
+                  }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }

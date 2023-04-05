@@ -50,14 +50,17 @@ object TrustPing {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: tail =>
-          msg.body.as[Body].flatMap {
-            case Body(None) | Body(Some(false)) =>
-              Right(new TrustPingWithOutRequestedResponse(id = msg.id, to = firstTo, from = msg.from.map(e => e)))
-            case Body(Some(true)) =>
-              msg.from match
-                case None => Left(s"'$piuri' MUST have field 'from' with one element if response_requested is true")
-                case Some(from) => Right(new TrustPingWithRequestedResponse(id = msg.id, from = from, to = firstTo))
-          }
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].flatMap {
+                case Body(None) | Body(Some(false)) =>
+                  Right(new TrustPingWithOutRequestedResponse(id = msg.id, to = firstTo, from = msg.from.map(e => e)))
+                case Body(Some(true)) =>
+                  msg.from match
+                    case None => Left(s"'$piuri' MUST have field 'from' with one element if response_requested is true")
+                    case Some(from) => Right(new TrustPingWithRequestedResponse(id = msg.id, from = from, to = firstTo))
+              }
 
 }
 
@@ -74,7 +77,7 @@ final case class TrustPingWithRequestedResponse(
       `type` = piuri,
       to = Some(Set(to)),
       from = Some(from),
-      body = TrustPing.Body(Some(response_requested)).toJSON_RFC7159,
+      body = Some(TrustPing.Body(Some(response_requested)).toJSON_RFC7159),
     )
 
   def makeRespond = TrustPingResponse(thid = id, to = from.asTO, from = Some(to.asFROM))
@@ -93,7 +96,7 @@ final case class TrustPingWithOutRequestedResponse(
       `type` = piuri,
       to = Some(Set(to)),
       from = from.map(e => e),
-      body = TrustPing.Body(Some(response_requested)).toJSON_RFC7159,
+      body = Some(TrustPing.Body(Some(response_requested)).toJSON_RFC7159),
     )
 
 }

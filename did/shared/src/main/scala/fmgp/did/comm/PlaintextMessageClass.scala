@@ -13,7 +13,9 @@ case class PlaintextMessageClass(
     thid: NotRequired[MsgID] = None,
     created_time: NotRequired[UTCEpoch] = None,
     expires_time: NotRequired[UTCEpoch] = None,
-    body: Required[JSON_RFC7159] = JSON_RFC7159(),
+    body: NotRequired[JSON_RFC7159] = Some( // TODO change to None in Future
+      JSON_RFC7159()
+    ), // 'Some' is for compatibility with DIDComm v2.0
     attachments: NotRequired[Seq[Attachment]] = None,
 
     // # Extensions

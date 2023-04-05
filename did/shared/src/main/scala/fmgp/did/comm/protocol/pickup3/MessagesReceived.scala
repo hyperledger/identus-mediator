@@ -30,7 +30,7 @@ final case class MessagesReceived(
       thid = Some(thid),
       to = Some(Set(to)),
       from = Some(from),
-      body = MessagesReceived.Body(message_id_list = message_id_list).toJSON_RFC7159
+      body = Some(MessagesReceived.Body(message_id_list = message_id_list).toJSON_RFC7159)
     )
 }
 object MessagesReceived {
@@ -52,24 +52,25 @@ object MessagesReceived {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: Seq() =>
-          msg.body
-            .as[Body]
-            .flatMap(body =>
-              msg.thid match
-                case None => Left(s"'$piuri' MUST have field 'thid'")
-                case Some(thid) =>
-                  msg.from match
-                    case None => Left(s"'$piuri' MUST have field 'from' with one element")
-                    case Some(from) =>
-                      Right(
-                        MessagesReceived(
-                          id = msg.id,
-                          thid = thid,
-                          from = from,
-                          to = firstTo,
-                          message_id_list = body.message_id_list,
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].flatMap { body =>
+                msg.thid match
+                  case None => Left(s"'$piuri' MUST have field 'thid'")
+                  case Some(thid) =>
+                    msg.from match
+                      case None => Left(s"'$piuri' MUST have field 'from' with one element")
+                      case Some(from) =>
+                        Right(
+                          MessagesReceived(
+                            id = msg.id,
+                            thid = thid,
+                            from = from,
+                            to = firstTo,
+                            message_id_list = body.message_id_list,
+                          )
                         )
-                      )
-            )
+              }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }
