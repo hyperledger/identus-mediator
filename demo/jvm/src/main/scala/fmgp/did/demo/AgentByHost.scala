@@ -38,7 +38,13 @@ object AgentByHost {
     req.headers
       .get(MyHeaders.xForwardedHost)
       .orElse(req.headers.host)
-      .map(e => Host(e.toString))
+      .map(_.toString) // CharSequence -> String
+      .map { // A bit of a hack to support a not standards http client
+        case str if str.endsWith(":443") => str.dropRight(4)
+        case str if str.endsWith(":80")  => str.dropRight(3)
+        case str                         => str
+      }
+      .map(Host(_))
 
   val layer = ZLayer(
     for {
