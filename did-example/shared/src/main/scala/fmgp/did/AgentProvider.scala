@@ -12,7 +12,7 @@ object AgentProvider {
 
   /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
     */
-  def usersGraph = """
+  def usersGraph = s"""
   |graph LR
   |  subgraph alice.did.fmgp.app
   |    Alice --> Pat[Pat prover]
@@ -34,6 +34,17 @@ object AgentProvider {
   |  end
   |  subgraph did.fmgp.app
   |  end
+  |
+  |  click Alice "#/resolver/${alice.id.did}" "Link to Alice DID Document"
+  |  click Bob "#/resolver/${bob.id.did}" "Link to Bob DID Document"
+  |  click Charlie "#/resolver/${charlie.id.did}" "Link to Charlie DID Document"
+  |  click Pat "#/resolver/${pat.id.did}" "Link to Pat DID Document"
+  |  click Dave "#/resolver/${dave.id.did}" "Link to Dave DID Document"
+  |  click Ivan "#/resolver/${ivan.id.did}" "Link to Ivan DID Document"
+  |  click Eve "#/resolver/${eve.id.did}" "Link to Eve DID Document"
+  |  click Frank "#/resolver/${frank.id.did}" "Link to Frank DID Document"
+  |  click Victor "#/resolver/${victor.id.did}" "Link to Victor DID Document"
+  |  click local "#/resolver/${local.id.did}" "Link to local DID Document"
   |""".stripMargin
 
   def allAgents: Map[String, Agent] = Map(
