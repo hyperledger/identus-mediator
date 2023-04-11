@@ -4,6 +4,8 @@ A Scala/ScalaJS library for DID and DIDcomm.
 The one of the main goals of this library is to make DID Comm v2 **type safety** and easy to use.
 Made for developers by developers.
 
+[**LIVE DEMO (DIDComm's Sandbox)**](https://did.fmgp.app/)
+
 [**Scala-DID Documentation**](./docs/readme.md)
 
 [![CI](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml)

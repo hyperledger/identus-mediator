@@ -16,7 +16,7 @@ object MyRouter {
   case object DocPage extends Page("Doc", "menu_book")
   case object KeysPage extends Page("Keys", "key")
   // case object DIDPage extends Page("DID", "visibility")
-  case object AgentDBPage extends Page("DB", "folder_open")
+  case object AgentDBPage extends Page("MessageDB", "folder_open")
   case class ResolverPage(did: String) extends Page("Resolver", "dns")
   case object EncryptPage extends Page("Encrypt", "enhanced_encryption")
   case object DecryptPage extends Page("Decrypt", "email")

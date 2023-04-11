@@ -20,16 +20,9 @@ object Home {
 
   def apply(): HtmlElement = // rootElement
     div(
-      p("DID Comm examples and tooling"),
-      p("Navigate to ", b("Documentation "), MyRouter.navigateTo(MyRouter.DocPage)),
-      p(
-        "Navigate to ",
-        b("DB"),
-        " (only works for alice, bob and charlie)",
-        MyRouter.navigateTo(MyRouter.AgentDBPage)
-      ),
-      p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage(""))),
-      p("Navigate to ", b("OOB Tool "), MyRouter.navigateTo(MyRouter.OOBPage(""))),
+      p("Sandbox for DID Comm v2"),
+      p("Navigate to ", b("OOB Tool "), MyRouter.navigateTo(MyRouter.OOBPage(App.oobExample))),
+      p("Navigate to ", b("DID Resolver Tool "), MyRouter.navigateTo(MyRouter.ResolverPage(App.didExample))),
       p("Navigate to ", b("Encrypt Tool "), MyRouter.navigateTo(MyRouter.EncryptPage)),
       p("Navigate to ", b("Decrypt Tool "), MyRouter.navigateTo(MyRouter.DecryptPage)),
       p("Navigate to ", b("Basic Message "), MyRouter.navigateTo(MyRouter.BasicMessagePage)),
@@ -40,6 +33,13 @@ object Home {
         MyRouter.navigateTo(MyRouter.TapIntoStreamPage),
         " (tap into all Alice's income messages)"
       ),
+      p(
+        "Navigate to ",
+        b("Message DB"),
+        " (only works for alice, bob and charlie)",
+        MyRouter.navigateTo(MyRouter.AgentDBPage)
+      ),
+      p("Navigate to ", b("Documentation for scala-did lib"), MyRouter.navigateTo(MyRouter.DocPage)),
       br(),
       p("DIDs: "),
       div(child <-- statementVar.signal.map(e => getHtml(e)))

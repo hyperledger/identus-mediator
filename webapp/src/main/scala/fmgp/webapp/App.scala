@@ -13,6 +13,13 @@ import fmgp.webapp.Home
 import fmgp.did.DidExample
 object App {
 
+  val oobExample =
+    "eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ"
+
+  /** Alice */
+  val didExample =
+    "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9hbGljZS5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+
   def main( /*args: Array[String]*/ ): Unit = {
 
     // This div, its id and contents are defined in index-fastopt.html and index-fullopt.html files
@@ -23,7 +30,7 @@ object App {
         AppUtils.drawer(linkPages, MyRouter.router.currentPageSignal),
         AppUtils.drawerScrim,
         AppUtils.topBarHeader(MyRouter.router.currentPageSignal.map {
-          case p: HomePage.type => "scala-did"
+          case p: HomePage.type => "scala-did sandbox - DID Comm v2"
           case p                => p.title
         }),
         mainTag(
@@ -42,7 +49,6 @@ object App {
     .collectSignal[OOBPage](page => OutOfBandTool(page))
     .collectStatic(DocPage)(Doc())
     .collectStatic(KeysPage)(KeysHome())
-    // .collectStatic(DIDPage)(DIDHome())
     .collectStatic(AgentDBPage)(AgentDB())
     .collectSignal[ResolverPage](page => ResolverTool(page))
     .collectStatic(EncryptPage)(EncryptTool())
@@ -54,21 +60,17 @@ object App {
 
   private val linkPages: List[Page] = List(
     HomePage,
-    OOBPage(
-      "eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ"
-    ), // class
-    DocPage,
-    KeysPage,
-    AgentDBPage,
-    ResolverPage(
-      "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9hbGljZS5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
-    ),
+    OOBPage(oobExample), // class
+    ResolverPage(didExample),
     EncryptPage,
     DecryptPage,
     BasicMessagePage,
     TrustPingPage,
+    KeysPage,
     TapIntoStreamPage,
-    DAppStorePage,
+    AgentDBPage,
+    DocPage,
+    // DAppStorePage,
   )
 
 }
