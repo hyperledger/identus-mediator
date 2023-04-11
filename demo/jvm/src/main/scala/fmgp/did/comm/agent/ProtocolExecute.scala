@@ -74,15 +74,14 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
                       messageDispatcher <- ZIO.service[MessageDispatcher]
                       resolver <- ZIO.service[Resolver]
                       doc <- resolver.didDocument(to)
-                      url =
-                        doc.service.toSeq.flatten // TODO .filter(_.`type`.contend(DIDService.TYPE_DIDCommMessaging))
-                        match {
-                          case head +: next =>
-                            head.serviceEndpoint match
-                              case s: String                      => s
-                              case s: Seq[URI] @unchecked         => s.head
-                              case s: Map[String, URI] @unchecked => s.head._2
-                        }
+                      url = doc.service.toSeq.flatten
+                        .filter(_.`type` match {
+                          case str: String      => str == DIDService.TYPE_DIDCommMessaging
+                          case seq: Seq[String] => seq.contains(DIDService.TYPE_DIDCommMessaging)
+                        }) match {
+                        case head +: next => // FIXME discarte the next
+                          head.getServiceEndpointAsURIs.head // TODO head
+                      }
                       jobToRun = ZIO.log(s"Send to url: $url") *> messageDispatcher
                         .send(
                           msg,

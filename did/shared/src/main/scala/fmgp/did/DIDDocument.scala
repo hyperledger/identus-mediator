@@ -2,8 +2,6 @@ package fmgp.did
 
 import zio.json._
 
-type ServiceEndpoint = Set[URI]
-
 /** DIDDocument
   *
   * https://w3c.github.io/did-core/#did-document-properties
@@ -28,7 +26,7 @@ trait DIDDocument extends DID {
   def capabilityInvocation: NotRequired[SetU[VerificationMethod]]
   def capabilityDelegation: NotRequired[SetU[VerificationMethod]]
 
-  def service: NotRequired[Set[DIDService]] // NotRequired[ServiceEndpoint]
+  def service: NotRequired[Set[DIDService]]
 
   // methods
   def didSubject = id.toDID

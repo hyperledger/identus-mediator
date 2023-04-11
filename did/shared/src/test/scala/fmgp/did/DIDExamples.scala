@@ -1,6 +1,7 @@
 package fmgp.did
 
 import fmgp.crypto._
+import zio.json.ast.Json
 
 object DIDExamples {
 
@@ -206,7 +207,7 @@ object DIDExamples {
   val EX20_DIDService = DIDServiceGeneric(
     id = "did:example:123#linked-domain",
     `type` = "LinkedDomains",
-    serviceEndpoint = "https://bar.example.com"
+    serviceEndpoint = Json.Str("https://bar.example.com")
   )
 
   val EX39 = """
