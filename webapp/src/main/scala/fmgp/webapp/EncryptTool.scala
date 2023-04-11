@@ -179,6 +179,14 @@ object EncryptTool {
         onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exForwardMessageJson.toPlaintextMessage.toJsonPretty))
       ),
       button(
+        "TrustPing",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exTrustPing.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
+        "TrustPingResponse",
+        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exTrustPingResponse.toPlaintextMessage.toJsonPretty))
+      ),
+      button(
         "BasicMessage",
         onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exBasicMessage.toPlaintextMessage.toJsonPretty))
       ),

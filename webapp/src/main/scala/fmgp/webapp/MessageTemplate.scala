@@ -58,6 +58,8 @@ object MessageTemplate {
     msg = obj_encryptedMessage_ECDHES_X25519_XC20P,
   )
 
+  def exTrustPing = TrustPingWithRequestedResponse(from = from, to = to)
+  def exTrustPingResponse = TrustPingResponse(thid = MsgID("some_thid_123"), from = mFrom, to = to)
   def exBasicMessage = BasicMessage(from = mFrom, to = Set(to), content = "Hello, World!")
 
   def exMediateRequest = MediateRequest(from = from, to = to)
