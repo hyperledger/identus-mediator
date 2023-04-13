@@ -14,7 +14,7 @@ object MyRouter {
   case object HomePage extends Page("Home", "home")
   case class OOBPage(query_oob: String) extends Page("OutOfBand", "app_shortcut")
   case object DocPage extends Page("Doc", "menu_book")
-  case object KeysPage extends Page("Keys", "key")
+  case object AgentKeysPage extends Page("AgentKeys", "key")
   // case object DIDPage extends Page("DID", "visibility")
   case object AgentDBPage extends Page("MessageDB", "folder_open")
   case class ResolverPage(did: String) extends Page("Resolver", "dns")
@@ -28,7 +28,7 @@ object MyRouter {
   given homePageRW: ReadWriter[HomePage.type] = macroRW
   given oobPageRW: ReadWriter[OOBPage] = macroRW
   given docPageRW: ReadWriter[DocPage.type] = macroRW
-  given keysPageRW: ReadWriter[KeysPage.type] = macroRW
+  given keysPageRW: ReadWriter[AgentKeysPage.type] = macroRW
   given agentDBPageRW: ReadWriter[AgentDBPage.type] = macroRW
   given resolverPageRW: ReadWriter[ResolverPage] = macroRW
   given encryptPageRW: ReadWriter[EncryptPage.type] = macroRW
@@ -55,7 +55,7 @@ object MyRouter {
     ),
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
     Route.static(DocPage, root / "doc" / endOfSegments, Router.localFragmentBasePath),
-    Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(AgentKeysPage, root / "agentkeys" / endOfSegments, Router.localFragmentBasePath),
     Route.static(AgentDBPage, root / "db" / endOfSegments, Router.localFragmentBasePath),
     Route.static(EncryptPage, root / "encrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),

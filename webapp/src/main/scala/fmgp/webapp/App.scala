@@ -48,7 +48,7 @@ object App {
     .collectStatic(HomePage)(Home())
     .collectSignal[OOBPage](page => OutOfBandTool(page))
     .collectStatic(DocPage)(Doc())
-    .collectStatic(KeysPage)(KeysHome())
+    .collectStatic(AgentKeysPage)(AgentKeys())
     .collectStatic(AgentDBPage)(AgentDB())
     .collectSignal[ResolverPage](page => ResolverTool(page))
     .collectStatic(EncryptPage)(EncryptTool())
@@ -60,13 +60,13 @@ object App {
 
   private val linkPages: List[Page] = List(
     HomePage,
-    OOBPage(oobExample), // class
+    OOBPage(oobExample),
     ResolverPage(didExample),
     EncryptPage,
     DecryptPage,
     BasicMessagePage,
     TrustPingPage,
-    KeysPage,
+    AgentKeysPage,
     TapIntoStreamPage,
     AgentDBPage,
     DocPage,
