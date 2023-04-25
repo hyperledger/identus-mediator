@@ -129,17 +129,25 @@ object AppServer extends ZIOAppDefault {
         val data = Source.fromResource(s"public/index.html").mkString("")
         ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
       }
+    } ++ Http.fromResource(s"public/favicon.ico").when {
+    case Method.GET -> !! / "favicon.ico" => true
+    case _                                => false
+  } ++ Http.fromResource(s"sw.js").when {
+    case Method.GET -> !! / "sw.js" => true
+    case _                          => false
+  } ++ Http.fromResource(s"public/fmgp-webapp-fastopt-library.js").when {
+    case Method.GET -> !! / "public" / "fmgp-webapp-fastopt-library.js" => true
+    case _                                                              => false
+  } ++ {
+    Http.fromResource(s"public/fmgp-webapp-fastopt-bundle.js").when {
+      case Method.GET -> !! / "public" / path => true
+      // Response(
+      //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
+      //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
+      // )
+      case _ => false
     }
-    ++ {
-      Http.fromResource(s"public/fmgp-webapp-fastopt-bundle.js").when {
-        case Method.GET -> !! / "public" / path => true
-        // Response(
-        //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-        //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-        // )
-        case _ => false
-      }
-    }
+  }
 
   override val run = for {
     _ <- Console.printLine(

@@ -2,6 +2,7 @@ package fmgp.webapp
 
 import scala.scalajs.js.annotation._
 
+import scalajs.js
 import org.scalajs.dom
 import com.raquo.laminar.api.L._
 import com.raquo.waypoint._
@@ -11,6 +12,8 @@ import com.raquo.airstream.ownership.ManualOwner
 
 import fmgp.webapp.Home
 import fmgp.did.DidExample
+import org.scalajs.dom.ServiceWorkerRegistration
+import scala.scalajs.js.JSON
 object App {
 
   val oobExample =
@@ -42,6 +45,20 @@ object App {
 
     // Wait until the DOM is loaded, otherwise app-container element might not exist
     renderOnDomContentLoaded(container, appElement)
+
+    // Register the service worker
+    if (!js.isUndefined(dom.window.navigator.serviceWorker)) {
+      println(s"Registering ServiceWorker")
+      dom.window.navigator.serviceWorker
+        .register("/sw.js")
+        .`then`((resp: ServiceWorkerRegistration) => {
+          println(s"ServiceWorker registered successfully : ${JSON.stringify(resp)}")
+        })
+        .`catch`((err: Any) => println(s"service worker failed ${err}"))
+    } else {
+      println("ServiceWorker not there yet!")
+    }
+
   }
 
   private val $selectedApp = SplitRender(MyRouter.router.currentPageSignal)

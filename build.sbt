@@ -290,7 +290,7 @@ lazy val root = project
   .aggregate(didUniresolver.js, didUniresolver.jvm) // NOT publish
   .aggregate(didExample.js, didExample.jvm)
   .aggregate(demo.jvm, demo.js)
-  .aggregate(webapp)
+  .aggregate(webapp, serviceworker)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
@@ -415,6 +415,33 @@ lazy val didUniresolver = crossProject(JSPlatform, JVMPlatform)
   .dependsOn(did)
   .configure(docConfigure)
 
+import org.scalajs.linker.interface
+lazy val serviceworker = project
+  .in(file("serviceworker"))
+  .settings(publish / skip := true)
+  .settings(name := "fmgp-serviceworker")
+  .enablePlugins(ScalaJSPlugin) // Enable the Scala.js plugin in this project
+  .settings(
+    // Tell Scala.js that this is an application with a main method
+    // scalaJSUseMainModuleInitializer := true,
+    scalaJSModuleInitializers := Seq(
+      interface.ModuleInitializer.mainMethod("fmgp.serviceworker.SW", "main").withModuleID("sw")
+    ),
+    /* Configure Scala.js to emit modules in the optimal way to
+     * connect to Vite's incremental reload.
+     * - emit ECMAScript modules
+     * - emit as many small modules as possible for classes in the "serviceworker" package
+     * - emit as few (large) modules as possible for all other classes (in particular, for the standard library)
+     */
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.ESModule)
+      // .withModuleSplitStyle(org.scalajs.linker.interface.ModuleSplitStyle.SmallModulesFor(List("serviceworker")))
+    },
+    /* Depend on the scalajs-dom library. It provides static types for the browser DOM APIs. */
+    libraryDependencies += D.dom.value,
+    libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
+  )
+
 lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
@@ -422,6 +449,7 @@ lazy val webapp = project
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
   .dependsOn(did.js, didExample.js)
+  .dependsOn(serviceworker)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
@@ -473,6 +501,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "api").toFile,
     Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
+    Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.2.2" / "fmgp-serviceworker-fastopt").toFile,
     Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
     // Frontend dependency configuration
     Assets / WebKeys.packagePrefix := "public/",
