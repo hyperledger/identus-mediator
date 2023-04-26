@@ -245,9 +245,16 @@ object MediatorAgent {
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
         allowedOrigins = _ => true,
-        allowedMethods = Some(Set(Method.GET, Method.POST)),
+        allowedMethods = Some(Set(Method.GET, Method.POST, Method.OPTIONS)),
       )
-    ) @@
-    HttpAppMiddleware.removeHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString) @@
-    HttpAppMiddleware.addHeader(Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString, "*"))
+    )
+    @@ HttpAppMiddleware.updateHeaders(headers =>
+      Headers(
+        headers.map(h =>
+          if (h.key == HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN) {
+            Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+          } else h
+        )
+      )
+    )
 }
