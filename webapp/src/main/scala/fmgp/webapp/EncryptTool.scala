@@ -14,7 +14,6 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.extension._
 import fmgp.did.resolver.peer.DIDPeer2
-import fmgp.did.resolver.peer.DidPeerResolver
 import fmgp.did.resolver.uniresolver.Uniresolver
 import fmgp.crypto.error.DidFail
 import com.raquo.airstream.core.Sink
@@ -51,8 +50,7 @@ object EncryptTool {
                 .toOption
             )
           } yield forwardMessage
-    }.provide(ZLayer.succeed(DidPeerResolver.default))
-    // .provide(MultiResolver(DidPeerResolver.default, Uniresolver.default))
+    }.provide(ResolverTool.resolverLayer)
 
     encryptedMessageVar.signal
       .map {
@@ -84,7 +82,7 @@ object EncryptTool {
           .map(e => encryptedMessageVar.update(_ => Some(e)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(DidPeerResolver()))
+            program.provideSomeLayer(ResolverTool.resolverLayer)
           )
         }
       case (Some(agent), Right(pMsg)) =>
@@ -95,7 +93,7 @@ object EncryptTool {
           .map(e => encryptedMessageVar.update(_ => Some(e)))
         Unsafe.unsafe { implicit unsafe => // Run side efect
           Runtime.default.unsafe.fork(
-            program.provideEnvironment(ZEnvironment(agent, DidPeerResolver()))
+            program.provideSomeLayer(ResolverTool.resolverLayer).provideEnvironment(ZEnvironment(agent))
           )
         }
     }
@@ -103,42 +101,50 @@ object EncryptTool {
 
   def curlCommand(owner: Owner) = encryptedMessageVar.signal
     .map(_.flatMap(_.toOption))
-    .map(_.flatMap { (_, eMsg) =>
-      DIDPeer2
-        .fromDID(eMsg.recipientsSubject.head)
-        .toOption
-        .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
-        .flatMap(_.getServiceEndpointAsURIs.headOption)
-        .map { uri =>
-          s"""curl -X POST $uri -H 'content-type: application/didcomm-encrypted+json' -d '${eMsg.toJson}'"""
-        }
+    .map(_.map { (_, eMsg) =>
+      val program = for {
+        resolver <- ZIO.service[Resolver]
+        doc <- resolver.didDocument(TO(eMsg.recipientsSubject.head.string))
+        mDIDServiceDIDCommMessaging = doc.getDIDServiceDIDCommMessaging.headOption
+        mURI = mDIDServiceDIDCommMessaging.flatMap(_.getServiceEndpointAsURIs.headOption)
+        ret = mURI match
+          case None => curlCommandVar.set(None)
+          case Some(uri) =>
+            curlCommandVar.set(
+              Some(s"""curl -X POST $uri -H 'content-type: application/didcomm-encrypted+json' -d '${eMsg.toJson}'""")
+            )
+      } yield (ret)
+
+      Unsafe.unsafe { implicit unsafe => // Run side efect
+        Runtime.default.unsafe.fork(
+          program.provide(ResolverTool.resolverLayer)
+        )
+      }
     })
-    .map(e => curlCommandVar.set(e))
     .observe(owner)
 
   def curlProgram(msg: EncryptedMessage) = {
-    DIDPeer2
-      .fromDID(msg.recipientsSubject.head)
-      .toOption
-      .flatMap(_.document.getDIDServiceDIDCommMessaging.headOption)
-      .flatMap(_.getServiceEndpointAsURIs.headOption)
-      .map { uri =>
-        Client
-          .makeDIDCommPost(msg, uri)
-          .map(_.fromJson[EncryptedMessage])
-          .map {
-            case Left(value)  => outputFromCallVar.set(None)
-            case Right(value) => outputFromCallVar.set(Some(value))
-          }
-      }
-      .foreach { program =>
-        Unsafe.unsafe { implicit unsafe => // Run side efect
-          Runtime.default.unsafe.fork(
-            program
-          )
-        }
-      }
-
+    val program = for {
+      resolver <- ZIO.service[Resolver]
+      doc <- resolver.didDocument(TO(msg.recipientsSubject.head.string))
+      mDIDServiceDIDCommMessaging = doc.getDIDServiceDIDCommMessaging.headOption
+      mURI = mDIDServiceDIDCommMessaging.flatMap(_.getServiceEndpointAsURIs.headOption)
+      call <- mURI match
+        case None => ZIO.unit
+        case Some(uri) =>
+          Client
+            .makeDIDCommPost(msg, uri)
+            .map(_.fromJson[EncryptedMessage])
+            .map {
+              case Left(value)  => outputFromCallVar.set(None)
+              case Right(value) => outputFromCallVar.set(Some(value))
+            }
+    } yield (call)
+    Unsafe.unsafe { implicit unsafe => // Run side efect
+      Runtime.default.unsafe.fork(
+        program.provide(ResolverTool.resolverLayer)
+      )
+    }
   }
 
   val rootElement = div(
