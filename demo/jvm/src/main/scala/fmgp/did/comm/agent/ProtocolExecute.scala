@@ -58,7 +58,7 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
       .tap(v => ZIO.logDebug(v.toString)) // DEBUG
       .flatMap {
         case _: NoReply.type => ZIO.succeed(None)
-        case action: AnyReply /*@ AnyReply(reply)*/ =>
+        case action: AnyReply =>
           val reply = action.msg
           for {
             msg <- reply.from match
@@ -70,44 +70,50 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
               case Some(send2DIDs) =>
                 ZIO
                   .foreach(send2DIDs)(to =>
-                    for {
+                    val job = for {
                       messageDispatcher <- ZIO.service[MessageDispatcher]
                       resolver <- ZIO.service[Resolver]
                       doc <- resolver.didDocument(to)
-                      url = doc.service.toSeq.flatten
+                      mURL = doc.service.toSeq.flatten
                         .filter(_.`type` match {
                           case str: String      => str == DIDService.TYPE_DIDCommMessaging
                           case seq: Seq[String] => seq.contains(DIDService.TYPE_DIDCommMessaging)
                         }) match {
                         case head +: next => // FIXME discarte the next
-                          head.getServiceEndpointAsURIs.head // TODO head
+                          head.getServiceEndpointAsURIs.headOption // TODO head
+                        case Seq() => None // TODO
                       }
-                      jobToRun = ZIO.log(s"Send to url: $url") *> messageDispatcher
-                        .send(
-                          msg,
-                          url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
-                          None
-                          // url match // FIXME REMOVE (use for local env)
-                          //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
-                          //   case https if https.startsWith("https://") =>
-                          //     Some(url.drop(8).split(':').head.split('/').head)
-                          //   case _ => None
-                        )
-                      _ <- action match
-                        case Reply(_)          => jobToRun
-                        case SyncReplyOnly(_)  => ZIO.unit
-                        case AsyncReplyOnly(_) => jobToRun
-                    } yield ()
+                      jobToRun = mURL match
+                        case None => ZIO.logWarning(s"No url to send message")
+                        case Some(url) =>
+                          ZIO.log(s"Send to url: $url") *>
+                            messageDispatcher.send(
+                              msg,
+                              url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
+                              None
+                              // url match // FIXME REMOVE (use for local env)
+                              //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
+                              //   case https if https.startsWith("https://") =>
+                              //     Some(url.drop(8).split(':').head.split('/').head)
+                              //   case _ => None
+                            )
+                    } yield (jobToRun)
+                    action match
+                      case Reply(_)          => job
+                      case SyncReplyOnly(_)  => ZIO.unit
+                      case AsyncReplyOnly(_) => job
                   ) *> ZIO
                   .succeed(msg)
                   .when(
-                    plaintextMessage.return_route.contains(ReturnRoute.all)
+                    {
+                      plaintextMessage.return_route.contains(ReturnRoute.all)
                       && {
                         plaintextMessage.from.map(_.asTO) match {
                           case None          => false
                           case Some(replyTo) => send2DIDs.contains(replyTo)
                         }
                       }
+                    } || action.isInstanceOf[SyncReplyOnly]
                   )
           } yield maybeSyncReplyMsg
       }
