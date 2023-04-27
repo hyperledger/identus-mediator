@@ -99,6 +99,7 @@ object EncryptTool {
     }
     .observe(owner)
 
+  // FIXME racing problem
   def curlCommand(owner: Owner) = encryptedMessageVar.signal
     .map(_.flatMap(_.toOption))
     .map(_.map { (_, eMsg) =>
