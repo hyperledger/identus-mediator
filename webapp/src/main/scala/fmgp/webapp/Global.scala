@@ -26,7 +26,10 @@ object Global {
   }
 
   def getAgentName(mAgent: Option[Agent]): String =
-    mAgent.flatMap(agent => AgentProvider.allAgents.find(_._2.id == agent.id)).map(_._1).getOrElse("<none>")
+    mAgent
+      .flatMap(agent => AgentProvider.allAgents.find(_._2.id.string == agent.id.string))
+      .map(_._1)
+      .getOrElse("<none>")
 
   def getIdentitiesName(mDID: Option[DID]): String =
     mDID.flatMap(did => AgentProvider.allIdentities.find(_._2.did == did.did)).map(_._1).getOrElse("<none>")
