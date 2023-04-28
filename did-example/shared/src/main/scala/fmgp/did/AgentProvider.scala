@@ -60,6 +60,12 @@ object AgentProvider {
     "victor" -> victor,
     "exampleAlice" -> exampleAlice,
     "exampleBob" -> exampleBob,
+    "exampleSicpaAlice" -> exampleSicpaAlice,
+    "exampleSicpaBob" -> exampleSicpaBob,
+    "exampleSicpaCharlie" -> exampleSicpaCharlie,
+    "exampleSicpaMediator1" -> exampleSicpaMediator1,
+    "exampleSicpaMediator2" -> exampleSicpaMediator2,
+    "exampleSicpaMediator3" -> exampleSicpaMediator3,
   )
 
   def allIdentities: Map[String, DID] =
@@ -174,5 +180,31 @@ object AgentProvider {
   val exampleBob = new Agent {
     override def id: DID = DidExample.recipientDIDDocument.id
     override def keys: Seq[fmgp.crypto.PrivateKey] = DidExample.recipientSecrets.keys.toSeq
+  }
+
+  val exampleSicpaAlice = new Agent {
+    override def id: DID = DidExampleSicpaRustAlice.aliceDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustAlice.aliceSecrets.keys.toSeq
+  }
+  val exampleSicpaBob = new Agent {
+    override def id: DID = DidExampleSicpaRustBob.bobDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustBob.bobSecrets.keys.toSeq
+  }
+  val exampleSicpaCharlie = new Agent {
+    override def id: DID = DidExampleSicpaRustCharlie.charlieDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustCharlie.charlieSecrets.keys.toSeq
+  }
+
+  val exampleSicpaMediator1 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator1.mediator1DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator1.mediator1Secrets.keys.toSeq
+  }
+  val exampleSicpaMediator2 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator2.mediator2DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator2.mediator2Secrets.keys.toSeq
+  }
+  val exampleSicpaMediator3 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator3.mediator3DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator3.mediator3Secrets.keys.toSeq
   }
 }
