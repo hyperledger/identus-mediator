@@ -144,12 +144,13 @@ object DidExampleSicpaRustBob {
           bobKeyP256_1,
           bobKeyP256_2,
           bobKeyP256_NotSecrets1,
-          bobKeyP384_1,
-          bobKeyP384_2,
-          bobKeyP384_NotSecrets1,
-          bobKeyP521_1,
-          bobKeyP521_2,
-          bobKeyP521_NotSecrets1,
+          // FIXME Still not suported by https://github.com/sicpa-dlab/didcomm-rust
+          // bobKeyP384_1,
+          // bobKeyP384_2,
+          // bobKeyP384_NotSecrets1,
+          // bobKeyP521_1,
+          // bobKeyP521_2,
+          // bobKeyP521_NotSecrets1,
         ).map(e => VerificationMethodReferenced(e.kid.get))
       ),
       verificationMethod = Some(
@@ -161,12 +162,13 @@ object DidExampleSicpaRustBob {
           bobKeyP256_1,
           bobKeyP256_2,
           bobKeyP256_NotSecrets1,
-          bobKeyP384_1,
-          bobKeyP384_2,
-          bobKeyP384_NotSecrets1,
-          bobKeyP521_1,
-          bobKeyP521_2,
-          bobKeyP521_NotSecrets1,
+          // FIXME Still not suported by https://github.com/sicpa-dlab/didcomm-rust
+          // bobKeyP384_1,
+          // bobKeyP384_2,
+          // bobKeyP384_NotSecrets1,
+          // bobKeyP521_1,
+          // bobKeyP521_2,
+          // bobKeyP521_NotSecrets1,
         ).map(e =>
           VerificationMethodEmbeddedJWK(
             id = e.kid.get,

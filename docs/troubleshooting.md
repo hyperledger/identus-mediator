@@ -7,3 +7,11 @@
     ```shell
     export NODE_OPTIONS=--openssl-legacy-provider
     ```
+
+- Missing jsdom
+
+  - Error: Error: Cannot find module 'jsdom'
+  - Solution:
+    ```
+    yarn add jsdom --dev
+    ```

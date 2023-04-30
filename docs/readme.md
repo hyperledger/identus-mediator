@@ -10,18 +10,16 @@ This library allows you to easily integrate DIDComm messaging into your applicat
 To install ScalaDID in a scala project
 
 ```scala
- libraryDependencies += "app.fmgp" %% "did" % @VERSION@
- libraryDependencies += "app.fmgp" %% "did.comm" % @VERSION@ //for did comm
- libraryDependencies += "app.fmgp" %% "did.extra" % @VERSION@ //for hash utils
+ libraryDependencies += "app.fmgp" %% "did" % @VERSION@ // for DID and DID Comm
+ libraryDependencies += "app.fmgp" %% "did-imp" % @VERSION@ // for crypto implementation
+//  libraryDependencies += "app.fmgp" %% "did-extra" % @VERSION@ //for hash utils
+ libraryDependencies += "app.fmgp" %% "did-peer" % @VERSION@ // for resolver of the did method `peer`
+ libraryDependencies += "app.fmgp" %% "did-web" % @VERSION@ // for resolver the did method `web`
+ libraryDependencies += "app.fmgp" %% "did-uniresolver" % @VERSION@ // for calling the resolver uniresolver
 ```
 
-In a crossProject for the JSPlatform and JVMPlatform this shod be use instead:
+In a crossProject for the JSPlatform and JVMPlatform this should be `%%%` instead of `%%`
 
-```scala
- libraryDependencies += "app.fmgp" %%% "did" % @VERSION@
- libraryDependencies += "app.fmgp" %%% "did.comm" % @VERSION@ //for did comm
- libraryDependencies += "app.fmgp" %%% "did.extra" % @VERSION@ //for hash utils
-```
 
 ## Site Map
 
