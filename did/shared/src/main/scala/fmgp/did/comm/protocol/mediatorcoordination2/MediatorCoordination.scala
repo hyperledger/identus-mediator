@@ -166,23 +166,3 @@ object MediateGrant {
             )
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }
-
-//TODO
-object KeylistUpdate {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-update")
-}
-
-//TODO
-object KeylistResponse {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-update-response")
-}
-
-//TODO
-object KeylistQuery {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-query")
-}
-
-//TODO
-object Keylist {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist")
-}
