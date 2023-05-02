@@ -34,8 +34,9 @@ case class MediatorAgent(
         new TrustPingExecuter,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
+        PickupExecuter,
       )
-    ) ++ ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB()))
+    ) ++ ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB.empty))
 
   private def _didSubjectAux = id
   private def _keyStoreAux = keyStore.keys.toSeq
