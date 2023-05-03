@@ -57,8 +57,11 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
     for {
       agent <- ZIO.service[Agent]
       resolver <- ZIO.service[Resolver]
-      docsFROM <- ZIO.foreach(msg.from.toSeq)(resolver.didDocument(_))
-      keyAgreementAll = docsFROM.flatMap(_.keyAgreementAll)
+      fromDID <- msg.from match
+        case Some(did) => ZIO.succeed(did)
+        case None      => ZIO.fail(MissingFromHeader)
+      docsFROM <- resolver.didDocument(fromDID)
+      keyAgreementAll = docsFROM.keyAgreementAll
       secretsFROM = agent.keys
         .flatMap { key => key.kid.map(kid => VerificationMethodReferencedWithKey(kid, key)) }
         .filter(vmk => keyAgreementAll.exists(_.kid == vmk.kid))

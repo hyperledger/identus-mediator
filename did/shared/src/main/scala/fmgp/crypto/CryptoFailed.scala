@@ -58,6 +58,7 @@ package error {
   case class CryptoFailToParse(error: String) extends CryptoFailed
 
   case object KeyMissingEpkJWEHeader extends CryptoFailed // TODO make it time safe
+  case object MissingFromHeader extends CryptoFailed
 
   /* EX: Curve of public key does not match curve of private key */
   @jsonDiscriminator("typeOfCurveError")
