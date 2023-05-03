@@ -66,7 +66,7 @@ object EncryptTool {
       .observe(owner)
   }
 
-  def calEncryptedViaRPC(owner: Owner) = Signal
+  def callEncryptedViaRPC(owner: Owner) = Signal
     .combine(
       Global.agentVar,
       plaintextMessage
@@ -87,7 +87,7 @@ object EncryptTool {
         }
       case (Some(agent), Right(pMsg)) =>
         val program = OperationsClientRPC
-          .authEncrypt(pMsg)
+          .encrypt(pMsg) // .authEncrypt(pMsg)
           .either
           .map(_.map((pMsg, _)))
           .map(e => encryptedMessageVar.update(_ => Some(e)))
@@ -150,7 +150,7 @@ object EncryptTool {
 
   val rootElement = div(
     onMountCallback { ctx =>
-      calEncryptedViaRPC(ctx.owner) // side effect
+      callEncryptedViaRPC(ctx.owner) // side effect
       jobNextForward(ctx.owner) // side effect
       curlCommand(ctx.owner) // side effect
       ()
@@ -175,59 +175,95 @@ object EncryptTool {
         "PlaintextMessage",
         onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exPlaintextMessage.toJsonPretty))
       ),
-      button(
-        "ForwardMessageBase64",
-        onClick --> Observer(_ =>
-          dataTextVar.set(MessageTemplate.exForwardMessageBase64.toPlaintextMessage.toJsonPretty)
+      ul(
+        li(
+          button(
+            "ForwardMessageBase64",
+            onClick --> Observer(_ =>
+              dataTextVar.set(MessageTemplate.exForwardMessageBase64.toPlaintextMessage.toJsonPretty)
+            )
+          ),
+          button(
+            "ForwardMessageJson",
+            onClick --> Observer(_ =>
+              dataTextVar.set(MessageTemplate.exForwardMessageJson.toPlaintextMessage.toJsonPretty)
+            )
+          ),
+          button(
+            "TrustPing",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exTrustPing.toPlaintextMessage.toJsonPretty))
+          ),
+          button(
+            "TrustPingResponse",
+            onClick --> Observer(_ =>
+              dataTextVar.set(MessageTemplate.exTrustPingResponse.toPlaintextMessage.toJsonPretty)
+            )
+          ),
+          button(
+            "BasicMessage",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exBasicMessage.toPlaintextMessage.toJsonPretty))
+          ),
+        ),
+        li(
+          button(
+            "MediateRequest",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateRequest.toPlaintextMessage.toJsonPretty))
+          ),
+          button(
+            "MediateGrant",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateGrant.toPlaintextMessage.toJsonPretty))
+          ),
+          button(
+            "MediateDeny",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateDeny.toPlaintextMessage.toJsonPretty))
+          ),
+          button(
+            "KeylistUpdate",
+            onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exKeylistUpdate.toPlaintextMessage.toJsonPretty))
+          ),
+          button(
+            "KeylistResponse",
+            onClick --> Observer(_ =>
+              dataTextVar.set(MessageTemplate.exKeylistResponse.toPlaintextMessage.toJsonPretty)
+            )
+          ),
+          li(
+            button(
+              "DeliveryRequest",
+              onClick --> Observer(_ =>
+                dataTextVar.set(MessageTemplate.exDeliveryRequest.toPlaintextMessage.toJsonPretty)
+              )
+            ),
+            button(
+              "MessageDelivery",
+              onClick --> Observer(_ =>
+                dataTextVar.set(MessageTemplate.exMessageDelivery.toPlaintextMessage.toJsonPretty)
+              )
+            ),
+            button(
+              "MessagesReceived",
+              onClick --> Observer(_ =>
+                dataTextVar.set(MessageTemplate.exMessagesReceived.toPlaintextMessage.toJsonPretty)
+              )
+            ),
+            button(
+              "Status",
+              onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exStatus.toPlaintextMessage.toJsonPretty))
+            ),
+            button(
+              "StatusRequest",
+              onClick --> Observer(_ =>
+                dataTextVar.set(MessageTemplate.exStatusRequest.toPlaintextMessage.toJsonPretty)
+              )
+            ),
+            button(
+              "LiveModeChange",
+              onClick --> Observer(_ =>
+                dataTextVar.set(MessageTemplate.exLiveModeChange.toPlaintextMessage.toJsonPretty)
+              )
+            ),
+          )
         )
-      ),
-      button(
-        "ForwardMessageJson",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exForwardMessageJson.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "TrustPing",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exTrustPing.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "TrustPingResponse",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exTrustPingResponse.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "BasicMessage",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exBasicMessage.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "MediateRequest",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateRequest.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "MediateGrant",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateGrant.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "MediateDeny",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMediateDeny.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "Status",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exStatus.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "StatusRequest",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exStatusRequest.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "MessageDelivery",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMessageDelivery.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "MessagesReceived",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exMessagesReceived.toPlaintextMessage.toJsonPretty))
-      ),
-      button(
-        "LiveModeChange",
-        onClick --> Observer(_ => dataTextVar.set(MessageTemplate.exLiveModeChange.toPlaintextMessage.toJsonPretty))
       ),
     ),
     textArea(

@@ -13,10 +13,6 @@ import scala.concurrent.Promise
 // @js.native @JSImport("/javascript.svg", JSImport.Default)
 // val javascriptLogo: String = js.native
 
-// @main
-// def SW(): Unit =
-// end SW
-
 object SW {
   // def main(args: Array[String]): Unit = println("main")
   val version = 16
