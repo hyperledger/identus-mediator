@@ -43,6 +43,7 @@ The future version of [**DID Comm v2.1**](https://identity.foundation/didcomm-me
 
 ## TODO/WIP
 
+- UNDO commit that mitigate limitations on other libraries
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
 - [TODO!] [Message Layer Addressing Consistency](https://identity.foundation/didcomm-messaging/spec/#message-layer-addressing-consistency)
