@@ -23,6 +23,7 @@ import zio.http.Http.Empty
 import zio.http.Http.Static
 import fmgp.did.resolver.DidPeerUniresolverDriver
 import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.comm.agent.MediatorDB
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -62,7 +63,7 @@ object AppServer extends ZIOAppDefault {
   }
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & AgentByHost & Operations & MessageDispatcher & DidPeerResolver,
+    Hub[String] & AgentByHost & Operations & MessageDispatcher & Ref[MediatorDB] & DidPeerResolver,
     Throwable
   ] = MediatorAgent.didCommApp ++ Http
     .collectZIO[Request] {
@@ -207,6 +208,7 @@ object AppServer extends ZIOAppDefault {
       .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcher.layer)
+      .provideSomeLayer(ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB.empty))) // TODO move into AgentByHost
       .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(server)
       .debug
