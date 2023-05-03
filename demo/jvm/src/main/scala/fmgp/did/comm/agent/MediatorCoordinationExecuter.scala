@@ -42,6 +42,7 @@ case class MediatorDB(db: Map[DIDSubject, Seq[EncryptedMessage]], alias: Map[DID
       db = db.updatedWith(alias.getOrElse(to, to))(_.map(e => msg +: e)),
       alias = alias
     )
+
   def getMessages(to: DIDSubject, from: Option[DIDSubject]): Seq[EncryptedMessage] =
     val allMessageToDid = db.get(to).toSeq.flatten
     from match
@@ -105,29 +106,44 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
           }
         } yield SyncReplyOnly(reply)
       case m: KeylistUpdate =>
+        case class Tmp(id: FROMTO, a: KeylistAction, r: KeylistResult)
         for {
           _ <- ZIO.logInfo("KeylistUpdate")
           db <- ZIO.service[Ref[MediatorDB]]
-          mediateGrant <- db.modify { mediatorDB =>
+          updatesAndNewMediatorDB <- db.modify { mediatorDB =>
             val did2Add = m.updates.collect { case (fromto, KeylistAction.add) => fromto }
             val did2Remove = m.updates.collect { case (fromto, KeylistAction.remove) => fromto }
-            val newMediatorDB =
-              m.updates.foldLeft(mediatorDB) {
-                case (tmpDB, (fromto, KeylistAction.add)) =>
-                  tmpDB.addAlias(ower = m.from.toDIDSubject, newAlias = fromto.toDIDSubject) match
-                    case Left(value)     => ???
-                    case Right(newState) => newState
+            m.updates.foldLeft((Seq.empty[Tmp], mediatorDB)) {
+              case ((resultList, tmpDB), (fromto, KeylistAction.add)) =>
+                tmpDB.addAlias(ower = m.from.toDIDSubject, newAlias = fromto.toDIDSubject) match
+                  case Left(value) =>
+                    (
+                      resultList :+ Tmp(fromto, KeylistAction.add, KeylistResult.server_error),
+                      tmpDB
+                    )
+                  case Right(newState) =>
+                    (
+                      resultList :+ Tmp(fromto, KeylistAction.add, KeylistResult.success),
+                      newState
+                    )
 
-                case (tmpDB, (fromto, KeylistAction.remove)) =>
-                  tmpDB.removeAlias(ower = m.from.toDIDSubject, newAlias = fromto.toDIDSubject) match
-                    case Left(value)     => ???
-                    case Right(newState) => newState
-              }
-            ("TODO", newMediatorDB)
+              case ((resultList, tmpDB), (fromto, KeylistAction.remove)) =>
+                tmpDB.removeAlias(ower = m.from.toDIDSubject, newAlias = fromto.toDIDSubject) match
+                  case Left(value) =>
+                    (
+                      resultList :+ Tmp(fromto, KeylistAction.remove, KeylistResult.server_error),
+                      tmpDB
+                    )
+                  case Right(newState) =>
+                    (
+                      resultList :+ Tmp(fromto, KeylistAction.remove, KeylistResult.success),
+                      newState
+                    )
+            }
           }
           keylistResponse = m.makeKeylistResponse(
-            m.updates.map(e => (e._1, e._2, KeylistResult.success))
-          ) // TODO KeylistResult.success
+            updatesAndNewMediatorDB.map(e => (e._1, e._2, e._3))
+          )
         } yield SyncReplyOnly(keylistResponse.toPlaintextMessage)
       case m: KeylistResponse => ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply)
       case m: KeylistQuery    => ZIO.logError("Not implemented KeylistQuery") *> ZIO.succeed(NoReply) // TODO

@@ -7,7 +7,7 @@ import fmgp.did.comm._
 //TOOD
 extension (msg: PlaintextMessage)
   def toKeylistUpdate: Either[String, KeylistUpdate] = KeylistUpdate.fromPlaintextMessage(msg)
-  def toKeylistResponse: Either[String, KeylistResponse] = ??? // KeylistResponse.fromPlaintextMessage(msg)
+  def toKeylistResponse: Either[String, KeylistResponse] = KeylistResponse.fromPlaintextMessage(msg)
   def toKeylistQuery: Either[String, KeylistQuery] = ??? // KeylistQuery.fromPlaintextMessage(msg)
   def toKeylist: Either[String, Keylist] = ??? // Keylist.fromPlaintextMessage(msg)
 
@@ -44,7 +44,7 @@ final case class KeylistUpdate(id: MsgID = MsgID(), from: FROM, to: TO, updates:
         .Body(updates =
           updates.map(e =>
             KeylistUpdate.Update(
-              routing_did = e._1,
+              recipient_did = e._1,
               action = e._2
             )
           )
@@ -62,7 +62,7 @@ final case class KeylistUpdate(id: MsgID = MsgID(), from: FROM, to: TO, updates:
 object KeylistUpdate {
   def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-update")
 
-  protected final case class Update(routing_did: FROMTO, action: KeylistAction) {
+  protected final case class Update(recipient_did: FROMTO, action: KeylistAction) {
 
     /** toJSON_RFC7159 MUST not fail! */
     def toJSON_RFC7159: JSON_RFC7159 = this.toJsonAST.flatMap(_.as[JSON_RFC7159]).getOrElse(JSON_RFC7159())
@@ -83,7 +83,7 @@ object KeylistUpdate {
   }
 
   def fromPlaintextMessage(msg: PlaintextMessage): Either[String, KeylistUpdate] =
-    if (msg.`type` != piuri) Left(s"No able to create MediateDeny from a Message of type '${msg.`type`}'")
+    if (msg.`type` != piuri) Left(s"No able to create KeylistUpdate from a Message of type '${msg.`type`}'")
     else
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
@@ -99,7 +99,7 @@ object KeylistUpdate {
                       id = msg.id,
                       from = from,
                       to = firstTo,
-                      updates = body.updates.map(e => (e.routing_did, e.action))
+                      updates = body.updates.map(e => (e.recipient_did, e.action))
                     )
                   )
 
@@ -117,6 +117,7 @@ final case class KeylistResponse(
   def toPlaintextMessage: PlaintextMessage =
     PlaintextMessageClass(
       id = id,
+      thid = Some(thid),
       `type` = piuri,
       to = Some(Set(to)),
       from = Some(from),
@@ -156,6 +157,33 @@ object KeylistResponse {
     given decoder: JsonDecoder[Body] = DeriveJsonDecoder.gen[Body]
     given encoder: JsonEncoder[Body] = DeriveJsonEncoder.gen[Body]
   }
+
+  def fromPlaintextMessage(msg: PlaintextMessage): Either[String, KeylistResponse] =
+    if (msg.`type` != piuri) Left(s"No able to create KeylistResponse from a Message of type '${msg.`type`}'")
+    else
+      msg.thid match
+        case None => Left(s"'$piuri' MUST have field 'thid'")
+        case Some(thid) =>
+          msg.to.toSeq.flatten match // Note: toSeq is from the match
+            case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
+            case firstTo +: Seq() =>
+              msg.from match
+                case None => Left(s"'$piuri' MUST have field 'from' with one element")
+                case Some(from) =>
+                  msg.body.as[Body] match
+                    case Left(value) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
+                    case Right(body) =>
+                      Right(
+                        KeylistResponse(
+                          id = msg.id,
+                          thid = thid,
+                          from = from,
+                          to = firstTo,
+                          updated = body.updated.map(e => (e.routing_did, e.action, e.result))
+                        )
+                      )
+
+            case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }
 
 final case class KeylistQuery(id: MsgID = MsgID(), from: FROM, to: TO)
