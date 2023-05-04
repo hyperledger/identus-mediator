@@ -66,6 +66,7 @@ The future version of [**DID Comm v2.1**](https://identity.foundation/didcomm-me
 - Remove field `kty` from `ECPublicKey` and `OKPPublicKey`. Make custom json encoder/decoder
 - Webapp UI:
   - resolver the did 'from' in the OOB botton
+- "* MUST have field 'from' with one element" -> remove the " with one element"
 
 ## Benefits of type safety
 
