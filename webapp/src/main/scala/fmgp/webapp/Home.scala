@@ -39,7 +39,8 @@ object Home {
         " (only works for alice, bob and charlie)",
         MyRouter.navigateTo(MyRouter.AgentDBPage)
       ),
-      p("Navigate to ", b("Documentation for scala-did lib"), MyRouter.navigateTo(MyRouter.DocPage)),
+      p("Navigate to ", b("Mediator (Alice)"), MyRouter.navigateTo(MyRouter.MediatorPage)),
+      p("Navigate to ", b("Documentation for scala-did lib"), MyRouter.navigateTo(MyRouter.MediatorPage)),
       br(),
       p("DIDs: "),
       div(child <-- statementVar.signal.map(e => getHtml(e)))

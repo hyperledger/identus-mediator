@@ -162,6 +162,9 @@ lazy val NPM = new {
 
   val mermaid = Seq("mermaid" -> "9.3.0") // "@types/mermaid" -> "9.2.0"
 
+  // https://www.npmjs.com/package/qrcode-generator
+  val qrcode = Seq("qrcode-generator" -> "1.4.4")
+
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
 
   val ipfsClient = Seq("multiformats" -> "9.6.4")
@@ -453,7 +456,7 @@ lazy val webapp = project
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
-    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient,
+    Compile / npmDependencies ++= NPM.mermaid ++ NPM.qrcode ++ NPM.materialDesign ++ NPM.ipfsClient,
     // ++ List("ms" -> "2.1.1"),
     // stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
   )

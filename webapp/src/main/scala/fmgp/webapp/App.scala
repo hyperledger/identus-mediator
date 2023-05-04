@@ -74,6 +74,7 @@ object App {
     .collectStatic(TrustPingPage)(TrustPingTool())
     .collectStatic(TapIntoStreamPage)(TapIntoStreamTool())
     .collectStatic(DAppStorePage)(DAppStore())
+    .collectStatic(MediatorPage)(MediatorInfo())
 
   private val linkPages: List[Page] = List(
     HomePage,
@@ -87,6 +88,7 @@ object App {
     TapIntoStreamPage,
     AgentDBPage,
     DocPage,
+    MediatorPage,
     // DAppStorePage,
   )
 

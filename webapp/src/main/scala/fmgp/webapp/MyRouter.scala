@@ -21,9 +21,10 @@ object MyRouter {
   case object EncryptPage extends Page("Encrypt", "enhanced_encryption")
   case object DecryptPage extends Page("Decrypt", "email")
   case object BasicMessagePage extends Page("BasicMessage", "message")
-  case object TrustPingPage extends Page("TrustPing", "network_ping")
+  case object TrustPingPage extends Page("TrustPing", "network_ping`")
   case object TapIntoStreamPage extends Page("TapIntoStream", "chat")
   case object DAppStorePage extends Page("DAppStore", "share")
+  case object MediatorPage extends Page("Mediator", "diversity_3")
 
   given homePageRW: ReadWriter[HomePage.type] = macroRW
   given oobPageRW: ReadWriter[OOBPage] = macroRW
@@ -37,6 +38,8 @@ object MyRouter {
   given trustPingPageRW: ReadWriter[TrustPingPage.type] = macroRW
   given tapIntoStreamPageRW: ReadWriter[TapIntoStreamPage.type] = macroRW
   given dAppStorePageRW: ReadWriter[DAppStorePage.type] = macroRW
+  given mediatorPageRW: ReadWriter[MediatorPage.type] = macroRW
+
   given rw: ReadWriter[Page] = macroRW
 
   private val routes = List(
@@ -63,6 +66,7 @@ object MyRouter {
     Route.static(TrustPingPage, root / "trustping" / endOfSegments, Router.localFragmentBasePath),
     Route.static(TapIntoStreamPage, root / "stream" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DAppStorePage, root / "dapp" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(MediatorPage, root / "mediator" / endOfSegments, Router.localFragmentBasePath),
   )
 
   val router = new Router[Page](
