@@ -12,7 +12,7 @@ object AgentProvider {
 
   /** https://mermaid.live/edit#pako:eNpVkMFqwzAMhl_F6Ny-gA-FbVmht8LKLnEPaqwsooltFDswSt-9cpvDdpD8S__3G-MbdNETWPgRTIM5NS4Y8zZyR2a73Zkj5lbLuZAkLiTnar_Hy9NscKG_82HB0NamOM9zWfGPAWXk132fC7VaCpCGZy8xpRUz1XxCe8Fw_b_65i5HaV-HpvUp3POa3OOFYxWePWxgIplQlYVbXTrIA03kwKr01GMZswMX7opiyfHrN3RgsxTaQEkeMzWM-hsT2B7Hme4PPpxgwQ
     */
-  def usersGraph = """
+  def usersGraph = s"""
   |graph LR
   |  subgraph alice.did.fmgp.app
   |    Alice --> Pat[Pat prover]
@@ -34,6 +34,17 @@ object AgentProvider {
   |  end
   |  subgraph did.fmgp.app
   |  end
+  |
+  |  click Alice "#/resolver/${alice.id.did}" "Link to Alice DID Document"
+  |  click Bob "#/resolver/${bob.id.did}" "Link to Bob DID Document"
+  |  click Charlie "#/resolver/${charlie.id.did}" "Link to Charlie DID Document"
+  |  click Pat "#/resolver/${pat.id.did}" "Link to Pat DID Document"
+  |  click Dave "#/resolver/${dave.id.did}" "Link to Dave DID Document"
+  |  click Ivan "#/resolver/${ivan.id.did}" "Link to Ivan DID Document"
+  |  click Eve "#/resolver/${eve.id.did}" "Link to Eve DID Document"
+  |  click Frank "#/resolver/${frank.id.did}" "Link to Frank DID Document"
+  |  click Victor "#/resolver/${victor.id.did}" "Link to Victor DID Document"
+  |  click local "#/resolver/${local.id.did}" "Link to local DID Document"
   |""".stripMargin
 
   def allAgents: Map[String, Agent] = Map(
@@ -49,6 +60,12 @@ object AgentProvider {
     "victor" -> victor,
     "exampleAlice" -> exampleAlice,
     "exampleBob" -> exampleBob,
+    "exampleSicpaAlice" -> exampleSicpaAlice,
+    "exampleSicpaBob" -> exampleSicpaBob,
+    "exampleSicpaCharlie" -> exampleSicpaCharlie,
+    "exampleSicpaMediator1" -> exampleSicpaMediator1,
+    "exampleSicpaMediator2" -> exampleSicpaMediator2,
+    "exampleSicpaMediator3" -> exampleSicpaMediator3,
   )
 
   def allIdentities: Map[String, DID] =
@@ -163,5 +180,31 @@ object AgentProvider {
   val exampleBob = new Agent {
     override def id: DID = DidExample.recipientDIDDocument.id
     override def keys: Seq[fmgp.crypto.PrivateKey] = DidExample.recipientSecrets.keys.toSeq
+  }
+
+  val exampleSicpaAlice = new Agent {
+    override def id: DID = DidExampleSicpaRustAlice.aliceDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustAlice.aliceSecrets.keys.toSeq
+  }
+  val exampleSicpaBob = new Agent {
+    override def id: DID = DidExampleSicpaRustBob.bobDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustBob.bobSecrets.keys.toSeq
+  }
+  val exampleSicpaCharlie = new Agent {
+    override def id: DID = DidExampleSicpaRustCharlie.charlieDIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustCharlie.charlieSecrets.keys.toSeq
+  }
+
+  val exampleSicpaMediator1 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator1.mediator1DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator1.mediator1Secrets.keys.toSeq
+  }
+  val exampleSicpaMediator2 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator2.mediator2DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator2.mediator2Secrets.keys.toSeq
+  }
+  val exampleSicpaMediator3 = new Agent {
+    override def id: DID = DidExampleSicpaRustMediator3.mediator3DIDDocument.id
+    override def keys: Seq[fmgp.crypto.PrivateKey] = DidExampleSicpaRustMediator3.mediator3Secrets.keys.toSeq
   }
 }

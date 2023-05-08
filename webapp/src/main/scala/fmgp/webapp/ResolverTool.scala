@@ -23,6 +23,14 @@ import fmgp.webapp.MyRouter.ResolverPage
 
 object ResolverTool {
 
+  val resolverLayer = ZLayer.succeed(
+    MultiResolver(
+      HardcodeResolver.default,
+      Uniresolver.default,
+      DidPeerResolver.default,
+    )
+  )
+
   val didVar: Var[Option[DID]] = Var(initial = None)
   // val customVar: Var[String] = Var(initial = "")
   val didDocumentVar: Var[Either[String, DIDDocument]] = Var(initial = Left(""))
@@ -42,15 +50,7 @@ object ResolverTool {
       ).mapBoth(
         errorInfo => didDocumentVar.update(_ => Left(errorInfo.toString)),
         doc => didDocumentVar.update(_ => Right(doc))
-      ).provide(
-        ZLayer.succeed(
-          MultiResolver(
-            HardcodeResolver.default,
-            Uniresolver.default,
-            DidPeerResolver.default,
-          )
-        )
-      )
+      ).provide(resolverLayer)
       Unsafe.unsafe { implicit unsafe => Runtime.default.unsafe.fork(program) } // Run side efect
     }
     .observe(owner)

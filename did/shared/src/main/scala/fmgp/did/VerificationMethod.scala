@@ -16,14 +16,13 @@ type MULTIBASE = String // TODO
   * https://w3c.github.io/did-core/#verification-method-properties
   * https://www.w3.org/TR/did-core/#verification-method-properties
   */
-sealed trait VerificationMethod
-// { FIXME
-//   def id: String // DID URL Syntax.
+sealed trait VerificationMethod {
+  def id: String // DID URL Syntax.
 //   def controller: String // DID Syntax.
 //   def `type`: String
 //   def publicKeyJwk: String // RFC7517
 //   def publicKeyMultibase: String // MULTIBASE
-// }
+}
 
 object VerificationMethod {
   given decoder: JsonDecoder[VerificationMethod] =
@@ -50,6 +49,7 @@ object VerificationMethodReferencedWithKey {
 case class VerificationMethodReferenced(value: String) extends VerificationMethod {
   def did = DIDSubject(value.split('#').head)
   def fromto = FROMTO(value.split('#').head) // FIXME
+  def id = value // TODO rename value to id
 }
 object VerificationMethodReferenced {
   given decoder: JsonDecoder[VerificationMethodReferenced] = JsonDecoder.string.map(VerificationMethodReferenced.apply)

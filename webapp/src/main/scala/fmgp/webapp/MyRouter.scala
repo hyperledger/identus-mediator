@@ -14,21 +14,22 @@ object MyRouter {
   case object HomePage extends Page("Home", "home")
   case class OOBPage(query_oob: String) extends Page("OutOfBand", "app_shortcut")
   case object DocPage extends Page("Doc", "menu_book")
-  case object KeysPage extends Page("Keys", "key")
+  case object AgentKeysPage extends Page("AgentKeys", "key")
   // case object DIDPage extends Page("DID", "visibility")
-  case object AgentDBPage extends Page("DB", "folder_open")
+  case object AgentDBPage extends Page("MessageDB", "folder_open")
   case class ResolverPage(did: String) extends Page("Resolver", "dns")
   case object EncryptPage extends Page("Encrypt", "enhanced_encryption")
   case object DecryptPage extends Page("Decrypt", "email")
   case object BasicMessagePage extends Page("BasicMessage", "message")
-  case object TrustPingPage extends Page("TrustPing", "network_ping")
+  case object TrustPingPage extends Page("TrustPing", "network_ping`")
   case object TapIntoStreamPage extends Page("TapIntoStream", "chat")
   case object DAppStorePage extends Page("DAppStore", "share")
+  case object MediatorPage extends Page("Mediator", "diversity_3")
 
   given homePageRW: ReadWriter[HomePage.type] = macroRW
   given oobPageRW: ReadWriter[OOBPage] = macroRW
   given docPageRW: ReadWriter[DocPage.type] = macroRW
-  given keysPageRW: ReadWriter[KeysPage.type] = macroRW
+  given keysPageRW: ReadWriter[AgentKeysPage.type] = macroRW
   given agentDBPageRW: ReadWriter[AgentDBPage.type] = macroRW
   given resolverPageRW: ReadWriter[ResolverPage] = macroRW
   given encryptPageRW: ReadWriter[EncryptPage.type] = macroRW
@@ -37,6 +38,8 @@ object MyRouter {
   given trustPingPageRW: ReadWriter[TrustPingPage.type] = macroRW
   given tapIntoStreamPageRW: ReadWriter[TapIntoStreamPage.type] = macroRW
   given dAppStorePageRW: ReadWriter[DAppStorePage.type] = macroRW
+  given mediatorPageRW: ReadWriter[MediatorPage.type] = macroRW
+
   given rw: ReadWriter[Page] = macroRW
 
   private val routes = List(
@@ -55,7 +58,7 @@ object MyRouter {
     ),
     Route.static(HomePage, root / endOfSegments, Router.localFragmentBasePath),
     Route.static(DocPage, root / "doc" / endOfSegments, Router.localFragmentBasePath),
-    Route.static(KeysPage, root / "keys" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(AgentKeysPage, root / "agentkeys" / endOfSegments, Router.localFragmentBasePath),
     Route.static(AgentDBPage, root / "db" / endOfSegments, Router.localFragmentBasePath),
     Route.static(EncryptPage, root / "encrypt" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DecryptPage, root / "decrypt" / endOfSegments, Router.localFragmentBasePath),
@@ -63,6 +66,7 @@ object MyRouter {
     Route.static(TrustPingPage, root / "trustping" / endOfSegments, Router.localFragmentBasePath),
     Route.static(TapIntoStreamPage, root / "stream" / endOfSegments, Router.localFragmentBasePath),
     Route.static(DAppStorePage, root / "dapp" / endOfSegments, Router.localFragmentBasePath),
+    Route.static(MediatorPage, root / "mediator" / endOfSegments, Router.localFragmentBasePath),
   )
 
   val router = new Router[Page](

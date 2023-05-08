@@ -27,15 +27,18 @@ case class MediatorAgent(
     DynamicResolver.resolverLayer(didSocketManager)
 
   type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
-  val protocolHandlerLayer: ULayer[ProtocolExecuter[Services] & Ref[MediatorDB]] =
-    ZLayer.succeed(
-      ProtocolExecuterCollection[Services](
+  val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
+    ZLayer {
+      for {
+        ref <- ZIO.service[Ref[MediatorDB]]
+      } yield ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
         new TrustPingExecuter,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
+        PickupExecuter,
       )
-    ) ++ ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB()))
+    }
 
   private def _didSubjectAux = id
   private def _keyStoreAux = keyStore.keys.toSeq
@@ -72,7 +75,7 @@ case class MediatorAgent(
   def receiveMessage(
       data: String,
       mSocketID: Option[SocketID],
-  ): ZIO[Operations & MessageDispatcher, DidFail, Option[EncryptedMessage]] =
+  ): ZIO[Operations & MessageDispatcher & Ref[MediatorDB], DidFail, Option[EncryptedMessage]] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
@@ -89,7 +92,7 @@ case class MediatorAgent(
   def receiveMessage(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
-  ): ZIO[Operations & MessageDispatcher, DidFail, Option[EncryptedMessage]] =
+  ): ZIO[Operations & MessageDispatcher & Ref[MediatorDB], DidFail, Option[EncryptedMessage]] =
     ZIO
       .logAnnotate("msgHash", msg.hashCode.toString) {
         for {
@@ -124,7 +127,7 @@ case class MediatorAgent(
 
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
-  ): ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
+  ): ZIO[MediatorAgent & Operations & MessageDispatcher & Ref[MediatorDB], Nothing, zio.http.Response] = {
     val SOCKET_ID = "SocketID"
     val appAux = SocketApp {
       case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
@@ -201,7 +204,9 @@ object MediatorAgent {
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
           ret <- agent
             .createSocketApp(annotationMap)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
+              env.add(agent)
+            )
         } yield (ret)
       case Method.GET -> !! / "tap" / host =>
         for {
@@ -209,7 +214,9 @@ object MediatorAgent {
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
           ret <- agent
             .websocketListenerApp(annotationMap)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
+              env.add(agent)
+            )
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key == "content-type" &&
@@ -221,7 +228,9 @@ object MediatorAgent {
           maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
             .mapError(fail => DidException(fail))
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
+              env.add(agent)
+            )
           ret = maybeSyncReplyMsg match
             case None        => Response.ok
             case Some(value) => Response.json(value.toJson)
@@ -234,20 +243,29 @@ object MediatorAgent {
           data <- req.body.asString
           ret <- agent
             .receiveMessage(data, None)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher]) => env.add(agent))
+            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
+              env.add(agent)
+            )
             .mapError(fail => DidException(fail))
         } yield Response
           .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
       // .copy(status = Status.BadRequest) but ok for now
 
-    }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher, Throwable, Request, Response]
+    }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher & Ref[MediatorDB], Throwable, Request, Response]
   } @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
         allowedOrigins = _ => true,
-        allowedMethods = Some(Set(Method.GET, Method.POST)),
+        allowedMethods = Some(Set(Method.GET, Method.POST, Method.OPTIONS)),
       )
-    ) @@
-    HttpAppMiddleware.removeHeader(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString) @@
-    HttpAppMiddleware.addHeader(Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString, "*"))
+    )
+    @@ HttpAppMiddleware.updateHeaders(headers =>
+      Headers(
+        headers.map(h =>
+          if (h.key == HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN) {
+            Header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+          } else h
+        )
+      )
+    )
 }

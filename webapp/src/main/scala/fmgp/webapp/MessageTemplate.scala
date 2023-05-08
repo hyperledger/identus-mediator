@@ -17,6 +17,7 @@ object MessageTemplate {
   def mFrom: Option[FROM] = Global.agentVar.now().flatMap(o => FROM.either(o.id.string).toOption)
   def from: FROM = mFrom.getOrElse(DidExample.senderDIDDocument.id.toDID)
   def to: TO = Global.recipientVar.now().getOrElse(DidExample.recipientDIDDocument.id.toDID)
+  def anotherDid: FROMTO = DidExample.senderDIDDocument.id.toDID
   def thid: MsgID = MsgID("thid-responding-to-msg-id")
 
   def exPlaintextMessage = PlaintextMessageClass(
@@ -27,7 +28,7 @@ object MessageTemplate {
     thid = Some(thid),
     created_time = Some(123456789),
     expires_time = Some(123456789),
-    body = JSON_RFC7159(),
+    body = Some(JSON_RFC7159()),
     attachments = Some(Seq.empty[Attachment]),
     // # Extensions
     return_route = Some(ReturnRoute.all),
@@ -58,13 +59,21 @@ object MessageTemplate {
     msg = obj_encryptedMessage_ECDHES_X25519_XC20P,
   )
 
+  def exTrustPing = TrustPingWithRequestedResponse(from = from, to = to)
+  def exTrustPingResponse = TrustPingResponse(thid = MsgID("some_thid_123"), from = mFrom, to = to)
   def exBasicMessage = BasicMessage(from = mFrom, to = Set(to), content = "Hello, World!")
 
   def exMediateRequest = MediateRequest(from = from, to = to)
   def exMediateGrant = MediateGrant(from = from, to = to, thid = thid, routing_did = Seq(from.asFROMTO))
   def exMediateDeny = MediateDeny(from = from, to = to, thid = thid)
-  // def exKeylistUpdate
-  // def exKeylistResponse
+  def exKeylistUpdate = KeylistUpdate(from = from, to = to, updates = Seq(anotherDid -> KeylistAction.add))
+  def exKeylistResponse =
+    KeylistResponse(
+      from = from,
+      to = to,
+      thid = thid,
+      updated = Seq((anotherDid, KeylistAction.add, KeylistResult.success))
+    )
   // def exKeylistQuery
   // def exKeylist
   def exStatusRequest = StatusRequest(from = from, to = to, recipient_did = Some(FROMTO("did:recipient_did:123")))
@@ -80,6 +89,8 @@ object MessageTemplate {
     total_bytes = Some(8096),
     live_delivery = Some(false),
   )
+  def exDeliveryRequest =
+    DeliveryRequest(from = from, to = to, limit = 5, recipient_did = Some(FROMTO("did:recipient_did:123")))
   def exMessageDelivery = MessageDelivery(
     from = from,
     to = to,
@@ -87,8 +98,6 @@ object MessageTemplate {
     recipient_did = Some(FROMTO("did:recipient_did:123")),
     attachments = Map("321" -> obj_encryptedMessage_ECDHES_X25519_XC20P)
   )
-  def exDeliveryRequest =
-    DeliveryRequest(from = from, to = to, limit = 5, recipient_did = Some(FROMTO("did:recipient_did:123")))
   def exMessagesReceived = MessagesReceived(from = from, to = to, thid = thid, message_id_list = Seq("321"))
   def exLiveModeChange = LiveModeChange(from = from, to = to, live_delivery = true)
 

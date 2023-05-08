@@ -13,25 +13,24 @@ import fmgp.did._
 import fmgp.crypto._
 import com.raquo.laminar.CollectionCommand
 
-object KeysHome {
-  val keyStoreVar: Var[KeyStore] = Var(initial = KeyStore(Set.empty))
-  def childrenSignal: Signal[Seq[Node]] = keyStoreVar.signal.map(_.keys.toSeq.map(_.toJson).map(code(_)))
+object AgentKeys {
 
-//   val commandBus = new EventBus[ChildrenCommand]
-//   val commandStream = commandBus.events
-// //   val countSignal = commandStream.foldLeft(initial = 0)(_ + 1)
-//         button(
-//           "Add a child",
-//           onClick.map(_ => CollectionCommand.Append(span(s"Just another child"))) --> commandBus
-//         ),
+  def keyStoreVar = Global.agentVar.signal.map {
+    case None        => KeyStore(Set.empty)
+    case Some(agent) => agent.keyStore
+  }
+  def childrenSignal: Signal[Seq[Node]] = keyStoreVar.map(_.keys.toSeq.map(_.toJson).map(code(_)))
+
+  val keyStore2Var: Var[KeyStore] = Var(initial = KeyStore(Set.empty))
 
   private val commandObserver = Observer[String] { case str =>
     str.fromJson[PrivateKey] match
       case Left(error)   => dom.window.alert(s"Fail to parse key: $error")
-      case Right(newKey) => keyStoreVar.update(ks => ks.copy(ks.keys + newKey))
+      case Right(newKey) => keyStore2Var.update(ks => ks.copy(ks.keys + newKey))
   }
 
   val rootElement = div(
+    /*
     code("Keys Page"),
     div(
       div(
@@ -61,12 +60,13 @@ object KeysHome {
       )
     ),
     div(
-      div(child.text <-- keyStoreVar.signal.map(_.keys.size).map(c => s"KeyStore (with $c keys):")),
+      div(child.text <-- keyStoreVar.map(_.keys.size).map(c => s"KeyStore (with $c keys):")),
       div(children <-- childrenSignal)
     ),
+     */
     table(
       tr(th("type"), th("isPointOnCurve"), th("Keys Id")),
-      children <-- keyStoreVar.signal.map(
+      children <-- keyStoreVar.map(
         _.keys.toSeq
           .map { key =>
             key match
@@ -74,18 +74,18 @@ object KeysHome {
                 tr(
                   td(code(kty.toString)),
                   td(code("N/A")),
-                  td(pre(code(kid.getOrElse("missing")))),
+                  td(code(kid.getOrElse("missing"))),
                 )
               case k @ ECPrivateKey(kty, crv, d, x, y, kid) =>
                 tr(
                   td(code(kty.toString)),
                   td(code(k.isPointOnCurve)),
-                  td(pre(code(kid.getOrElse("missing")))),
+                  td(code(kid.getOrElse("missing"))),
                 )
 
           }
       ),
-    )
+    ),
   )
   def apply(): HtmlElement = rootElement
 }

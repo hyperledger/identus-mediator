@@ -1,5 +1,5 @@
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.13.0")
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.2.0")
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.13.1")
+addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.1")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
 addSbtPlugin("org.scala-js" % "sbt-jsdependencies" % "1.0.2")
@@ -49,7 +49,7 @@ addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.11")
 // addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1") //https://github.com/sbt/sbt-pgp#sbt-pgp
 
 // Revolver use for command 'reStart' (like the command 'run' but run on the backgroun by forking the app from sbt)
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
+addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
 // https://zio.dev/howto/migrate/zio-2.x-migration-guide%20v0.9.31
 //sbt "scalafixEnable; scalafixAll github:zio/zio/Zio2Upgrade?sha=series/2.x"
@@ -62,4 +62,4 @@ addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.7")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
 
 // To quick develop the demo
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
+addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")

@@ -101,8 +101,8 @@ object UniresolverExamples {
         None,
         Some(
           Set(
-            DIDServiceGeneric("#linkedin", "linkedin", "linkedin.com/in/henry-tsai-6b884014", None, None),
-            DIDServiceGeneric("#github", "github", "github.com/thehenrytsai", None, None)
+            DIDServiceGeneric("#linkedin", "linkedin", Json.Str("linkedin.com/in/henry-tsai-6b884014"), None, None),
+            DIDServiceGeneric("#github", "github", Json.Str("github.com/thehenrytsai"), None, None)
           )
         )
       ),

@@ -4,6 +4,8 @@ A Scala/ScalaJS library for DID and DIDcomm.
 The one of the main goals of this library is to make DID Comm v2 **type safety** and easy to use.
 Made for developers by developers.
 
+[**LIVE DEMO (DIDComm's Sandbox)**](https://did.fmgp.app/)
+
 [**Scala-DID Documentation**](./docs/readme.md)
 
 [![CI](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml)
@@ -11,7 +13,7 @@ Made for developers by developers.
  - **CI** automate builds and tests all pushes to the master branch also as all PRs created.
  - **Scala Steward** automate the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
 
-The future version of **DID Comm v2.1** is been track&develop in the branch [`didcomm-v2.1`](https://github.com/FabioPinheiro/scala-did/tree/didcomm-v2.1)
+The future version of [**DID Comm v2.1**](https://identity.foundation/didcomm-messaging/spec/v2.1/) is been track&develop in the branch [`didcomm-v2.1`](https://github.com/FabioPinheiro/scala-did/tree/didcomm-v2.1)
 
 **More documentation:**
 - [LICENSE](LICENSE) - Apache License, Version 2.0
@@ -19,16 +21,20 @@ The future version of **DID Comm v2.1** is been track&develop in the branch [`di
 - [example](did-example/README.md) - just a set of DIDs for experiments.
 - [demo](demo/README.md) - How to build, test and deploy the Demo. The Demo is a server with (webapp) client.  
 - [webapp module](webapp/README.md) - How to build, develop and run localy.
-- [multiformats module](multiformats/README.md) -(Implemente notes and an considerations (of TODOs) if we want to use as the independent Library.
+- [multiformats module](multiformats/README.md) - Implemente notes and an considerations (of TODOs) if we want to use as the independent Library.
 - [docs](docs/) - Base folder of the library documentation website.
   - [docs/readme.md - **Scala-DID Documentation**](docs/readme.md)
 
 ## Protocols
 - [WIP] `Routing`- https://didcomm.org/routing/2.0
   - Also see https://didcomm.org/book/v2/routing
+- [TODO] `Action Menu 2.0` - https://didcomm.org/action-menu/2.0
 - [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
+- [WIP] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
+- [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0
+- [WIP] `OutOfBand 2.0` - https://didcomm.org/out-of-band/2.0
 - [TODO]`ReportProblem 2.0` - https://didcomm.org/report-problem/2.0
-- [WIP] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+- [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
 - [TODO] `DiscoverFeatures 2.0` - https://didcomm.org/discover-features/2.0
 - Create new protocol `PreSetValue`
 - Create new protocol `PseudoRandom`
@@ -37,6 +43,7 @@ The future version of **DID Comm v2.1** is been track&develop in the branch [`di
 
 ## TODO/WIP
 
+- UNDO commit that mitigate limitations on other libraries
 - We are still working on core API.
   - decrypting a file MUST be one of the following combinations: [See this like](https://identity.foundation/didcomm-messaging/spec/#iana-media-types)
 - [TODO!] [Message Layer Addressing Consistency](https://identity.foundation/didcomm-messaging/spec/#message-layer-addressing-consistency)
@@ -51,15 +58,15 @@ The future version of **DID Comm v2.1** is been track&develop in the branch [`di
     - HTTP POST
     - push notification
   - implement a relay
-    - [WIP] NFC
-    - websocket
+    - [WIP-stop] NFC
+    - [WIP] websocket
     - bluetooth
 - maybe implement ["KERI lite"](https://docs.google.com/presentation/d/1ksqVxeCAvqLjr67htWZ4JYaSnI8TUZIO7tDMF5npHTo/edit#slide=id.g1ca1fd90f33_0_0)
 - be part of the Adopters in https://github.com/sbt/sbt-ci-release/
 - Remove field `kty` from `ECPublicKey` and `OKPPublicKey`. Make custom json encoder/decoder
 - Webapp UI:
   - resolver the did 'from' in the OOB botton
-  - OOB text box -> url
+- "* MUST have field 'from' with one element" -> remove the " with one element"
 
 ## Benefits of type safety
 

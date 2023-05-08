@@ -34,6 +34,9 @@ case class PlaintextMessageClass(
     sender_order: NotRequired[SenderOrder] = None,
     sent_count: NotRequired[SentCount] = None,
     received_orders: NotRequired[Seq[ReceivedOrdersElement]] = None,
+
+    // temporary field to mitigate limitations on other libraries
+    typ: Option[String] = Some("application/didcomm-plain+json"),
 ) extends PlaintextMessage
 
 object PlaintextMessageClass {

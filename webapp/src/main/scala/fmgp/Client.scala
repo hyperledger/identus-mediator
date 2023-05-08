@@ -13,6 +13,8 @@ import fmgp.crypto.error._
 import fmgp.webapp.Global
 import fmgp.did.comm.EncryptedMessage
 
+import fmgp._
+
 // @scala.scalajs.js.annotation.JSExportTopLevel("DIDClientHttp")
 object Client {
   // @scala.scalajs.js.annotation.JSExport var tmp: Any = _
@@ -72,6 +74,52 @@ object Client {
       .fromPromiseJS(fetch(url, request))
       .flatMap(e => ZIO.fromPromiseJS(e.text()))
       .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+  }
+
+  def pushNotificationsSubscription(
+      notificationsSubscription: NotificationsSubscription
+  ): IO[String, NotificationsSubscription] = {
+    val request = new RequestInit {
+      method = HttpMethod.POST
+      headers = new Headers().tap(_.append("content-type", "application/json"))
+      body = notificationsSubscription.toJson
+      // mode = RequestMode.`no-cors` // NOTE! this is make eveting not to work!
+      mode = RequestMode.cors
+      cache = RequestCache.`no-cache`
+    }
+
+    ZIO
+      .fromPromiseJS(fetch(s"notifications/subscribe", request))
+      .flatMap(e => ZIO.fromPromiseJS(e.text()))
+      .catchAll(ex => ZIO.fail(ex.getMessage))
+      .flatMap(e =>
+        e.fromJson[NotificationsSubscription] match
+          case Left(value)  => ZIO.fail(value)
+          case Right(value) => ZIO.succeed(value)
+      )
+  }
+
+  def sendNotification(
+      msg: String
+  ): IO[String, NotificationsSubscription] = {
+    val request = new RequestInit {
+      method = HttpMethod.POST
+      headers = new Headers().tap(_.append("content-type", "application/json"))
+      body = msg
+      // mode = RequestMode.`no-cors` // NOTE! this is make eveting not to work!
+      mode = RequestMode.cors
+      cache = RequestCache.`no-cache`
+    }
+
+    ZIO
+      .fromPromiseJS(fetch(s"notifications/sendall", request))
+      .flatMap(e => ZIO.fromPromiseJS(e.text()))
+      .catchAll(ex => ZIO.fail(ex.getMessage))
+      .flatMap(e =>
+        e.fromJson[NotificationsSubscription] match
+          case Left(value)  => ZIO.fail(value)
+          case Right(value) => ZIO.succeed(value)
+      )
   }
 
 }

@@ -43,7 +43,7 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
       case m: Status        => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
-          _ <- ZIO.logInfo("MediateGrant")
+          _ <- ZIO.logInfo("DeliveryRequest")
           db <- ZIO.service[Ref[MediatorDB]]
           mediatorDB <- db.get
           didRequestingMessages = m.from.asFROMTO

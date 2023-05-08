@@ -12,6 +12,9 @@ node_modules/
 ## igone the demo (generated code)
 docs-build/**
 
+## Do not lock the RUST examples dependencies
+**/Cargo.lock
+
 ## igone(generated files)
 .*.swn
 .*.swo

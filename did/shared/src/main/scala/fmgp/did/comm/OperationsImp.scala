@@ -19,6 +19,7 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
   def sign(msg: PlaintextMessage): ZIO[Agent, CryptoFailed, SignedMessage] =
     for {
       agent <- ZIO.service[Agent]
+      // FIXME get the correct keys
       key = agent.keys.head // FIXME
       ret <- cryptoOperations.sign(key, msg)
     } yield ret
@@ -30,6 +31,7 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
         .didDocument(FROMTO.force(msg.signatures.head.header.get.kid))
         .catchAll(error => ???) // FIXME
       key = {
+        // FIXME get the correct key
         doc.keyAgreement.get.head match {
           case e: VerificationMethodReferenced        => ??? : PublicKey // FIXME
           case e: VerificationMethodEmbeddedJWK       => e.publicKeyJwk
@@ -45,12 +47,7 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
     for {
       resolver <- ZIO.service[Resolver]
       docs <- ZIO.foreach(msg.to.toSeq.flatten)(resolver.didDocument(_))
-      verificationMethods = docs.flatMap(_.didCommKeys)
-      recipientKidsKeys = verificationMethods.map {
-        case e: VerificationMethodReferenced        => ??? // FIXME
-        case e: VerificationMethodEmbeddedJWK       => (VerificationMethodReferenced(e.id), e.publicKeyJwk)
-        case e: VerificationMethodEmbeddedMultibase => ??? // FIXME
-      } // : Seq[(VerificationMethodReferenced, PublicKey)],
+      recipientKidsKeys = docs.flatMap(_.keyAgreementAll).map(_.pair)
       ret <- cryptoOperations.anonEncrypt(recipientKidsKeys, msg.toJson.getBytes)
     } yield ret
   }
@@ -60,27 +57,25 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
     for {
       agent <- ZIO.service[Agent]
       resolver <- ZIO.service[Resolver]
-      docs <- ZIO.foreach(msg.to.toSeq.flatten)(resolver.didDocument(_))
-      data = msg.toJson.getBytes
-      verificationMethods = docs.flatMap(_.didCommKeys)
-
-      senderKeys = agent.keys
-        .flatMap(key => key.kid.map(kid => VerificationMethodReferencedWithKey(kid, key)))
+      fromDID <- msg.from match
+        case Some(did) => ZIO.succeed(did)
+        case None      => ZIO.fail(MissingFromHeader)
+      docsFROM <- resolver.didDocument(fromDID)
+      keyAgreementAll = docsFROM.keyAgreementAll
+      secretsFROM = agent.keys
+        .flatMap { key => key.kid.map(kid => VerificationMethodReferencedWithKey(kid, key)) }
+        .filter(vmk => keyAgreementAll.exists(_.kid == vmk.kid))
+      senderKeys = secretsFROM
         .groupBy(_.key.crv)
         .view
         .mapValues(_.headOption)
         .toMap
-      recipientKeys =
-        verificationMethods
-          .map {
-            case e: VerificationMethodReferenced        => ??? // FIXME
-            case e: VerificationMethodEmbeddedJWK       => VerificationMethodReferencedWithKey(e.id, e.publicKeyJwk)
-            case e: VerificationMethodEmbeddedMultibase => ??? // FIXME
-          }
-          .groupBy(_.key.crv)
+      docsTO <- ZIO.foreach(msg.to.toSeq.flatten)(resolver.didDocument(_))
+      recipientKeys = docsTO.flatMap(_.keyAgreementAll).groupBy(_.key.crv)
       curve2SenderRecipientKeys = senderKeys
         .map(e => e._1 -> (e._2, recipientKeys.get(e._1).getOrElse(Seq.empty)))
         .toMap
+      data = msg.toJson.getBytes
       msgSeq = curve2SenderRecipientKeys.values.toSeq.map {
         case (None, b)                      => ZIO.none
         case (Some(sender), b) if b.isEmpty => ZIO.none
@@ -137,14 +132,7 @@ class OperationsImp(cryptoOperations: CryptoOperations) extends Operations {
         case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ??? // FIXME
         case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => skid
       doc <- resolver.didDocument(skid.fromto)
-      senderKey = doc.didCommKeys
-        .map {
-          case e: VerificationMethodReferenced        => ??? // FIXME
-          case e: VerificationMethodEmbeddedJWK       => VerificationMethodReferencedWithKey(e.id, e.publicKeyJwk)
-          case e: VerificationMethodEmbeddedMultibase => ??? // FIXME
-        }
-        .find { e => e.vmr == skid }
-        .get // FIXME
+      senderKey = doc.keyAgreementAll.find { e => e.vmr == skid }.get // FIXME get
       data <- cryptoOperations.authDecrypt(senderKey.key, keys, msg)
     } yield data
 

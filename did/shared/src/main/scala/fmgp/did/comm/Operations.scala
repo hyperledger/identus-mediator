@@ -14,6 +14,11 @@ trait Operations {
 
   def verify(msg: SignedMessage): ZIO[Resolver, CryptoFailed, Boolean] // SignatureVerificationFailed.type
 
+  def encrypt(msg: PlaintextMessage): ZIO[Agent & Resolver, DidFail, EncryptedMessage] =
+    msg.from match
+      case None        => anonEncrypt(msg)
+      case Some(value) => authEncrypt(msg)
+
   def anonEncrypt(msg: PlaintextMessage): ZIO[Resolver, DidFail, EncryptedMessage]
 
   def authEncrypt(msg: PlaintextMessage): ZIO[Agent & Resolver, DidFail, EncryptedMessage]
@@ -53,6 +58,11 @@ object Operations {
       msg: SignedMessage
   ): ZIO[Operations & Resolver, CryptoFailed, Boolean] =
     ZIO.serviceWithZIO[Operations](_.verify(msg))
+
+  def encrypt(
+      msg: PlaintextMessage
+  ): ZIO[Operations & Agent & Resolver, DidFail, EncryptedMessage] =
+    ZIO.serviceWithZIO[Operations](_.encrypt(msg))
 
   def anonEncrypt(
       msg: PlaintextMessage

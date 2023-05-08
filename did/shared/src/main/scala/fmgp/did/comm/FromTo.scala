@@ -60,6 +60,7 @@ object FROMTO {
     inline def asTO = TO.unsafe_apply(id)
     inline def asFROM = FROM.unsafe_apply(id)
     inline def toDID = DIDURL.parseString(id).toDID
+    inline def toDIDSubject: DIDSubject = DIDSubject(toDID.did)
 
   private[did] inline def unsafe_apply(s: String): FROMTO = s
   def apply(s: String): FROMTO = s.tap(e => FromTo.unsafe_parse(e))
@@ -92,6 +93,7 @@ object FROM {
     inline def path: String = FromTo.unsafe_parse(id).path
     inline def query: String = FromTo.unsafe_parse(id).query
     inline def toDID = DIDURL.parseString(id).toDID
+    inline def toDIDSubject: DIDSubject = DIDSubject(toDID.did)
     inline def asDIDURL = DIDURL(namespace = id.namespace, didSyntax = id.didSyntax, path = id.path, query = id.query)
     inline def asTO = TO.unsafe_apply(id)
     inline def asFROMTO = FROMTO.unsafe_apply(id)
@@ -127,6 +129,7 @@ object TO {
     inline def path: String = FromTo.unsafe_parse(id).path
     inline def query: String = FromTo.unsafe_parse(id).query
     inline def toDID = DIDURL.parseString(id).toDID
+    inline def toDIDSubject: DIDSubject = DIDSubject(toDID.did)
     inline def asDIDURL = DIDURL(namespace = id.namespace, didSyntax = id.didSyntax, path = id.path, query = id.query)
     inline def asFROM = FROM.unsafe_apply(id)
     inline def asFROMTO = FROMTO.unsafe_apply(id)

@@ -1,6 +1,7 @@
 package fmgp.did.resolver.peer
 
 import zio.json._
+import zio.json.ast.Json
 import fmgp.did._
 import scala.util.chaining._
 
@@ -49,7 +50,7 @@ case class DIDPeerServiceEncoded(
   def getDIDService(id: DIDSubject): DIDService = DIDServiceGeneric(
     id = id.string + "#didcommmessaging-0",
     `type` = if (this.t == "dm") "DIDCommMessaging" else this.t,
-    serviceEndpoint = this.s,
+    serviceEndpoint = Json.Str(this.s),
     routingKeys = Some(this.r.toSet.flatten).filterNot(_.isEmpty),
     accept = Some(this.a.toSet).filterNot(_.isEmpty),
   )

@@ -1,6 +1,7 @@
 package fmgp.did
 
 import zio.json._
+import zio.json.ast.Json
 import fmgp.did.comm.{FROM, FROMTO, TO}
 
 //https://github.com/jwtk/jjwt
@@ -12,7 +13,9 @@ import fmgp.did.comm.{FROM, FROMTO, TO}
 type Required[A] = A
 type NotRequired[A] = Option[A]
 type SetU[A] = A | Seq[A]
-type SetMapU[A] = A | Seq[A] | Map[String, A]
+// type SetMapU[A] = A | Seq[A] | Map[String, A]
+// type ServiceEndpoint = URI | Map[String, URI] | Seq[URI] | Seq[Map[String, URI]] //SetU[URI]
+type ServiceEndpoint = Json.Str | Json.Arr | Json.Obj
 type Authentication = Option[Set[VerificationMethod]]
 
 object SetU {
@@ -30,22 +33,23 @@ object SetU {
     }
 }
 
-object SetMapU {
-  given decoder[U](using jsonDecoder: JsonDecoder[U]): JsonDecoder[SetMapU[U]] =
-    jsonDecoder
-      .map(e => e: SetMapU[U])
-      .orElse(JsonDecoder.seq[U].map(e => e: SetMapU[U]))
-      .orElse(JsonDecoder.map[String, U].map(e => e: SetMapU[U]))
-
-  given encoder[U](using jsonEncoder: JsonEncoder[U]): JsonEncoder[SetMapU[U]] =
-    new JsonEncoder[SetMapU[U]] {
-      override def unsafeEncode(b: SetMapU[U], indent: Option[Int], out: zio.json.internal.Write): Unit =
-        b match {
-          case obj: U @unchecked              => jsonEncoder.unsafeEncode(obj, indent, out)
-          case obj: Seq[U] @unchecked         => JsonEncoder.seq.unsafeEncode(obj, indent, out)
-          case obj: Map[String, U] @unchecked => JsonEncoder.map.unsafeEncode(obj, indent, out)
-        }
+object ServiceEndpoint {
+  given decoder: JsonDecoder[ServiceEndpoint] =
+    summon[JsonDecoder[Json]].mapOrFail {
+      case j: Json.Null => Left("ServiceEndpoint can not be 'null'")
+      case j: Json.Bool => Left("ServiceEndpoint can not be Boolean")
+      case j: Json.Num  => Left("ServiceEndpoint can not be Numbre")
+      case j: Json.Arr =>
+        j match
+          case e if e.elements.toVector.forall(_.isInstanceOf[Json.Str]) => Right(j)
+          case e if e.elements.toVector.forall(_.isInstanceOf[Json.Obj]) => Right(j)
+          case e => Left("ServiceEndpoint can be Array can olny be of Strings of Objects")
+      case j: Json.Str => Right(j)
+      case j: Json.Obj => Right(j)
     }
+
+  given encoder: JsonEncoder[ServiceEndpoint] =
+    summon[JsonEncoder[Json]].contramap(e => e)
 }
 
 trait DID {

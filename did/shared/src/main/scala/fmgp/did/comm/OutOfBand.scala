@@ -10,16 +10,21 @@ import fmgp.util.Base64
 sealed trait OutOfBand {
   def msg: Message
   def data: Base64
+  def makeURI(base: String) = base + "?_oob=" + data.urlBase64
 }
 case class OutOfBandPlaintext private (msg: PlaintextMessage, data: Base64) extends OutOfBand
 object OutOfBandPlaintext {
   def from(base64: Base64): Either[String, OutOfBandPlaintext] =
     base64.decodeToString.fromJson[PlaintextMessage].map(msg => OutOfBandPlaintext(msg, base64))
+  def from(msg: PlaintextMessage) =
+    OutOfBandPlaintext(msg, Base64.encode(msg.toJson))
 }
 case class OutOfBandSigned private (msg: SignedMessage, data: Base64) extends OutOfBand
 object OutOfBandSigned {
   def from(base64: Base64): Either[String, OutOfBandSigned] =
     base64.decodeToString.fromJson[SignedMessage].map(msg => OutOfBandSigned(msg, base64))
+  def from(msg: SignedMessage) =
+    OutOfBandSigned(msg, Base64.encode(msg.toJson))
 }
 
 /** OOB - OutOfBand */

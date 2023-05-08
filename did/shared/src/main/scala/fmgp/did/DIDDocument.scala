@@ -2,8 +2,6 @@ package fmgp.did
 
 import zio.json._
 
-type ServiceEndpoint = Set[URI]
-
 /** DIDDocument
   *
   * https://w3c.github.io/did-core/#did-document-properties
@@ -28,12 +26,23 @@ trait DIDDocument extends DID {
   def capabilityInvocation: NotRequired[SetU[VerificationMethod]]
   def capabilityDelegation: NotRequired[SetU[VerificationMethod]]
 
-  def service: NotRequired[Set[DIDService]] // NotRequired[ServiceEndpoint]
+  def service: NotRequired[Set[DIDService]]
 
   // methods
   def didSubject = id.toDID
-  def didCommKeys: Set[VerificationMethod] = // TODO CHECK is this that way to get keys used on did comm?
-    verificationMethod.getOrElse(Set.empty) ++ keyAgreement.getOrElse(Set.empty)
+
+  def keyAgreementAll = keyAgreement.getOrElse(Set.empty).flatMap {
+    case e: VerificationMethodReferenced => // None // verificationMethod is alredy included
+      this.verificationMethod.toSeq
+        .flatMap(_.filter(x => x.id == e.id))
+        .map {
+          case v: VerificationMethodReferenced        => ??? // Error?
+          case v: VerificationMethodEmbeddedJWK       => VerificationMethodReferencedWithKey(v.id, v.publicKeyJwk)
+          case v: VerificationMethodEmbeddedMultibase => ??? // FIXME
+        }
+    case e: VerificationMethodEmbeddedJWK       => Some(VerificationMethodReferencedWithKey(e.id, e.publicKeyJwk))
+    case e: VerificationMethodEmbeddedMultibase => ??? // FIXME
+  }
 
   val (namespace, specificId) = (id.namespace, id.specificId) // DID.getNamespaceAndSpecificId(id)
 

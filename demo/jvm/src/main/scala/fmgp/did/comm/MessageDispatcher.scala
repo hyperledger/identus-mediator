@@ -16,7 +16,7 @@ trait MessageDispatcher {
       /*context*/
       destination: String,
       xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, Unit]
+  ): ZIO[Any, DidFail, String]
 }
 
 object MessageDispatcher {
@@ -34,7 +34,7 @@ class MyMessageDispatcher(client: Client) extends MessageDispatcher {
       /*context*/
       destination: String,
       xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, Unit] = {
+  ): ZIO[Any, DidFail, String] = {
     val contentTypeHeader = Headers.contentType(msg.`protected`.obj.typ.getOrElse(MediaTypes.ENCRYPTED).typ)
     val xForwardedHostHeader = Headers(xForwardedHost.map(x => Header(MyHeaders.xForwardedHost, x)))
     for {
@@ -53,6 +53,6 @@ class MyMessageDispatcher(client: Client) extends MessageDispatcher {
       _ <- res.status.isError match
         case true  => ZIO.logError(data)
         case false => ZIO.logInfo(data)
-    } yield ()
+    } yield (data)
   }.provideEnvironment(ZEnvironment(client)) // .host()
 }

@@ -124,12 +124,12 @@ final case class MediateGrant(id: MsgID = MsgID(), thid: MsgID, from: FROM, to: 
       thid = Some(thid),
       to = Some(Set(to)),
       from = Some(from),
-      body = Some(MediateGrant.Body(routing_did).toJSON_RFC7159)
+      body = Some(MediateGrant.Body(routing_did.head).toJSON_RFC7159) // FIXME FIX Body
     )
 }
 object MediateGrant {
   def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/mediate-grant")
-  protected final case class Body(routing_did: Seq[FROMTO]) {
+  protected final case class Body(routing_did: FROMTO) { // FIXME Seq[FROMTO] // temporary to mitigate limitations on other libraries
 
     /** toJSON_RFC7159 MUST not fail! */
     def toJSON_RFC7159: JSON_RFC7159 = this.toJsonAST.flatMap(_.as[JSON_RFC7159]).getOrElse(JSON_RFC7159())
@@ -161,29 +161,9 @@ object MediateGrant {
                             thid = thid,
                             from = from,
                             to = firstTo,
-                            routing_did = body.routing_did
+                            routing_did = Seq(body.routing_did) // FIXME FIX Body
                           )
                         )
               }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
-}
-
-//TODO
-object KeylistUpdate {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-update")
-}
-
-//TODO
-object KeylistResponse {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-update-response")
-}
-
-//TODO
-object KeylistQuery {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist-query")
-}
-
-//TODO
-object Keylist {
-  def piuri = PIURI("https://didcomm.org/coordinate-mediation/2.0/keylist")
 }

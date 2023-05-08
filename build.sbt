@@ -92,11 +92,11 @@ lazy val V = new {
   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
   // https://mvnrepository.com/artifact/dev.zio/zio
-  val zio = "2.0.10"
+  val zio = "2.0.13"
   val zioJson = "0.4.2"
   val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
-  val zioPrelude = "1.0.0-RC18"
+  val zioPrelude = "1.0.0-RC19"
 
   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
   val scalaJavaTime = "2.3.0"
@@ -104,11 +104,11 @@ lazy val V = new {
   val logbackClassic = "1.2.10"
   val scalaLogging = "3.9.4"
 
-  val laika = "0.19.0"
+  val laika = "0.19.1"
 
   val laminar = "15.0.1"
   val waypoint = "6.0.0"
-  val upickle = "3.0.0"
+  val upickle = "3.1.0"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
@@ -161,6 +161,9 @@ lazy val NPM = new {
   // val d3NpmDependencies = Seq("d3", "@types/d3").map(_ -> "7.1.0")
 
   val mermaid = Seq("mermaid" -> "9.3.0") // "@types/mermaid" -> "9.2.0"
+
+  // https://www.npmjs.com/package/qrcode-generator
+  val qrcode = Seq("qrcode-generator" -> "1.4.4")
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
 
@@ -290,7 +293,7 @@ lazy val root = project
   .aggregate(didUniresolver.js, didUniresolver.jvm) // NOT publish
   .aggregate(didExample.js, didExample.jvm)
   .aggregate(demo.jvm, demo.js)
-  .aggregate(webapp)
+  .aggregate(webapp, serviceworker)
 
 lazy val did = crossProject(JSPlatform, JVMPlatform)
   .in(file("did"))
@@ -325,15 +328,15 @@ lazy val didImp = crossProject(JSPlatform, JVMPlatform)
   .settings(name := "did-imp")
   .settings(libraryDependencies += D.zioMunitTest.value)
   .jvmSettings( // Add JVM-specific settings here
-    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
+    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.73", // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.73", // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
     libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.31", // https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.23
 
     // BUT have vulnerabilities in the dependencies: CVE-2022-25647
-    libraryDependencies += "com.google.crypto.tink" % "tink" % "1.7.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
+    libraryDependencies += "com.google.crypto.tink" % "tink" % "1.9.0", // https://mvnrepository.com/artifact/com.google.crypto.tink/tink/1.6.1
     // To fix vulnerabilitie https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25647
     libraryDependencies += "com.google.code.gson" % "gson" % "2.10.1",
-    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.22.2",
+    libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.22.3",
   )
   .jsConfigure(scalaJSBundlerConfigure)
   .jsSettings( // Add JS-specific settings here
@@ -373,8 +376,8 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings( // See dependencyTree ->  didResolverPeerJVM/Test/dependencyTree
     libraryDependencies += "org.didcommx" % "didcomm" % "0.3.2" % Test,
     libraryDependencies += "org.didcommx" % "peerdid" % "0.3.0" % Test,
-    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.72" % Test,
-    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.72" % Test,
+    libraryDependencies += "org.bouncycastle" % "bcprov-jdk18on" % "1.73" % Test,
+    libraryDependencies += "org.bouncycastle" % "bcpkix-jdk18on" % "1.73" % Test,
     libraryDependencies += "com.nimbusds" % "nimbus-jose-jwt" % "9.16-preview.1" % Test,
   )
   .jsConfigure(scalaJSBundlerConfigure)
@@ -415,6 +418,33 @@ lazy val didUniresolver = crossProject(JSPlatform, JVMPlatform)
   .dependsOn(did)
   .configure(docConfigure)
 
+import org.scalajs.linker.interface
+lazy val serviceworker = project
+  .in(file("serviceworker"))
+  .settings(publish / skip := true)
+  .settings(name := "fmgp-serviceworker")
+  .enablePlugins(ScalaJSPlugin) // Enable the Scala.js plugin in this project
+  .settings(
+    // Tell Scala.js that this is an application with a main method
+    // scalaJSUseMainModuleInitializer := true,
+    scalaJSModuleInitializers := Seq(
+      interface.ModuleInitializer.mainMethod("fmgp.serviceworker.SW", "main").withModuleID("sw")
+    ),
+    /* Configure Scala.js to emit modules in the optimal way to
+     * connect to Vite's incremental reload.
+     * - emit ECMAScript modules
+     * - emit as many small modules as possible for classes in the "serviceworker" package
+     * - emit as few (large) modules as possible for all other classes (in particular, for the standard library)
+     */
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.ESModule)
+      // .withModuleSplitStyle(org.scalajs.linker.interface.ModuleSplitStyle.SmallModulesFor(List("serviceworker")))
+    },
+    /* Depend on the scalajs-dom library. It provides static types for the browser DOM APIs. */
+    libraryDependencies += D.dom.value,
+    libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
+  )
+
 lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
@@ -422,10 +452,11 @@ lazy val webapp = project
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
   .dependsOn(did.js, didExample.js)
+  .dependsOn(serviceworker)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
-    Compile / npmDependencies ++= NPM.mermaid ++ NPM.materialDesign ++ NPM.ipfsClient,
+    Compile / npmDependencies ++= NPM.mermaid ++ NPM.qrcode ++ NPM.materialDesign ++ NPM.ipfsClient,
     // ++ List("ms" -> "2.1.1"),
     // stIgnore ++= List("ms") // https://scalablytyped.org/docs/conversion-options
   )
@@ -473,6 +504,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "api").toFile,
     Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
+    Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.2.2" / "fmgp-serviceworker-fastopt").toFile,
     Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
     // Frontend dependency configuration
     Assets / WebKeys.packagePrefix := "public/",
