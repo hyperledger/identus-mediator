@@ -54,7 +54,7 @@ class EncryptedMessageSuite extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Json.Obj("messagespecificattribute" -> Json.Str("and its value")),
+    Some(Json.Obj("messagespecificattribute" -> Json.Str("and its value"))),
     None
   )
 
@@ -251,7 +251,7 @@ class EncryptedMessageSuite extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Json.Obj("text" -> Json.Str("Hey Bob")),
+    Some(Json.Obj("text" -> Json.Str("Hey Bob"))),
     None
   )
 

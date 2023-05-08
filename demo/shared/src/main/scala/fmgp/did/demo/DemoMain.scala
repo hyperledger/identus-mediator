@@ -28,9 +28,11 @@ import fmgp.did.resolver.peer._
       thid = None, // NotRequired[String],
       created_time = None, // NotRequired[UTCEpoch],
       expires_time = None, // NotRequired[UTCEpoch],
-      body = Json.Obj(
-        "a" -> Json.Str("1"),
-        "b" -> Json.Str("2")
+      body = Some(
+        Json.Obj(
+          "a" -> Json.Str("1"),
+          "b" -> Json.Str("2")
+        )
       ), //  : Required[JSON_RFC7159],
       attachments = None
     )

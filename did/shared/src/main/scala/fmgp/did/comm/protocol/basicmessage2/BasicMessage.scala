@@ -45,7 +45,7 @@ final case class BasicMessage(
       to = Some(to),
       from = from,
       created_time = created_time,
-      body = BasicMessage.Body(content).toJSON_RFC7159,
+      body = Some(BasicMessage.Body(content).toJSON_RFC7159),
       // FIXME lang: NotRequired[String] = lang,
     )
 
@@ -71,16 +71,19 @@ object BasicMessage {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case tos =>
-          msg.body.as[Body].map { body =>
-            BasicMessage(
-              id = msg.id,
-              to = tos.toSet,
-              from = msg.from,
-              lang = None,
-              created_time = msg.created_time,
-              content = body.content
-            )
-          }
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].map { body =>
+                BasicMessage(
+                  id = msg.id,
+                  to = tos.toSet,
+                  from = msg.from,
+                  lang = None,
+                  created_time = msg.created_time,
+                  content = body.content
+                )
+              }
 
   }
 }

@@ -40,16 +40,18 @@ final case class KeylistUpdate(id: MsgID = MsgID(), from: FROM, to: TO, updates:
       `type` = piuri,
       to = Some(Set(to)),
       from = Some(from),
-      body = KeylistUpdate
-        .Body(updates =
-          updates.map(e =>
-            KeylistUpdate.Update(
-              recipient_did = e._1,
-              action = e._2
+      body = Some(
+        KeylistUpdate
+          .Body(updates =
+            updates.map(e =>
+              KeylistUpdate.Update(
+                recipient_did = e._1,
+                action = e._2
+              )
             )
           )
-        )
-        .toJSON_RFC7159,
+          .toJSON_RFC7159
+      ),
     )
   def makeKeylistResponse(updated: Seq[(FROMTO, KeylistAction, KeylistResult)]) =
     KeylistResponse(thid = id, to = from.asTO, from = to.asFROM, updated)
@@ -91,9 +93,10 @@ object KeylistUpdate {
           msg.from match
             case None => Left(s"'$piuri' MUST have field 'from' with one element")
             case Some(from) =>
-              msg.body.as[Body] match
-                case Left(value) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
-                case Right(body) =>
+              msg.body.map(_.as[Body]) match
+                case None              => Left(s"'$piuri' MUST have a 'body'")
+                case Some(Left(value)) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
+                case Some(Right(body)) =>
                   Right(
                     KeylistUpdate(
                       id = msg.id,
@@ -121,17 +124,19 @@ final case class KeylistResponse(
       `type` = piuri,
       to = Some(Set(to)),
       from = Some(from),
-      body = KeylistResponse
-        .Body(updated =
-          updated.map(e =>
-            KeylistResponse.Updated(
-              routing_did = e._1,
-              action = e._2,
-              result = e._3
+      body = Some(
+        KeylistResponse
+          .Body(updated =
+            updated.map(e =>
+              KeylistResponse.Updated(
+                routing_did = e._1,
+                action = e._2,
+                result = e._3
+              )
             )
           )
-        )
-        .toJSON_RFC7159,
+          .toJSON_RFC7159
+      ),
     )
 }
 
@@ -170,9 +175,10 @@ object KeylistResponse {
               msg.from match
                 case None => Left(s"'$piuri' MUST have field 'from' with one element")
                 case Some(from) =>
-                  msg.body.as[Body] match
-                    case Left(value) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
-                    case Right(body) =>
+                  msg.body.map(_.as[Body]) match
+                    case None              => Left(s"'$piuri' MUST have a 'body'")
+                    case Some(Left(value)) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
+                    case Some(Right(body)) =>
                       Right(
                         KeylistResponse(
                           id = msg.id,

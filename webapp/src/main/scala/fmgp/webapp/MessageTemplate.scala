@@ -28,7 +28,7 @@ object MessageTemplate {
     thid = Some(thid),
     created_time = Some(123456789),
     expires_time = Some(123456789),
-    body = JSON_RFC7159(),
+    body = Some(JSON_RFC7159()),
     attachments = Some(Seq.empty[Attachment]),
     // # Extensions
     return_route = Some(ReturnRoute.all),

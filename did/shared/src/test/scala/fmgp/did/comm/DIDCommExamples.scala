@@ -45,9 +45,11 @@ object DIDCommExamples {
     thid = None,
     created_time = Some(1516269022L),
     expires_time = Some(1516385931L),
-    body = Json.Obj(
-      "message_type_specific_attribute" -> Json.Str("and its value"),
-      "another_attribute" -> Json.Str("and its value")
+    body = Some(
+      Json.Obj(
+        "message_type_specific_attribute" -> Json.Str("and its value"),
+        "another_attribute" -> Json.Str("and its value")
+      )
     ),
     attachments = None
   )

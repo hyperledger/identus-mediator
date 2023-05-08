@@ -33,7 +33,7 @@ final case class MessageDelivery(
       thid = Some(thid),
       to = Some(Set(to)),
       from = Some(from),
-      body = MessageDelivery.Body(recipient_did = recipient_did).toJSON_RFC7159,
+      body = Some(MessageDelivery.Body(recipient_did = recipient_did).toJSON_RFC7159),
       attachments = Some(
         attachments.toSeq.map(e => Attachment(id = Some(e._1), data = AttachmentDataBase64(Base64.encode(e._2.toJson))))
       )
@@ -77,26 +77,27 @@ object MessageDelivery {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: Seq() =>
-          msg.body
-            .as[Body]
-            .flatMap(body =>
-              msg.thid match
-                case None => Left(s"'$piuri' MUST have field 'thid'")
-                case Some(thid) =>
-                  msg.from match
-                    case None => Left(s"'$piuri' MUST have field 'from' with one element")
-                    case Some(from) =>
-                      auxAttachments.map(attachments =>
-                        MessageDelivery(
-                          id = msg.id,
-                          thid = thid,
-                          from = from,
-                          to = firstTo,
-                          recipient_did = body.recipient_did,
-                          attachments = attachments.toMap
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].flatMap { body =>
+                msg.thid match
+                  case None => Left(s"'$piuri' MUST have field 'thid'")
+                  case Some(thid) =>
+                    msg.from match
+                      case None => Left(s"'$piuri' MUST have field 'from' with one element")
+                      case Some(from) =>
+                        auxAttachments.map(attachments =>
+                          MessageDelivery(
+                            id = msg.id,
+                            thid = thid,
+                            from = from,
+                            to = firstTo,
+                            recipient_did = body.recipient_did,
+                            attachments = attachments.toMap
+                          )
                         )
-                      )
-            )
+              }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
     }
 }

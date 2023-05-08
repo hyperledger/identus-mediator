@@ -124,7 +124,7 @@ final case class MediateGrant(id: MsgID = MsgID(), thid: MsgID, from: FROM, to: 
       thid = Some(thid),
       to = Some(Set(to)),
       from = Some(from),
-      body = MediateGrant.Body(routing_did.head).toJSON_RFC7159 // FIXME FIX Body
+      body = Some(MediateGrant.Body(routing_did.head).toJSON_RFC7159) // FIXME FIX Body
     )
 }
 object MediateGrant {
@@ -145,24 +145,25 @@ object MediateGrant {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: Seq() =>
-          msg.body
-            .as[Body]
-            .flatMap(body =>
-              msg.thid match
-                case None => Left(s"'$piuri' MUST have field 'thid'")
-                case Some(thid) =>
-                  msg.from match
-                    case None => Left(s"'$piuri' MUST have field 'from' with one element")
-                    case Some(from) =>
-                      Right(
-                        MediateGrant(
-                          id = msg.id,
-                          thid = thid,
-                          from = from,
-                          to = firstTo,
-                          routing_did = Seq(body.routing_did) // FIXME FIX Body
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].flatMap { body =>
+                msg.thid match
+                  case None => Left(s"'$piuri' MUST have field 'thid'")
+                  case Some(thid) =>
+                    msg.from match
+                      case None => Left(s"'$piuri' MUST have field 'from' with one element")
+                      case Some(from) =>
+                        Right(
+                          MediateGrant(
+                            id = msg.id,
+                            thid = thid,
+                            from = from,
+                            to = firstTo,
+                            routing_did = Seq(body.routing_did) // FIXME FIX Body
+                          )
                         )
-                      )
-            )
+              }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }

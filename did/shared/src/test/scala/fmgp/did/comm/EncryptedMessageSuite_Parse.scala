@@ -60,7 +60,7 @@ class EncryptedMessageSuite_Parse extends ZSuite {
     None,
     Some(1516269022),
     Some(1516385931),
-    Json.Obj("messagespecificattribute" -> Json.Str("and its value")),
+    Some(Json.Obj("messagespecificattribute" -> Json.Str("and its value"))),
     None
   )
 

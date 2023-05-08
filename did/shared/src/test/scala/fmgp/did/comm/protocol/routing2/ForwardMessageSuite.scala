@@ -25,9 +25,11 @@ class ForwardMessageSuite extends FunSuite {
           id = id,
           to = Some(Set.empty),
           from = None,
-          body = s"""{"next":"${msg.recipientsSubject.head}"}"""
-            .fromJson[JSON_RFC7159]
-            .getOrElse(JSON_RFC7159()),
+          body = Some(
+            s"""{"next":"${msg.recipientsSubject.head}"}"""
+              .fromJson[JSON_RFC7159]
+              .getOrElse(JSON_RFC7159())
+          ),
           attachments = Some(Seq(attachment))
         )
         ForwardMessage.fromPlaintextMessage(plaintext)

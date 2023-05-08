@@ -44,7 +44,7 @@ final case class OOBInvitation(
       id = id,
       `type` = `type`,
       from = Some(from),
-      body = OOBInvitation.Body(goal_code = goal_code, goal = goal, accept = accept).toJSON_RFC7159,
+      body = Some(OOBInvitation.Body(goal_code = goal_code, goal = goal, accept = accept).toJSON_RFC7159),
       // FIXME lang: NotRequired[String] = lang,
     )
 
@@ -74,9 +74,10 @@ object OOBInvitation {
       msg.from match
         case None => Left(s"'$piuri' MUST have field 'from' with one element")
         case Some(from) =>
-          msg.body.as[Body] match
-            case Left(value) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
-            case Right(body) =>
+          msg.body.map(_.as[Body]) match
+            case None              => Left(s"'$piuri' MUST have a 'body'")
+            case Some(Left(value)) => Left(s"'$piuri' MUST have valid 'body'. Fail due: $value")
+            case Some(Right(body)) =>
               Right(
                 OOBInvitation(
                   id = msg.id,

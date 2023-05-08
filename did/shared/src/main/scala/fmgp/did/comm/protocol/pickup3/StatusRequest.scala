@@ -44,20 +44,21 @@ object StatusRequest {
       msg.to.toSeq.flatten match // Note: toSeq is from the match
         case Seq() => Left(s"'$piuri' MUST have field 'to' with one element")
         case firstTo +: Seq() =>
-          msg.body
-            .as[Body]
-            .flatMap(body =>
-              msg.from match
-                case None => Left(s"'$piuri' MUST have field 'from' with one element")
-                case Some(from) =>
-                  Right(
-                    StatusRequest(
-                      id = msg.id,
-                      from = from,
-                      to = firstTo,
-                      recipient_did = body.recipient_did
+          msg.body match
+            case None => Left(s"'$piuri' MUST have field 'body'")
+            case Some(b) =>
+              b.as[Body].flatMap { body =>
+                msg.from match
+                  case None => Left(s"'$piuri' MUST have field 'from' with one element")
+                  case Some(from) =>
+                    Right(
+                      StatusRequest(
+                        id = msg.id,
+                        from = from,
+                        to = firstTo,
+                        recipient_did = body.recipient_did
+                      )
                     )
-                  )
-            )
+              }
         case firstTo +: tail => Left(s"'$piuri' MUST have field 'to' with only one element")
 }
