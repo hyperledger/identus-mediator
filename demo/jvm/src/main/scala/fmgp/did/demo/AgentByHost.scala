@@ -8,7 +8,7 @@ import zio.http.Request
 import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
-import fmgp.did.comm.mediator.MediatorAgent
+import fmgp.did.comm.mediator.MediatorMultiAgent
 import zio.http.model.Headers
 import zio.http.model.headers.HeaderNames
 
@@ -26,7 +26,7 @@ object AgentByHost {
     .serviceWithZIO[AgentByHost](_.agentFromHost(host))
     .mapError(ex => DidException(ex))
 
-  def provideAgentFor[R, E <: Exception, A](req: Request, job: ZIO[R & MediatorAgent, E, A]) =
+  def provideAgentFor[R, E <: Exception, A](req: Request, job: ZIO[R & MediatorMultiAgent, E, A]) =
     for {
       agent <- ZIO
         .serviceWithZIO[AgentByHost](_.agentFromRequest(req))
@@ -49,10 +49,10 @@ object AgentByHost {
   val layer = ZLayer(
     for {
       // Host.fabio -> AgentProvider.fabio TODO
-      alice <- MediatorAgent.make(AgentProvider.alice)
-      bob <- MediatorAgent.make(AgentProvider.bob)
-      charlie <- MediatorAgent.make(AgentProvider.charlie)
-      local <- MediatorAgent.make(AgentProvider.local)
+      alice <- MediatorMultiAgent.make(AgentProvider.alice)
+      bob <- MediatorMultiAgent.make(AgentProvider.bob)
+      charlie <- MediatorMultiAgent.make(AgentProvider.charlie)
+      local <- MediatorMultiAgent.make(AgentProvider.local)
     } yield AgentByHost(
       Map(
         Host.alice -> alice,
@@ -64,9 +64,9 @@ object AgentByHost {
   )
 }
 
-case class AgentByHost(agents: Map[Host, MediatorAgent]) {
+case class AgentByHost(agents: Map[Host, MediatorMultiAgent]) {
 
-  def agentFromRequest(req: Request): zio.ZIO[Any, NoAgent, MediatorAgent] =
+  def agentFromRequest(req: Request): zio.ZIO[Any, NoAgent, MediatorMultiAgent] =
     AgentByHost.hostFromRequest(req) match
       case None => ZIO.fail(NoAgent(s"Unknown host"))
       case Some(host) =>
@@ -74,7 +74,7 @@ case class AgentByHost(agents: Map[Host, MediatorAgent]) {
           case None        => ZIO.fail(NoAgent(s"No Agent config for $host"))
           case Some(agent) => ZIO.succeed(agent)
 
-  def agentFromHost(host: Host): zio.ZIO[Any, NoAgent, MediatorAgent] =
+  def agentFromHost(host: Host): zio.ZIO[Any, NoAgent, MediatorMultiAgent] =
     agents.get(host) match
       case None        => ZIO.fail(NoAgent(s"No Agent config for $host"))
       case Some(agent) => ZIO.succeed(agent)

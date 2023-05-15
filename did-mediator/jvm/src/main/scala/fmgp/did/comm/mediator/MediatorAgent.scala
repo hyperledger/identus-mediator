@@ -5,26 +5,27 @@ import zio.json._
 import zio.http._
 import zio.http.model._
 import zio.http.socket._
+import zio.http.socket.SocketApp
 
+import io.netty.handler.codec.http.HttpHeaderNames
+
+import fmgp.util._
 import fmgp.did._
 import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did.comm._
-import fmgp.did.comm.agent._
-import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.resolver.peer.DIDPeer.AgentDIDPeer
-import fmgp.did.demo.AgentByHost
-import zio.http.socket.SocketApp
-import io.netty.handler.codec.http.HttpHeaderNames
+import fmgp.did.comm.protocol._
 
 case class MediatorAgent(
-    id: DIDSubject,
-    keyStore: KeyStore, // Shound we make it lazy with ZIO
+    override val id: DID,
+    override val keyStore: KeyStore, // Shound we make it lazy with ZIO
     didSocketManager: Ref[DIDSocketManager],
     messageDB: Ref[MessageDB],
-) {
-  val resolverLayer: ULayer[DynamicResolver] =
-    DynamicResolver.resolverLayer(didSocketManager)
+) extends Agent {
+  override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
+
+  // val resolverLayer: ULayer[DynamicResolver] =
+  //   DynamicResolver.resolverLayer(didSocketManager)
 
   type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
   val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
@@ -40,15 +41,15 @@ case class MediatorAgent(
       )
     }
 
-  private def _didSubjectAux = id
-  private def _keyStoreAux = keyStore.keys.toSeq
-  val indentityLayer = ZLayer.succeed(new Agent {
-    override def id: DID = _didSubjectAux
-    override def keys: Seq[PrivateKey] = _keyStoreAux
-  })
+  // private def _didSubjectAux = id
+  // private def _keyStoreAux = keyStore.keys.toSeq
+  // val indentityLayer = ZLayer.succeed(new Agent {
+  //   override def id: DID = _didSubjectAux
+  //   override def keys: Seq[PrivateKey] = _keyStoreAux
+  // })
 
   val messageDispatcherLayer: ZLayer[Client, DidFail, MessageDispatcher] =
-    MessageDispatcher.layer.mapError(ex => SomeThrowable(ex))
+    MessageDispatcherJVM.layer.mapError(ex => SomeThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
   def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, DidFail, PlaintextMessage] =
@@ -75,7 +76,11 @@ case class MediatorAgent(
   def receiveMessage(
       data: String,
       mSocketID: Option[SocketID],
-  ): ZIO[Operations & MessageDispatcher & Ref[MediatorDB], DidFail, Option[EncryptedMessage]] =
+  ): ZIO[
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+    DidFail,
+    Option[EncryptedMessage]
+  ] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
@@ -92,7 +97,11 @@ case class MediatorAgent(
   def receiveMessage(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
-  ): ZIO[Operations & MessageDispatcher & Ref[MediatorDB], DidFail, Option[EncryptedMessage]] =
+  ): ZIO[
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+    DidFail,
+    Option[EncryptedMessage]
+  ] =
     ZIO
       .logAnnotate("msgHash", msg.hashCode.toString) {
         for {
@@ -123,11 +132,15 @@ case class MediatorAgent(
               } yield ret
         } yield maybeSyncReplyMsg
       }
-      .provideSomeLayer(resolverLayer ++ indentityLayer ++ protocolHandlerLayer)
+      .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
-  ): ZIO[MediatorAgent & Operations & MessageDispatcher & Ref[MediatorDB], Nothing, zio.http.Response] = {
+  ): ZIO[
+    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB],
+    Nothing,
+    zio.http.Response
+  ] = {
     val SOCKET_ID = "SocketID"
     val appAux = SocketApp {
       case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
@@ -188,10 +201,10 @@ object MediatorAgent {
     db <- Ref.make(MessageDB())
   } yield MediatorAgent(id, keyStore, sm, db)
 
-  def make(agent: AgentDIDPeer): ZIO[Any, Nothing, MediatorAgent] = for {
-    sm <- DIDSocketManager.make
-    db <- Ref.make(MessageDB())
-  } yield MediatorAgent(agent.id, agent.keyStore, sm, db)
+  // def make(agent: AgentDIDPeer): ZIO[Any, Nothing, MediatorAgent] = for {
+  //   sm <- DIDSocketManager.make
+  //   db <- Ref.make(MessageDB())
+  // } yield MediatorAgent(agent.id, agent.keyStore, sm, db)
 
   def didCommApp = {
     Http.collectZIO[Request] {
@@ -200,37 +213,26 @@ object MediatorAgent {
             (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
           } =>
         for {
-          agent <- AgentByHost.getAgentFor(req)
+          agent <- ZIO.service[MediatorAgent]
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
-          ret <- agent
-            .createSocketApp(annotationMap)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
-              env.add(agent)
-            )
+          ret <- agent.createSocketApp(annotationMap)
         } yield (ret)
-      case Method.GET -> !! / "tap" / host =>
+      case Method.GET -> !! / "tap" => // TODO only on dev mode
         for {
-          agent <- AgentByHost.getAgentFor(Host(host))
+          agent <- ZIO.service[MediatorAgent]
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
-          ret <- agent
-            .websocketListenerApp(annotationMap)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
-              env.add(agent)
-            )
+          ret <- agent.websocketListenerApp(annotationMap)
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key == "content-type" &&
             (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
           } =>
         for {
-          agent <- AgentByHost.getAgentFor(req)
+          agent <- ZIO.service[MediatorAgent]
           data <- req.body.asString
           maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
             .mapError(fail => DidException(fail))
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
-              env.add(agent)
-            )
           ret = maybeSyncReplyMsg match
             case None        => Response.ok
             case Some(value) => Response.json(value.toJson)
@@ -239,19 +241,21 @@ object MediatorAgent {
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
         for {
-          agent <- AgentByHost.getAgentFor(req)
+          agent <- ZIO.service[MediatorAgent]
           data <- req.body.asString
           ret <- agent
             .receiveMessage(data, None)
-            .provideSomeEnvironment((env: ZEnvironment[Operations & MessageDispatcher & Ref[MediatorDB]]) =>
-              env.add(agent)
-            )
             .mapError(fail => DidException(fail))
         } yield Response
           .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
       // .copy(status = Status.BadRequest) but ok for now
 
-    }: Http[Hub[String] & AgentByHost & Operations & MessageDispatcher & Ref[MediatorDB], Throwable, Request, Response]
+    }: Http[
+      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+      Throwable,
+      Request,
+      Response
+    ]
   } @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(

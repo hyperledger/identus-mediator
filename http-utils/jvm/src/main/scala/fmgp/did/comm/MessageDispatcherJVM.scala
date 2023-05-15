@@ -8,27 +8,18 @@ import zio.http.model._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.crypto.error._
-import fmgp.did.demo.MyHeaders
+import fmgp.util.MyHeaders
 
-trait MessageDispatcher {
-  def send(
-      msg: EncryptedMessage,
-      /*context*/
-      destination: String,
-      xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, String]
-}
-
-object MessageDispatcher {
+object MessageDispatcherJVM {
   val layer: ZLayer[Client, Throwable, MessageDispatcher] =
     ZLayer.fromZIO(
       ZIO
         .service[Client]
-        .map(MyMessageDispatcher(_))
+        .map(MessageDispatcherJVM(_))
     )
 }
 
-class MyMessageDispatcher(client: Client) extends MessageDispatcher {
+class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
   def send(
       msg: EncryptedMessage,
       /*context*/

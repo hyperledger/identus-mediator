@@ -14,6 +14,7 @@ import fmgp.webapp.Global
 import fmgp.did.comm.EncryptedMessage
 
 import fmgp._
+import fmgp.did.MessageDB
 
 // @scala.scalajs.js.annotation.JSExportTopLevel("DIDClientHttp")
 object Client {

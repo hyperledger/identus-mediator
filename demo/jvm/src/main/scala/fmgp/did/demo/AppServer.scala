@@ -6,24 +6,23 @@ import zio.stream._
 import zio.http._
 import zio.http.model._
 import zio.http.socket._
-
-import fmgp.crypto.error._
-import fmgp.did._
-import fmgp.did.comm._
+import zio.http.Http.{Empty, Static}
+import zio.http.ZClient.ClientLive
 
 import scala.io.Source
-import fmgp.did.comm.mediator.MediatorAgent
-import zio.http.ZClient.ClientLive
 
 import laika.api._
 import laika.format._
 import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
-import zio.http.Http.Empty
-import zio.http.Http.Static
+
+import fmgp.crypto.error._
+import fmgp.did._
+import fmgp.did.comm._
+import fmgp.did.comm.mediator._
+import fmgp.did.comm.protocol._
 import fmgp.did.resolver.DidPeerUniresolverDriver
 import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.comm.agent.MediatorDB
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *
@@ -65,7 +64,7 @@ object AppServer extends ZIOAppDefault {
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
     Hub[String] & AgentByHost & Operations & MessageDispatcher & Ref[MediatorDB] & DidPeerResolver,
     Throwable
-  ] = MediatorAgent.didCommApp ++ Http
+  ] = MediatorMultiAgent.didCommApp ++ Http
     .collectZIO[Request] {
       case Method.GET -> !! / "hello" => ZIO.succeed(Response.text("Hello World! DEMO DID APP")).debug
       // http://localhost:8080/oob?_oob=eyJ0eXBlIjoiaHR0cHM6Ly9kaWRjb21tLm9yZy9vdXQtb2YtYmFuZC8yLjAvaW52aXRhdGlvbiIsImlkIjoiNTk5ZjM2MzgtYjU2My00OTM3LTk0ODctZGZlNTUwOTlkOTAwIiwiZnJvbSI6ImRpZDpleGFtcGxlOnZlcmlmaWVyIiwiYm9keSI6eyJnb2FsX2NvZGUiOiJzdHJlYW1saW5lZC12cCIsImFjY2VwdCI6WyJkaWRjb21tL3YyIl19fQ
@@ -207,7 +206,7 @@ object AppServer extends ZIOAppDefault {
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(client >>> MessageDispatcher.layer)
+      .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
       .provideSomeLayer(ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB.empty))) // TODO move into AgentByHost
       .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(server)

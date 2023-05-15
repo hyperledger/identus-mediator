@@ -4,17 +4,9 @@ import zio.json._
 
 import fmgp.did.comm.EncryptedMessage
 import scala.collection.immutable.HashMap
+import fmgp.did.MsgContex
 
 type HashEncryptedMessage = Int
-
-case class MsgContex(
-    hash: HashEncryptedMessage,
-)
-
-object MsgContex {
-  given JsonDecoder[MsgContex] = DeriveJsonDecoder.gen[MsgContex]
-  given JsonEncoder[MsgContex] = DeriveJsonEncoder.gen[MsgContex]
-}
 
 final case class MessageDB(
     db: Map[HashEncryptedMessage, EncryptedMessage] = Map.empty,

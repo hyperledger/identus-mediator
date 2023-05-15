@@ -85,18 +85,19 @@ I usually say if it compiles it probably also works!
 ```mermaid
 flowchart BT
 
-  did --> zio
   zhttp --> zio
+  zio-json --> zio
+  did --> zio
   did --> zio-json
+  did-mediator ---> zhttp:::JVM
   did-resolver-web ----> zhttp:::JVM
   
   did-example ----> did
   did-example --> did-imp
-  did-example  --> did-resolver-web
   demo --> did-imp 
 
   subgraph fmgp libraries
-    did-extra --> did
+    did-mediator --> did 
     subgraph platform specific
       did-imp
       did-imp-hw:::Others -.-> did-imp
@@ -106,27 +107,31 @@ flowchart BT
     did-resolver-peer --> multibase
     did-resolver-peer --> did
     did-resolver-web --> did
+    did-extra --> did
     did-imp --> did
   end
-  
+
   did-imp_jvm:::JVM ----> nimbus-jose-jwt:::JVM --> google-tink:::JVM
   did-imp_jvm:::JVM ---> google-tink
 
   did-imp_js ----> jose:::JS
 
   %% subgraph demo/docs
-    
-    webapp:::JS --> did-imp_js
-    webapp:::JS  --> did-resolver-web
-    demo  --> did-example
+    demo --> did-mediator
     demo --> did-resolver-web
     demo --> did-resolver-peer
-    demo -.->|uses\serves| webapp
-    demo_jvm(demo_jvm\nA server):::JVM ==>|compiles together| demo
+    webapp:::JS --> did-mediator
+    webapp:::JS --> did-imp_js
+    webapp:::JS  --> did-resolver-web
     webapp:::JS  --> did-resolver-peer
     webapp:::JS  --> did-example
-    did-example  --> did-resolver-peer
+    demo  --> did-example
+    demo -.->|uses\serves| webapp
 
+    demo_jvm(demo_jvm\nA server):::JVM ==>|compiles together| demo
+
+    did-example  --> did-resolver-peer
+    did-example  --> did-resolver-web
   %% end
 
   classDef JVM fill:#141,stroke:#444,stroke-width:2px;
