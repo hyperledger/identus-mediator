@@ -12,15 +12,15 @@ inThisBuild(
     Test / publishArtifact := false,
     // pomIncludeRepository := (_ => false),
     organization := "app.fmgp",
-    homepage := Some(url("https://github.com/FabioPinheiro/scala-did")),
+    homepage := Some(url("https://github.com/input-output-hk/atala-prism-mediator")),
     licenses := Seq(
       "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
-      // url ("https://github.com/FabioPinheiro/scala-did" + "/blob/master/LICENSE")
+      // url ("https://github.com/input-output-hk/atala-prism-mediator" + "/blob/master/LICENSE")
     ),
     scmInfo := Some(
       ScmInfo(
-        url("https://github.com/FabioPinheiro/scala-did"),
-        "scm:git:git@github.com:FabioPinheiro/scala-did.git"
+        url("https://github.com/input-output-hk/atala-prism-mediator"),
+        "scm:git:git@github.com:input-output-hk/atala-prism-mediator.git"
       )
     ),
     developers := List(
@@ -36,7 +36,7 @@ lazy val notYetPublishedConfigure: Project => Project = _.settings(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.0.0+534-11adb500-SNAPSHOT"
+  val scalaDID = "0.0.0+535-b2c0dfc5-SNAPSHOT"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
@@ -72,7 +72,7 @@ lazy val V = new {
 lazy val D = new {
   val scalaDID = Def.setting("app.fmgp" %%% "did" % V.scalaDID)
   val scalaDID_imp = Def.setting("app.fmgp" %%% "did-imp" % V.scalaDID)
-  val scalaDID_peer = Def.setting("app.fmgp" %%% "did-resolver-peer" % V.scalaDID)
+  val scalaDID_peer = Def.setting("app.fmgp" %%% "did-peer" % V.scalaDID)
 
 //   /** The [[java.security.SecureRandom]] is used by the [[java.util.UUID.randomUUID()]] method in [[MsgId]].
 //     *
