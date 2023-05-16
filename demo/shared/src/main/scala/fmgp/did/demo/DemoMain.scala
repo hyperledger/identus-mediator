@@ -7,7 +7,7 @@ import zio.json.ast.Json
 import fmgp.crypto._
 import fmgp.did._
 import fmgp.did.comm._
-import fmgp.did.resolver.peer._
+import fmgp.did.method.peer._
 
 @main def DemoMain() = {
   import Agent0Mediators._

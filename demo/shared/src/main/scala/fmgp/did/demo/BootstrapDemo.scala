@@ -4,7 +4,7 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.resolver.peer._
+import fmgp.did.method.peer._
 import fmgp.crypto._
 
 /** didExampleJVM/console

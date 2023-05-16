@@ -7,7 +7,7 @@ import com.raquo.laminar.api.L._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
-import fmgp.did.resolver.peer._
+import fmgp.did.method.peer._
 
 object BasicMessageTool {
 

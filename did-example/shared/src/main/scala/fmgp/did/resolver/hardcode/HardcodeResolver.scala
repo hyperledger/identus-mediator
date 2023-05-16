@@ -1,4 +1,4 @@
-package fmgp.did.resolver.hardcode
+package fmgp.did.method.hardcode
 
 import zio._
 import fmgp.did._

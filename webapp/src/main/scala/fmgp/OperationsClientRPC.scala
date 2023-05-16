@@ -7,7 +7,7 @@ import zio._
 import zio.json._
 
 import fmgp.did._
-import fmgp.did.Resolver
+import fmgp.did.method
 import fmgp.crypto._
 import fmgp.crypto.error._
 

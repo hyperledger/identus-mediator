@@ -5,8 +5,8 @@ import zio._
 import fmgp.did._
 import fmgp.did.comm.FROMTO
 import fmgp.crypto.error._
-import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.resolver.uniresolver.Uniresolver
+import fmgp.did.method.peer.DidPeerResolver
+import fmgp.did.uniresolver.Uniresolver
 
 final case class DynamicResolver(
     resolver: Resolver,

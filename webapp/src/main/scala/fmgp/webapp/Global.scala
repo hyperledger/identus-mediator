@@ -6,7 +6,7 @@ import org.scalajs.dom
 import com.raquo.laminar.api.L._
 
 import fmgp.did._
-import fmgp.did.resolver.peer.DIDPeer
+import fmgp.did.method.peer.DIDPeer
 import fmgp.did.comm.TO
 
 object Global {

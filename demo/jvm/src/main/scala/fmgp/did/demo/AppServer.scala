@@ -21,8 +21,8 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.mediator._
 import fmgp.did.comm.protocol._
-import fmgp.did.resolver.DidPeerUniresolverDriver
-import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.method.DidPeerUniresolverDriver
+import fmgp.did.method.peer.DidPeerResolver
 
 /** demoJVM/runMain fmgp.did.demo.AppServer
   *

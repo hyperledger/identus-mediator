@@ -5,14 +5,10 @@ did_3
 did_sjs1_3
 did-imp_3
 did-imp_sjs1_3
-did-extra_3
-did-extra_sjs1_3
-did-peer_3
-did-peer_sjs1_3
-did-web_3
-did-web_sjs1_3
-# did-demo_3
-# did-demo_sjs1_3
+did-method-peer_3
+did-method-peer_sjs1_3
+did-method-web_3
+did-method-web_sjs1_3
 multiformats_3
 multiformats_sjs1_3
 ```
