@@ -21,6 +21,7 @@ import fmgp.did.resolver.peer.DidPeerResolver
 import fmgp.crypto.error._
 
 import fmgp.did.AgentProvider
+import fmgp.did.{HashEncryptedMessage, MessageDB}
 object AgentDB {
   val dbVar: Var[Option[MessageDB]] = Var(initial = None)
 

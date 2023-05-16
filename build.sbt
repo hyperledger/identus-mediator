@@ -451,7 +451,7 @@ lazy val webapp = project
   .settings(name := "fmgp-webapp")
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
-  .dependsOn(did.js, didExample.js)
+  .dependsOn(did.js, didExample.js, mediator.js)
   .dependsOn(serviceworker)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
@@ -476,6 +476,25 @@ lazy val didExample = crossProject(JSPlatform, JVMPlatform)
   .in(file("did-example"))
   .settings(publish / skip := true)
   .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didUniresolver)
+
+lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
+  .in(file("http-utils"))
+  .settings(publish / skip := true)
+  .settings(name := "zhttp-utils")
+  .jvmSettings(
+    libraryDependencies += D.ziohttp.value,
+  )
+  .dependsOn(did)
+
+lazy val mediator = crossProject(JSPlatform, JVMPlatform)
+  .in(file("did-mediator"))
+  .settings(publish / skip := true)
+  .settings(name := "did-mediator")
+  .jvmSettings(
+    libraryDependencies += D.ziohttp.value,
+  )
+  // .jvmConfigure(e => e.dependsOn(httpUtils))
+  .dependsOn(did, didImp, didResolverPeer, httpUtils)
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform)
   .in(file("demo"))
@@ -510,7 +529,7 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform)
     Assets / WebKeys.packagePrefix := "public/",
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
-  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didUniresolver, didExample)
+  .dependsOn(did, didImp, didResolverPeer, didResolverWeb, didUniresolver, didExample, httpUtils, mediator)
   .enablePlugins(WebScalaJSBundlerPlugin)
 
 ThisBuild / assemblyMergeStrategy := {
