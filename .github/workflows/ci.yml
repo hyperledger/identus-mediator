@@ -3,8 +3,8 @@ name: CI
 on:
   workflow_dispatch:
     inputs:
-      make_release:
-        description: "Publish the libraries (make a release)"
+      make_snapshot_release:
+        description: "Publish libraries's SNAPSHOT"
         default: false
         type: boolean
         required: false
@@ -12,8 +12,8 @@ on:
     branches-ignore:
       - "gh-pages"
   push:
-    branches:
-      - "master"
+    branches: [master, main]
+    tags: ["v*"]
 
 jobs:
   Run-Tests:
@@ -25,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0 # Needed for the release tag // `git fetch --tags` will also work
       - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v13
+        uses: olafurpg/setup-scala@v14
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -40,7 +40,7 @@ jobs:
       #     NODE_OPTIONS: "--openssl-legacy-provider"
 
       - name: Release
-        if: (inputs.make_release == true) && (github.ref_name == 'master')
+        if: ((inputs.make_snapshot_release == true) && (github.ref_name == 'master') || startsWith(github.ref, 'refs/tags/v'))
         run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
