@@ -46,5 +46,4 @@ jobs:
           author-email: ${{ steps.import_gpg.outputs.email }}
           author-name: ${{ steps.import_gpg.outputs.name }}
           sign-commits: true
-          signing-key: ${{ secrets.GPG_SIGNING_KEY_ID }}
           branches: main
