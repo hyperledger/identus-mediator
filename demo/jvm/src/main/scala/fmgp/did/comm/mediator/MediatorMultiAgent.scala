@@ -11,8 +11,8 @@ import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol._
-import fmgp.did.resolver.peer.DidPeerResolver
-import fmgp.did.resolver.peer.DIDPeer.AgentDIDPeer
+import fmgp.did.method.peer.DidPeerResolver
+import fmgp.did.method.peer.DIDPeer.AgentDIDPeer
 import fmgp.did.demo.AgentByHost
 import zio.http.socket.SocketApp
 import io.netty.handler.codec.http.HttpHeaderNames

@@ -14,8 +14,8 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
-import fmgp.did.resolver.peer.DIDPeer._
-import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.method.peer.DIDPeer._
+import fmgp.did.method.peer.DidPeerResolver
 import fmgp.crypto.error._
 import fmgp.webapp.MyRouter.OOBPage
 

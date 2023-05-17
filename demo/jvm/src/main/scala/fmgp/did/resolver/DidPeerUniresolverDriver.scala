@@ -1,15 +1,15 @@
-package fmgp.did.resolver
+package fmgp.did.method
 
 import zio._
 import zio.json._
 import zio.json.ast.Json
 import zio.http._
 import zio.http.model._
-import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.comm.FROMTO
 import fmgp.crypto.error.DidFail
 import fmgp.did.DIDDocument
-import fmgp.did.resolver.uniresolver.DIDResolutionResult
+import fmgp.did.uniresolver.DIDResolutionResult
 
 object DidPeerUniresolverDriver {
 

@@ -9,7 +9,7 @@ import fmgp.did.AgentProvider._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.mediatorcoordination2._
 import fmgp.did.comm.protocol.pickup3._
-import fmgp.did.resolver.peer._
+import fmgp.did.method.peer._
 
 /** demoJVM/runMain fmgp.did.demo.ClientDemo */
 @main def ClientDemo() = {

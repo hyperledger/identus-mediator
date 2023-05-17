@@ -6,9 +6,9 @@ import fmgp.did._
 import fmgp.did.comm._
 import zio._
 import zio.json._
-import fmgp.did.resolver.peer._
-import fmgp.did.resolver.hardcode.HardcodeResolver
-import fmgp.did.resolver.uniresolver.Uniresolver
+import fmgp.did.method.peer._
+import fmgp.did.method.hardcode.HardcodeResolver
+import fmgp.did.uniresolver.Uniresolver
 
 object OperationsServerRPC {
 

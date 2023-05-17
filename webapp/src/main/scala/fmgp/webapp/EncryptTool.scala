@@ -13,8 +13,8 @@ import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.extension._
-import fmgp.did.resolver.peer.DIDPeer2
-import fmgp.did.resolver.uniresolver.Uniresolver
+import fmgp.did.method.peer.DIDPeer2
+import fmgp.did.uniresolver.Uniresolver
 import fmgp.crypto.error.DidFail
 import com.raquo.airstream.core.Sink
 import fmgp.did.comm.protocol.routing2.ForwardMessage

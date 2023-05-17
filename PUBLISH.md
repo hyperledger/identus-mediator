@@ -5,14 +5,10 @@ did_3
 did_sjs1_3
 did-imp_3
 did-imp_sjs1_3
-did-extra_3
-did-extra_sjs1_3
-did-peer_3
-did-peer_sjs1_3
-did-web_3
-did-web_sjs1_3
-# did-demo_3
-# did-demo_sjs1_3
+did-method-peer_3
+did-method-peer_sjs1_3
+did-method-web_3
+did-method-web_sjs1_3
 multiformats_3
 multiformats_sjs1_3
 ```
@@ -44,10 +40,14 @@ gpg --keyserver hkp://keyserver.ubuntu.com --send-key $LONG_ID && \
 
 ### Config CI
 
-**GitHub action** - `.github/workflows/ci.yml` but need to set the agr `make_release` to true
-`SONATYPE_PASSWORD` - The password you use to log into https://s01.oss.sonatype.org/ 
-`SONATYPE_USERNAME` - The username you use to log into https://s01.oss.sonatype.org
-`PGP_SECRET` -  The base64 encoded secret of your private key
+**GitHub action** after pushing a tag (started with 'v') the action `.github/workflows/ci.yml` will try to make a release (Publish to the libraries to Sonatype).
+For `SNAPSHOT` call the action manual with the flag `make_snapshot_release` set to true.
+
+Job's ENV notes:
+- `SONATYPE_PASSWORD` - The password you use to log into https://s01.oss.sonatype.org/
+- `SONATYPE_USERNAME` - The username you use to log into https://s01.oss.sonatype.org
+- `PGP_SECRET` -  The base64 encoded secret of your private key
+
 ### Run ci-release Local
 
 
@@ -68,7 +68,4 @@ The reason to be disabled is due to the limitations of GitHub.
 Even if the project is open source you need a GitHub account to download the packages.
 
 The Library was also published to github `https://maven.pkg.github.com/FabioPinheiro/scala-did`.
-
-**GitHub action** - `.github/workflows/ci.yml` but need to set the agr `make_release` to true
-`PACKAGES_GITHUB_TOKEN`
 

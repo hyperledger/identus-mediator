@@ -19,7 +19,7 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.mediator._
 import fmgp.did.comm.protocol._
-import fmgp.did.resolver.peer.DidPeerResolver
+import fmgp.did.method.peer.DidPeerResolver
 
 object MediatorStandalone extends ZIOAppDefault {
 
@@ -47,14 +47,18 @@ object MediatorStandalone extends ZIOAppDefault {
             crv = Curve.X25519,
             d = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c",
             x = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw",
-            kid = None
+            kid = Some(
+              "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9tZWRpYXRvci5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ#6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y"
+            )
           ), // keyAgreement
           OKPPrivateKey(
             kty = KTY.OKP,
             crv = Curve.Ed25519,
             d = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug",
             x = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA",
-            kid = None
+            kid = Some(
+              "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9tZWRpYXRvci5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ#6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd"
+            )
           ) // keyAuthentication
         )
       ),

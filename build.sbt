@@ -366,10 +366,10 @@ lazy val multiformats =
     .configure(docConfigure)
 
 lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
-  .in(file("did-resolver-peer"))
+  .in(file("did-method-peer"))
   .configure(publishConfigure)
   .settings(
-    name := "did-peer",
+    name := "did-method-peer",
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )
@@ -387,10 +387,10 @@ lazy val didResolverPeer = crossProject(JSPlatform, JVMPlatform)
 
 //https://w3c-ccg.github.io/did-method-web/
 lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
-  .in(file("did-resolver-web"))
+  .in(file("did-method-web"))
   .configure(notYetPublishedConfigure)
   .settings(
-    name := "did-web",
+    name := "did-method-web",
     libraryDependencies += D.munit.value,
     libraryDependencies += D.zioMunitTest.value,
   )
@@ -400,7 +400,7 @@ lazy val didResolverWeb = crossProject(JSPlatform, JVMPlatform)
 
 //https://dev.uniresolver.io/
 lazy val didUniresolver = crossProject(JSPlatform, JVMPlatform)
-  .in(file("did-resolver-uniresolver"))
+  .in(file("did-uniresolver"))
   .settings(publish / skip := true)
   .configure(notYetPublishedConfigure)
   .settings(

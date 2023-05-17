@@ -3,10 +3,10 @@ package fmgp.did
 import zio._
 import fmgp.crypto._
 import fmgp.did.Agent
-import fmgp.did.resolver.peer.DIDPeer2
-import fmgp.did.resolver.peer.DIDPeerServiceEncoded
-import fmgp.did.resolver.peer.DIDPeer
-import fmgp.did.resolver.hardcode.HardcodeResolver
+import fmgp.did.method.peer.DIDPeer2
+import fmgp.did.method.peer.DIDPeerServiceEncoded
+import fmgp.did.method.peer.DIDPeer
+import fmgp.did.method.hardcode.HardcodeResolver
 
 object AgentProvider {
 
