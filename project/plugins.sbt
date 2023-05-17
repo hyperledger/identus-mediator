@@ -43,11 +43,6 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4") // sbt> dependencyUpd
 // TEST COVERAGE
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.7") // Needs scala version 3.2.2
 
-// PUBLISH
-addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.11")
-// addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.17")
-// addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.2.1") //https://github.com/sbt/sbt-pgp#sbt-pgp
-
 // Revolver use for command 'reStart' (like the command 'run' but run on the backgroun by forking the app from sbt)
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
@@ -55,11 +50,5 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 //sbt "scalafixEnable; scalafixAll github:zio/zio/Zio2Upgrade?sha=series/2.x"
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
 
-// mdoc
-addSbtPlugin("org.scalameta" % "sbt-mdoc" % "2.3.7")
-
 // Deploy demo
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
-
-// To quick develop the demo
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")

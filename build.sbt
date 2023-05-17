@@ -36,7 +36,7 @@ lazy val notYetPublishedConfigure: Project => Project = _.settings(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.0.0+535-b2c0dfc5-SNAPSHOT"
+  val scalaDID = "0.1.0-M2"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
@@ -72,7 +72,7 @@ lazy val V = new {
 lazy val D = new {
   val scalaDID = Def.setting("app.fmgp" %%% "did" % V.scalaDID)
   val scalaDID_imp = Def.setting("app.fmgp" %%% "did-imp" % V.scalaDID)
-  val scalaDID_peer = Def.setting("app.fmgp" %%% "did-peer" % V.scalaDID)
+  val scalaDID_peer = Def.setting("app.fmgp" %%% "did-method-peer" % V.scalaDID)
 
 //   /** The [[java.security.SecureRandom]] is used by the [[java.util.UUID.randomUUID()]] method in [[MsgId]].
 //     *
