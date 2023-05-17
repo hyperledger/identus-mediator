@@ -201,15 +201,13 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
     libraryDependencies += D.ziohttp.value,
   )
 
-lazy val mediator = crossProject(JSPlatform, JVMPlatform)
+lazy val mediator = project
   .in(file("did-mediator"))
   .settings(publish / skip := true)
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
-  )
-  .jvmSettings(
     libraryDependencies += D.ziohttp.value,
   )
 // .jvmConfigure(e => e.dependsOn(httpUtils))
-  .dependsOn(httpUtils) // did, didExample,
+  .dependsOn(httpUtils.jvm) // did, didExample,
