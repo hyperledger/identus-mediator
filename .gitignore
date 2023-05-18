@@ -1,6 +1,7 @@
 .bloop/
 .metals/
 .bsp/
+.idea/
 .vscode/
 project/metals.sbt
 project/project/
