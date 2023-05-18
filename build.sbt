@@ -191,6 +191,7 @@ lazy val mediator = project
     dockerBaseImage := "openjdk:11",
   )
   .dependsOn(httpUtils.jvm) // did, didExample,
+  .enablePlugins(JavaAppPackaging, DockerPlugin)
 
 // ############################
 // ####  Release process  #####
