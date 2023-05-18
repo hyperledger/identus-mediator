@@ -1,0 +1,84 @@
+{
+    "name": "atala-prism-mediator",
+    "version": "0.1.0",
+    "engines": {
+        "node": ">=16.13.0"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^17.0.3",
+        "@commitlint/config-conventional": "^17.0.3",
+        "@semantic-release/changelog": "^6.0.1",
+        "@semantic-release/exec": "^6.0.3",
+        "@semantic-release/git": "^10.0.1",
+        "conventional-changelog-conventionalcommits": "^5.0.0",
+        "gradle-semantic-release-plugin": "1.7.3",
+        "husky": "^8.0.1",
+        "pinst": "^3.0.0",
+        "prettier": "^2.7.1",
+        "semantic-release": "^19.0.3",
+        "semantic-release-slack-bot": "^3.5.3"
+    },
+    "release": {
+        "branches": [
+            {
+                "name": "main"
+            },
+            {
+                "name": "prerelease/*",
+                "prerelease": "snapshot"
+            }
+        ],
+        "tagFormat": "prism-mediator-v${version}",
+        "plugins": [
+            "@semantic-release/commit-analyzer",
+            "@semantic-release/release-notes-generator",
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "npm version ${nextRelease.version} --git-tag-version false"
+                }
+            ],
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "sbt \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
+                }
+            ],
+            [
+                "@semantic-release/exec",
+                {
+                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/atala-prism-mediator:${nextRelease.version} ./did-mediator/target/docker/stage"
+                }
+            ],
+            [
+                "@semantic-release/changelog",
+                {
+                    "changelogFile": "CHANGELOG.md"
+                }
+            ],
+            [
+                "@semantic-release/git",
+                {
+                    "assets": [
+                        "version.sbt",
+                        "CHANGELOG.md",
+                        "package.json",
+                        "package-lock.json"
+                    ],
+                    "message": "chore(release): cut prism mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
+                }
+            ],
+            [
+                "semantic-release-slack-bot",
+                {
+                    "notifyOnSuccess": true,
+                    "notifyOnFail": true,
+                    "markdownReleaseNotes": true,
+                    "onSuccessTemplate": {
+                        "text": "A new version of Atala PRISM Mediator successfully released!\nVersion: `$npm_package_version`\nTag: $repo_url/releases/tag/$npm_package_version\n\nRelease notes:\n$release_notes"
+                    }
+                }
+            ]
+        ]
+    }
+}
