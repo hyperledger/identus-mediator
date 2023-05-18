@@ -9,6 +9,9 @@ on:
     branches: [main]
     # tags: ["v*"]
 
+env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   Run-Tests:
     name: CI

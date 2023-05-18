@@ -211,3 +211,17 @@ lazy val mediator = project
   )
 // .jvmConfigure(e => e.dependsOn(httpUtils))
   .dependsOn(httpUtils.jvm) // did, didExample,
+
+// ############################
+// ####  Release process  #####
+// ############################
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations.*
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  ReleaseStep(releaseStepTask(mediator / Docker / stage)),
+  setNextVersion
+)
