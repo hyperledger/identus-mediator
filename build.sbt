@@ -6,33 +6,6 @@ inThisBuild(
     scalaVersion := "3.2.2", // Also update docs/publishWebsite.sh and any ref to scala-3.2.2
   )
 )
-// publish config
-inThisBuild(
-  Seq(
-    Test / publishArtifact := false,
-    // pomIncludeRepository := (_ => false),
-    organization := "app.fmgp",
-    homepage := Some(url("https://github.com/input-output-hk/atala-prism-mediator")),
-    licenses := Seq(
-      "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
-      // url ("https://github.com/input-output-hk/atala-prism-mediator" + "/blob/master/LICENSE")
-    ),
-    scmInfo := Some(
-      ScmInfo(
-        url("https://github.com/input-output-hk/atala-prism-mediator"),
-        "scm:git:git@github.com:input-output-hk/atala-prism-mediator.git"
-      )
-    ),
-    developers := List(
-      Developer("FabioPinheiro", "Fabio Pinheiro", "fabiomgpinheiro@gmail.com", url("http://fmgp.app"))
-    ),
-    // updateOptions := updateOptions.value.withLatestSnapshots(false),
-    versionScheme := Some("early-semver"), // https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
-  )
-)
-lazy val notYetPublishedConfigure: Project => Project = _.settings(
-  publish / skip := true
-)
 
 /** Versions */
 lazy val V = new {
@@ -209,7 +182,14 @@ lazy val mediator = project
     libraryDependencies += D.scalaDID_peer.value,
     libraryDependencies += D.ziohttp.value,
   )
-// .jvmConfigure(e => e.dependsOn(httpUtils))
+  .settings(
+    Compile / mainClass := Some("fmgp.did.demo.MediatorStandalone"),
+    Docker / maintainer := "atala-coredid@iohk.io",
+    Docker / dockerUsername := Some("input-output-hk"),
+    Docker / dockerRepository := Some("ghcr.io"),
+    dockerExposedPorts := Seq(8080),
+    dockerBaseImage := "openjdk:11",
+  )
   .dependsOn(httpUtils.jvm) // did, didExample,
 
 // ############################
