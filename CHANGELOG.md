@@ -1,3 +1,11 @@
+## [0.1.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.1.0...prism-mediator-v0.1.1) (2023-05-23)
+
+
+### Bug Fixes
+
+* execute the ProtocolExecute's jobToRun zio ([#8](https://github.com/input-output-hk/atala-prism-mediator/issues/8)) ([5034499](https://github.com/input-output-hk/atala-prism-mediator/commit/503449991e10a78b82b1094d239703a0c9cd167b))
+* Hardcode the atala prism did identity ([#9](https://github.com/input-output-hk/atala-prism-mediator/issues/9)) ([7984eea](https://github.com/input-output-hk/atala-prism-mediator/commit/7984eeacaf6bbd70a58356c3df74ce87b75485bd))
+
 # [0.1.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.0.1...prism-mediator-v0.1.0) (2023-05-18)
 
 
