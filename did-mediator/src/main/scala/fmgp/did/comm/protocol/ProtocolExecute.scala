@@ -65,8 +65,9 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
               case Some(value) => authEncrypt(reply)
               case None        => anonEncrypt(reply)
             // TODO forward message
-            maybeSyncReplyMsg <- reply.to match // TODO improve
-              case None => ZIO.none
+            maybeSyncReplyMsg <- reply.to.map(_.toSeq) match // TODO improve
+              case None        => ZIO.logWarning("Have a reply but the field 'to' is missing") *> ZIO.none
+              case Some(Seq()) => ZIO.logWarning("Have a reply but the field 'to' is empty") *> ZIO.none
               case Some(send2DIDs) =>
                 ZIO
                   .foreach(send2DIDs)(to =>
@@ -83,7 +84,7 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
                           head.getServiceEndpointAsURIs.headOption // TODO head
                         case Seq() => None // TODO
                       }
-                      jobToRun = mURL match
+                      jobToRun <- mURL match
                         case None => ZIO.logWarning(s"No url to send message")
                         case Some(url) =>
                           ZIO.log(s"Send to url: $url") *>
