@@ -24,6 +24,7 @@ lazy val V = new {
 //   val zioJson = "0.4.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
+  val zioConfig = "4.0.0-RC16"
 //   val zioPrelude = "1.0.0-RC19"
 
 //   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
@@ -61,7 +62,10 @@ lazy val D = new {
 //   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
 //   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
 //   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
-  val ziohttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
+  val zioHttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
+  val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
+  val zioConfigMagnolia = Def.setting("dev.zio" %% "zio-config-magnolia" % V.zioConfig) // For deriveConfig
+  val zioConfigTypesafe = Def.setting("dev.zio" %% "zio-config-typesafe" % V.zioConfig) // For HOCON
 //   val zioPrelude = Def.setting("dev.zio" %%% "zio-prelude" % V.zioPrelude)
 //   // val zioTest = Def.setting("dev.zio" %%% "zio-test" % V.zio % Test)
 //   // val zioTestSBT = Def.setting("dev.zio" %%% "zio-test-sbt" % V.zio % Test)
@@ -171,7 +175,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
     libraryDependencies += D.scalaDID.value,
   )
   .jvmSettings(
-    libraryDependencies += D.ziohttp.value,
+    libraryDependencies += D.zioHttp.value,
   )
 
 lazy val mediator = project
@@ -180,7 +184,8 @@ lazy val mediator = project
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
-    libraryDependencies += D.ziohttp.value,
+    libraryDependencies += D.zioHttp.value,
+    libraryDependencies ++= Seq(D.zioConfig.value, D.zioConfigMagnolia.value, D.zioConfigTypesafe.value),
   )
   .settings(
     Compile / mainClass := Some("fmgp.did.demo.MediatorStandalone"),
