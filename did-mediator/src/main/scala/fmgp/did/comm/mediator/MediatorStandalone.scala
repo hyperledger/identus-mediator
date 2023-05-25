@@ -9,6 +9,9 @@ import zio.http.socket._
 import zio.http.ZClient.ClientLive
 import zio.http.Http.Empty
 import zio.http.Http.Static
+import zio.config._
+import zio.config.magnolia._
+import zio.config.typesafe._
 
 import scala.io.Source
 
@@ -19,7 +22,15 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.mediator._
 import fmgp.did.comm.protocol._
-import fmgp.did.method.peer.DidPeerResolver
+import fmgp.did.method.peer._
+
+case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
+  val did = DIDPeer2.makeAgent(
+    Seq(keyAgreement, keyAuthentication),
+    Seq(DIDPeerServiceEncoded(s = endpoint.toString()))
+  )
+  val agentLayer = ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
+}
 
 object MediatorStandalone extends ZIOAppDefault {
 
@@ -31,40 +42,6 @@ object MediatorStandalone extends ZIOAppDefault {
       .collectZIO[Request] { case Method.GET -> !! / "hello" =>
         ZIO.succeed(Response.text("Hello World! DID Comm Mediator APP")).debug
       }
-
-  val mediatorAgentLayer = ZLayer(
-    MediatorAgent.make( // https://k8s-int.atalaprism.io/
-      DIDSubject(
-        "did:peer:2"
-          + ".Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y"
-          + ".Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd"
-          + ".SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9rOHMtaW50LmF0YWxhcHJpc20uaW8vbWVkaWF0b3IiLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19"
-      ),
-      KeyStore(
-        Set(
-          OKPPrivateKey(
-            kty = KTY.OKP,
-            crv = Curve.X25519,
-            d = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c",
-            x = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw",
-            kid = Some(
-              "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9rOHMtaW50LmF0YWxhcHJpc20uaW8vbWVkaWF0b3IiLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19#6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y"
-            )
-          ), // keyAgreement
-          OKPPrivateKey(
-            kty = KTY.OKP,
-            crv = Curve.Ed25519,
-            d = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug",
-            x = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA",
-            kid = Some(
-              "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9rOHMtaW50LmF0YWxhcHJpc20uaW8vbWVkaWF0b3IiLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19#6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd"
-            )
-          )
-        )
-      ),
-    )
-  )
-
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
@@ -76,23 +53,18 @@ object MediatorStandalone extends ZIOAppDefault {
         |Yet another server simpler Mediator server DID Comm v2.
         |Vist: https://github.com/input-output-hk/atala-prism-mediator""".stripMargin
     )
+    configs = ConfigProvider.fromResourcePath()
+    mediatorConfig <- configs.nested("identity").nested("mediator").load(deriveConfig[MediatorConfig])
     _ <- ZIO.log(s"Mediator APP. See https://github.com/input-output-hk/atala-prism-mediator")
+    _ <- ZIO.log(s"MediatorConfig: $mediatorConfig")
+    _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
     myHub <- Hub.sliding[String](5)
     _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
-    // pord <- System
-    //   .property("PORD")
-    //   .flatMap {
-    //     case None        => System.property("pord")
-    //     case Some(value) => ZIO.succeed(Some(value))
-    //   }
-    //   .map(_.flatMap(_.toBooleanOption).getOrElse(false))
-    port <- System
-      .property("PORT")
-      .flatMap {
-        case None        => System.property("port")
-        case Some(value) => ZIO.succeed(Some(value))
-      }
-      .map(_.flatMap(_.toIntOption).getOrElse(8080))
+    port <- configs
+      .nested("http")
+      .nested("server")
+      .nested("mediator")
+      .load(Config.int("port"))
     _ <- ZIO.log(s"Starting server on port: $port")
     server = {
       val config = ServerConfig(address = new java.net.InetSocketAddress(port))
@@ -114,7 +86,7 @@ object MediatorStandalone extends ZIOAppDefault {
           )
       )
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(mediatorAgentLayer) // .provideSomeLayer(AgentByHost.layer)
+      .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
       .provideSomeLayer(ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB.empty))) // TODO move into AgentByHost
