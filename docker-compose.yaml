@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  # mongo:
+  #   image: mongo:5.0
+  #   ports:
+  #     - 27017:27017
+  #   #volumes:
+  #   # - ./tmp/mongo:/data/db
+  #   environment:
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=admin
+
+  atalaprism-mediator:
+    image: ghcr.io/input-output-hk/mediator:0.1.1-SNAPSHOT
+    ports:
+      - 8080:8080
+    network_mode: host
+    environment:
+      # Creates the identity: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9rOHMtaW50LmF0YWxhcHJpc20uaW8vbWVkaWF0b3IiLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19"
+      - KEY_AGREEMENT_D=Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c
+      - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
+      - KEY_AUTHENTICATION_D=INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug
+      - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
+      - SERVICE_ENDPOINT=https://k8s-int.atalaprism.io/mediator
+      # Config storage
+      #- DB_URL=mongodb://admin:admin@mongo:27017
+      #- MONGODB_USER=admin
+      #- MONGODB_PASSWORD=admin
+    # depends_on:
+    #   - "mongo"
+
+
+# RUN
+# docker-compose up -d
+# docker-compose ps
+# docker-compose exec mongo /bin/sh
+# docker exec -it mongo-1 bash
