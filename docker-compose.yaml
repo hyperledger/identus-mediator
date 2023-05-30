@@ -1,15 +1,15 @@
 version: '3.9'
 
 services:
-  # mongo:
-  #   image: mongo:5.0
-  #   ports:
-  #     - 27017:27017
-  #   #volumes:
-  #   # - ./tmp/mongo:/data/db
-  #   environment:
-  #     - MONGO_INITDB_ROOT_USERNAME=admin
-  #     - MONGO_INITDB_ROOT_PASSWORD=admin
+  mongo:
+    image: mongo:6.0
+    ports:
+      - 27017:27017
+    #volumes:
+    # - ./tmp/mongo:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
 
   atalaprism-mediator:
     image: ghcr.io/input-output-hk/mediator:0.1.1-SNAPSHOT
@@ -27,12 +27,13 @@ services:
       #- DB_URL=mongodb://admin:admin@mongo:27017
       #- MONGODB_USER=admin
       #- MONGODB_PASSWORD=admin
-    # depends_on:
-    #   - "mongo"
+    depends_on:
+      - "mongo"
 
 
 # RUN
 # docker-compose up -d
 # docker-compose ps
+# docker-compose up mongo
 # docker-compose exec mongo /bin/sh
 # docker exec -it mongo-1 bash
