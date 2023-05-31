@@ -15,7 +15,9 @@ import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol._
-
+import fmgp.did.db.ReactiveMongoApi
+import scala.concurrent.ExecutionContext.Implicits.global
+import reactivemongo.api.bson.{BSONDocumentWriter, BSONDocumentReader, Macros, document}
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Shound we make it lazy with ZIO
@@ -23,11 +25,12 @@ case class MediatorAgent(
     messageDB: Ref[MessageDB],
 ) extends Agent {
   override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
+  implicit def encryptedMessageWriter: BSONDocumentWriter[EncryptedMessage] = Macros.writer[EncryptedMessage]
 
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
+  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & ReactiveMongoApi
   val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
     ZLayer {
       for {
@@ -77,7 +80,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -98,7 +101,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -112,6 +115,9 @@ case class MediatorAgent(
                 *> ZIO.none
             else
               for {
+                mongoApi <- ZIO.service[ReactiveMongoApi]
+                coll <- mongoApi.database.map(_.collection("messages").insert.one(msg))
+
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
                 _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
@@ -137,7 +143,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB],
+    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & ReactiveMongoApi,
     Nothing,
     zio.http.Response
   ] = {
@@ -251,7 +257,7 @@ object MediatorAgent {
       // .copy(status = Status.BadRequest) but ok for now
 
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
       Throwable,
       Request,
       Response
