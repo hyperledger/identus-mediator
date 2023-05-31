@@ -25,13 +25,13 @@ abstract class ReactiveMongoRepo(
     } yield result
   }
 
-  def findOne[T](selector: BSONDocument, projection: Option[BSONDocument])(using
+  def find[List[T]](selector: BSONDocument, projection: Option[BSONDocument])(using
       r: BSONDocumentReader[T],
       p: CursorProducer[T]
-  ): Task[T] = {
+  ): Task[List[T]] = {
     for {
       coll <- collection
-      result <- ZIO.fromFuture(
+      result <- ZIO.fromFuture(implicit ec =>
         coll.find(selector, projection).cursor[T]().collect[List](-1, Cursor.FailOnError[List[T]]())
       )
     } yield result
