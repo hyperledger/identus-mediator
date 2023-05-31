@@ -15,9 +15,13 @@ import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol._
-import fmgp.did.db.ReactiveMongoApi
+import fmgp.did.db._
 import scala.concurrent.ExecutionContext.Implicits.global
-import reactivemongo.api.bson.{BSONDocumentWriter, BSONDocumentReader, Macros, document}
+import scala.util.Try
+
+import reactivemongo.api.bson.{_, given}
+import reactivemongo.api.bson.Macros.{_, given}
+
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Shound we make it lazy with ZIO
@@ -25,16 +29,16 @@ case class MediatorAgent(
     messageDB: Ref[MessageDB],
 ) extends Agent {
   override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
-  implicit def encryptedMessageWriter: BSONDocumentWriter[EncryptedMessage] = Macros.writer[EncryptedMessage]
 
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
   type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & ReactiveMongoApi
-  val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
+  val protocolHandlerLayer: URLayer[Ref[MediatorDB] & ReactiveMongoApi, ProtocolExecuter[Services]] =
     ZLayer {
       for {
         ref <- ZIO.service[Ref[MediatorDB]]
+        ref2 <- ZIO.service[ReactiveMongoApi] // FIXME
       } yield ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
         new TrustPingExecuter,
@@ -116,7 +120,8 @@ case class MediatorAgent(
             else
               for {
                 mongoApi <- ZIO.service[ReactiveMongoApi]
-                coll <- mongoApi.database.map(_.collection("messages").insert.one(msg))
+                // coll <-
+                //   ZIO.fromFuture(implicit ec => mongoApi.database).map(_.collection("messages").insert.one(msg))
 
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
