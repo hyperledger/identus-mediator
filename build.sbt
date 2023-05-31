@@ -25,7 +25,7 @@ lazy val V = new {
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
-
+  val zioSl4j = "2.1.13"
   val mongo = "1.1.0-RC10"
 }
 
@@ -53,7 +53,7 @@ lazy val D = new {
   val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
   val zioConfigMagnolia = Def.setting("dev.zio" %% "zio-config-magnolia" % V.zioConfig) // For deriveConfig
   val zioConfigTypesafe = Def.setting("dev.zio" %% "zio-config-typesafe" % V.zioConfig) // For HOCON
-
+  val zioLoggingSl4j = Def.setting("dev.zio" %% "zio-logging-slf4j" % V.zioSl4j)
   val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
 
 //   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
@@ -155,7 +155,7 @@ lazy val mediator = project
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
     libraryDependencies += D.zioHttp.value,
-    libraryDependencies ++= Seq(D.zioConfig.value, D.zioConfigMagnolia.value, D.zioConfigTypesafe.value),
+    libraryDependencies ++= Seq(D.zioConfig.value, D.zioConfigMagnolia.value, D.zioConfigTypesafe.value, D.zioLoggingSl4j.value),
     libraryDependencies += D.mongo.value,
   )
   .settings(

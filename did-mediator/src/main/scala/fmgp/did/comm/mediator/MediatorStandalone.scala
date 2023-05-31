@@ -23,6 +23,7 @@ import fmgp.did.comm._
 import fmgp.did.comm.mediator._
 import fmgp.did.comm.protocol._
 import fmgp.did.method.peer._
+import fmgp.did.db._
 
 case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
@@ -31,11 +32,23 @@ case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, k
   )
   val agentLayer = ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
 }
+case class DataBaseConfig(
+    protocol: String,
+    host: String,
+    port: String,
+    userName: String,
+    password: String,
+    dbName: String
+) {
+  val connectionString = s"$protocol://$userName:$password@$host:$port/$dbName"
+  val displayConnectionString = s"$protocol://$userName:******@$host:$port/$dbName"
+  override def toString: String = s"""DataBaseConfig($protocol, $host, $port, $userName, "******", $dbName)"""
+}
 
 object MediatorStandalone extends ZIOAppDefault {
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & Resolver,
+    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & Resolver & ReactiveMongoApi,
     Throwable
   ] = MediatorAgent.didCommApp
     ++ Http
@@ -58,6 +71,8 @@ object MediatorStandalone extends ZIOAppDefault {
     _ <- ZIO.log(s"Mediator APP. See https://github.com/input-output-hk/atala-prism-mediator")
     _ <- ZIO.log(s"MediatorConfig: $mediatorConfig")
     _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
+    mediatorDbConfig <- configs.nested("database").nested("mediator").load(deriveConfig[DataBaseConfig])
+    _ <- ZIO.log(s"MediatorDb Connection String: ${mediatorDbConfig.displayConnectionString}")
     myHub <- Hub.sliding[String](5)
     _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
     port <- configs
@@ -87,6 +102,9 @@ object MediatorStandalone extends ZIOAppDefault {
       )
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
+      .provideSomeLayer(
+        AsyncDriverResource.layer >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
+      )
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
       .provideSomeLayer(ZLayer.fromZIO(Ref.make[MediatorDB](MediatorDB.empty))) // TODO move into AgentByHost
