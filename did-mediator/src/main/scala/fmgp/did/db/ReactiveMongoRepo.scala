@@ -25,7 +25,7 @@ abstract class ReactiveMongoRepo(
     } yield result
   }
 
-  def find[List[T]](selector: BSONDocument, projection: Option[BSONDocument])(using
+  def find[T](selector: BSONDocument, projection: Option[BSONDocument])(using
       r: BSONDocumentReader[T],
       p: CursorProducer[T]
   ): Task[List[T]] = {
