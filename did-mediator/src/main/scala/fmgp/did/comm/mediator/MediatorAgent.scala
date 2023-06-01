@@ -33,20 +33,17 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & ReactiveMongoApi
-  val protocolHandlerLayer: URLayer[Ref[MediatorDB] & ReactiveMongoApi, ProtocolExecuter[Services]] =
-    ZLayer {
-      for {
-        ref <- ZIO.service[Ref[MediatorDB]]
-        ref2 <- ZIO.service[ReactiveMongoApi] // FIXME
-      } yield ProtocolExecuterCollection[Services](
+  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
+  val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
+    ZLayer.succeed(
+      ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
         new TrustPingExecuter,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
         PickupExecuter,
       )
-    }
+    )
 
   // private def _didSubjectAux = id
   // private def _keyStoreAux = keyStore.keys.toSeq
@@ -84,7 +81,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -105,7 +102,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -119,9 +116,10 @@ case class MediatorAgent(
                 *> ZIO.none
             else
               for {
-                mongoApi <- ZIO.service[ReactiveMongoApi]
-                // coll <-
-                //   ZIO.fromFuture(implicit ec => mongoApi.database).map(_.collection("messages").insert.one(msg))
+                messageItemRepo <- ZIO.service[MessageItemRepo]
+                _ <- messageItemRepo // store all message
+                  .insertOne(MessageItem(msg))
+                  .catchAll(e => ZIO.fail[DidFail](SomeThrowable(e))) // TODO
 
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
@@ -148,7 +146,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & ReactiveMongoApi,
+    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & MessageItemRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -262,7 +260,7 @@ object MediatorAgent {
       // .copy(status = Status.BadRequest) but ok for now
 
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & ReactiveMongoApi,
+      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
       Throwable,
       Request,
       Response
