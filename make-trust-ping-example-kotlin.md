@@ -21,9 +21,8 @@ docker-compose up #docker run -p 8080:8080 ghcr.io/input-output-hk/mediator:0.1.
 dependencies {
     implementation("org.didcommx:didcomm:0.3.0")
     implementation("org.didcommx:peerdid:0.3.0")
-    implementation("io.ktor:ktor-server-netty:2.3.0")
-    implementation("io.ktor:ktor-client-apache:2.3.0")
-}
+    implementation("io.ktor:ktor-server-netty:2.3.1")
+    implementation("io.ktor:ktor-client-okhttp:2.3.1")}
 ```kotlin
 
 
@@ -294,15 +293,13 @@ class DIDDocResolverPeerDID : DIDDocResolver {
 ### This is your Main.kt  for e.g. copy the below code in Main.kt
 
 ```kotlin
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.didcommx.didcomm.DIDComm
 import org.didcommx.didcomm.message.Message
 import org.didcommx.didcomm.model.PackEncryptedParams
@@ -330,10 +327,17 @@ fun main(args: Array<String>) {
     ).from(alice.did.value)
         .to(listOf(mediator.did.value))
         .build()
+    val messageMediationRequest = Message.builder(
+        id = "1234567890",
+        body = mapOf(),
+        type = "https://didcomm.org/coordinate-mediation/2.0/mediate-request"
+    ).from(alice.did.value)
+        .to(listOf(mediator.did.value))
+        .build()
 
     //Encrypt Message
     val packResult = didComm.packEncrypted(
-        PackEncryptedParams.builder(messageTrustPing, mediatorDID)
+        PackEncryptedParams.builder(messageMediationRequest, mediatorDID)
             .from(alice.did.value)
             .build()
     )
@@ -348,19 +352,22 @@ fun main(args: Array<String>) {
         val clientListener = launch(Dispatchers.Default) {
             alice.startListening(9999)
         }
+
         clientListener.join()
         launch(Dispatchers.Default) {
-            val client = HttpClient(Apache)
-            val response: HttpResponse = client.post(mediatorServiceEndpoint) {
-                contentType(ContentType.Application.Json)
-                setBody(packResult.packedMessage)
-            }
-            println("Client Received reply: $response")
+
+            val request = Request.Builder().url(mediatorServiceEndpoint)
+                .addHeader("content-type", "application/didcomm-encrypted+json")
+                .post(packResult.packedMessage.toRequestBody()).build()
+            val response =  OkHttpClient().newCall(request).execute()
+
+            println("Client Received: $response")
+            println("Client Received: ${response.body?.string()}")
+
             val json = alice.receivedResponse()
-            println("Received JSON: $json")
-            // Make an assertion that the response is successful if needed
-            // ...
-            client.close()
+            println("Received a reply to the http endpoint of client: $json")
+
+            response.close()
             completion.complete(Unit)
         }
 
@@ -369,5 +376,7 @@ fun main(args: Array<String>) {
         // Stop the listener
         clientListener.cancel()
     }
+
+
 }
 ```kotlin
