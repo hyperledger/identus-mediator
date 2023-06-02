@@ -6,12 +6,28 @@ import reactivemongo.api.bson._
 
 type HASH = Int
 // messages
-case class MessageItem(id: HASH, msg: EncryptedMessage)
+case class MessageItem(_id: HASH, msg: EncryptedMessage)
 object MessageItem {
   def apply(msg: EncryptedMessage): MessageItem = new MessageItem(msg.hashCode(), msg)
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
+  given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }
 
-// clients_store
-case class MessageMetaData(id: HASH, state: Boolean, ts: String)
-case class ClientStore(id: DIDSubject, alias: Seq[DID], messagesRef: Seq[MessageMetaData])
+case class MessageMetaData(hash: HASH, state: Boolean, ts: String)
+object MessageMetaData {
+  given BSONDocumentWriter[MessageMetaData] = Macros.writer[MessageMetaData]
+  given BSONDocumentReader[MessageMetaData] = Macros.reader[MessageMetaData]
+}
+
+// clients_store did
+case class DidAccount(
+    _id: BSONObjectID = BSONObjectID.generate(),
+    did: DIDSubject,
+    alias: Seq[DID],
+    messagesRef: Seq[MessageMetaData],
+)
+
+object DidAccount {
+  given BSONDocumentWriter[DidAccount] = Macros.writer[DidAccount]
+  given BSONDocumentReader[DidAccount] = Macros.reader[DidAccount]
+}

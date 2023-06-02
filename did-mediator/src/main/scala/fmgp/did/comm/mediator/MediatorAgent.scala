@@ -33,7 +33,7 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
+  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & DidAccountRepo
   val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
     ZLayer.succeed(
       ProtocolExecuterCollection[Services](
@@ -81,7 +81,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -102,7 +102,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
     DidFail,
     Option[EncryptedMessage]
   ] =
@@ -117,9 +117,7 @@ case class MediatorAgent(
             else
               for {
                 messageItemRepo <- ZIO.service[MessageItemRepo]
-                _ <- messageItemRepo // store all message
-                  .insertOne(MessageItem(msg))
-                  .catchAll(e => ZIO.fail[DidFail](SomeThrowable(e))) // TODO
+                _ <- messageItemRepo.insertOne(MessageItem(msg)) // store all message
 
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
@@ -146,7 +144,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & MessageItemRepo,
+    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -260,7 +258,7 @@ object MediatorAgent {
       // .copy(status = Status.BadRequest) but ok for now
 
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo,
+      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
       Throwable,
       Request,
       Response

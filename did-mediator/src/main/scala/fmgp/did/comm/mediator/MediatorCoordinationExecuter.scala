@@ -8,6 +8,7 @@ import fmgp.did.comm._
 import fmgp.did.comm.Operations._
 import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.mediatorcoordination2._
+import fmgp.did.db.DidAccountRepo
 
 /** Store all forwarded message */
 case class MediatorDB(db: Map[DIDSubject, Seq[EncryptedMessage]], alias: Map[DIDSubject, DIDSubject]) {
@@ -60,7 +61,8 @@ object MediatorDB {
   def empty = MediatorDB(db = Map.empty, alias = Map.empty)
 }
 
-object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & Ref[MediatorDB]] {
+object MediatorCoordinationExecuter
+    extends ProtocolExecuterWithServices[ProtocolExecuter.Services & Ref[MediatorDB] & DidAccountRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
@@ -72,7 +74,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
     Keylist.piuri,
   )
 
-  override def program[R1 <: Ref[MediatorDB]](
+  override def program[R1 <: (Ref[MediatorDB] & DidAccountRepo)](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
@@ -98,17 +100,24 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
       case m: MediateRequest =>
         for {
           _ <- ZIO.logInfo("MediateRequest")
-          db <- ZIO.service[Ref[MediatorDB]]
-          reply <- db.modify { db =>
-            db.enroll(m.from.asDIDURL.toDID) match
-              case Left(fail)   => (m.makeRespondMediateDeny.toPlaintextMessage, db)
-              case Right(newDB) => (m.makeRespondMediateGrant.toPlaintextMessage, newDB)
-          }
+          // db <- ZIO.service[Ref[MediatorDB]]
+          // reply <- db.modify { db =>
+          //   db.enroll(m.from.asDIDURL.toDID) match
+          //     case Left(fail)   => (m.makeRespondMediateDeny.toPlaintextMessage, db)
+          //     case Right(newDB) => (m.makeRespondMediateGrant.toPlaintextMessage, newDB)
+          // }
+          repo <- ZIO.service[DidAccountRepo]
+          result <- repo.newDidAccount(m.from.asDIDURL.toDID)
+          reply = result.n match
+            case 1 => m.makeRespondMediateGrant.toPlaintextMessage
+            case _ => m.makeRespondMediateDeny.toPlaintextMessage
         } yield SyncReplyOnly(reply)
       case m: KeylistUpdate =>
         case class Tmp(id: FROMTO, a: KeylistAction, r: KeylistResult)
         for {
           _ <- ZIO.logInfo("KeylistUpdate")
+          repo <- ZIO.service[DidAccountRepo]
+          // TODO!!!!!!!!!!!!!!!!!!!!
           db <- ZIO.service[Ref[MediatorDB]]
           updatesAndNewMediatorDB <- db.modify { mediatorDB =>
             val did2Add = m.updates.collect { case (fromto, KeylistAction.add) => fromto }
