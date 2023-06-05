@@ -1,14 +1,14 @@
 package fmgp.did.db
 
 import fmgp.did._
-import fmgp.did.comm.EncryptedMessage
+import fmgp.did.comm._
 import reactivemongo.api.bson._
 
 type HASH = Int
 // messages
-case class MessageItem(_id: HASH, msg: EncryptedMessage)
+case class MessageItem(_id: HASH, msg: EncryptedMessage, headers: ProtectedHeader)
 object MessageItem {
-  def apply(msg: EncryptedMessage): MessageItem = new MessageItem(msg.hashCode(), msg)
+  def apply(msg: EncryptedMessage): MessageItem = new MessageItem(msg.hashCode(), msg, msg.`protected`.obj)
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }

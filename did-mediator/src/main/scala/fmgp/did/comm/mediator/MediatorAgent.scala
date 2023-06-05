@@ -33,8 +33,8 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & DidAccountRepo
-  val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
+  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & DidAccountRepo & MessageItemRepo
+  val protocolHandlerLayer: URLayer[Ref[MediatorDB] & DidAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
     ZLayer.succeed(
       ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
