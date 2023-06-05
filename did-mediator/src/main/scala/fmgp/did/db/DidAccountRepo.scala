@@ -57,14 +57,47 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     } yield result.headOption
   }
 
-  def addAlias(ower: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = ???
+  def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = {
+    def selector: BSONDocument = BSONDocument("did" -> owner)
+    def update: BSONDocument = BSONDocument(
+      "$push" -> BSONDocument(
+        "alias" -> newAlias
+      )
+    )
+    for {
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec =>
+          coll.update
+            .one(selector, update) // Just one
+        )
+        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+    } yield Right(())
+
+  }
   // db.keys.find(_ == newAlias) match
   //   case Some(did) => Left(s"${did} is alredy enrolled for mediation ")
   //   case None =>
   //     alias.find(_._1 == newAlias) match
   //       case Some((a, ower)) => Left(s"$newAlias is alredy an alias of $ower")
   //       case None            => Right(this.copy(alias = alias + (newAlias -> ower)))
-  def removeAlias(ower: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = ???
+  def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = {
+    def selector: BSONDocument = BSONDocument("did" -> owner)
+    def update: BSONDocument = BSONDocument(
+      "$pull" -> BSONDocument(
+        "alias" -> newAlias
+      )
+    )
+    for {
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec =>
+          coll.update
+            .one(selector, update) // Just one
+        )
+        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+    } yield Right(())
+  }
   // alias.find(_._1 == newAlias) match
   //   case None                                           => Left(s"$newAlias is not on DB")
   //   case Some((oldAlias, oldOwer)) if (oldOwer != ower) => Left(s"$newAlias is not owed by $ower")
