@@ -17,4 +17,5 @@ use(database);
 db.createCollection(collectionDidAccount);
 db.createCollection(collectionMessages);
 //create index
+db.collection(collectionDidAccount).createIndex({ 'did': 1 }, { unique: true });
 db.collection(collectionDidAccount).createIndex({ 'alias': 1 }, { unique: true });
