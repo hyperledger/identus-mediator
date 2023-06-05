@@ -19,7 +19,7 @@ object MessageMetaData {
   given BSONDocumentReader[MessageMetaData] = Macros.reader[MessageMetaData]
 }
 
-// clients_store did
+// did_account did
 case class DidAccount(
     _id: BSONObjectID = BSONObjectID.generate(),
     did: DIDSubject,
