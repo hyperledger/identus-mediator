@@ -151,13 +151,72 @@ given BSONReader[MediaTypes] with {
 // given BSONDocumentWriter[KTY] = Macros.writer[KTY] ... SCALA BUG infinit compilation
 // given BSONDocumentReader[KTY] = Macros.reader[KTY] ... SCALA BUG infinit compilation
 
-given BSONDocumentWriter[OKPPublicKey] = Macros.writer[OKPPublicKey]
-given BSONDocumentReader[OKPPublicKey] = ??? // Macros.reader[OKPPublicKey]
-given BSONDocumentWriter[ECPublicKey] = ??? // Macros.writer[ECPublicKey]
-given BSONDocumentReader[ECPublicKey] = ??? // Macros.reader[ECPublicKey]
+given BSONDocumentWriter[PublicKey] with {
+  override def writeTry(obj: PublicKey): Try[BSONDocument] =
+    obj match {
+      case ECPublicKey(kty, crv, x, y, kid) =>
+        Try(
+          BSONDocument(
+            "kty" -> kty,
+            "crv" -> crv,
+            "x" -> x,
+            "y" -> y,
+            "kid" -> kid,
+          )
+        )
+      case OKPPublicKey(kty, crv, x, kid) =>
+        Try(
+          BSONDocument(
+            "kty" -> kty,
+            "crv" -> crv,
+            "x" -> x,
+            "kid" -> kid,
+          )
+        )
+    }
+}
+given BSONDocumentReader[PublicKey] with {
 
-given BSONDocumentWriter[PublicKey] = Macros.writer[PublicKey]
-given BSONDocumentReader[PublicKey] = Macros.reader[PublicKey]
+  override def readDocument(doc: BSONDocument): Try[PublicKey] =
+    doc.get("kty").get.asTry[KTY] match
+      case Failure(exception) => Failure(exception)
+      case Success(KTY.OKP) =>
+        (
+          doc.getAsTry[Curve]("crv"),
+          doc.getAsTry[String]("x"),
+        ) match
+          case (Success(crv), Success(x)) =>
+            Success(
+              OKPPublicKey(
+                kty = KTY.OKP,
+                crv = crv,
+                x = x,
+                kid = doc.getAsOpt[String]("kid")
+              )
+            )
+          case (Failure(ex), _) => Failure(ex)
+          case (_, Failure(ex)) => Failure(ex)
+      case Success(KTY.EC) =>
+        (
+          doc.getAsTry[Curve]("crv"),
+          doc.getAsTry[String]("x"),
+          doc.getAsTry[String]("y"),
+        ) match
+          case (Success(crv), Success(x), Success(y)) =>
+            Success(
+              ECPublicKey(
+                kty = KTY.EC,
+                crv = crv,
+                x = x,
+                y = y,
+                kid = doc.getAsOpt[String]("kid")
+              )
+            )
+          case (Failure(ex), _, _) => Failure(ex)
+          case (_, Failure(ex), _) => Failure(ex)
+          case (_, _, Failure(ex)) => Failure(ex)
+
+}
 
 given BSONDocumentWriter[AnonProtectedHeader] =
   Macros.writer[AnonProtectedHeader]
