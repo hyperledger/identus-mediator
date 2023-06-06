@@ -19,3 +19,4 @@ db.createCollection(collectionMessages);
 //create index
 db.getCollection(collectionDidAccount).createIndex({ 'did': 1 }, { unique: true });
 db.getCollection(collectionDidAccount).createIndex({ 'alias': 1 }, { unique: true });
+db.getCollection(collectionDidAccount).createIndex({ "messagesRef.hash": 1, "messagesRef.recipient": 1 })
