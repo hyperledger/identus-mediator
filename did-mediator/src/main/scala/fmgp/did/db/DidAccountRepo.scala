@@ -99,10 +99,10 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     *   numbre of documents updated in DB
     */
   def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = {
-    val selector =
+    def selector =
       BSONDocument(
         "alias" -> BSONDocument("$in" -> recipients),
-        "messagesRef.hash" -> BSONDocument("$nin" -> msg.hashCode()),
+        "messagesRef.hash" -> BSONDocument("$nin" -> msg.hashCode),
         "messagesRef.recipient" -> BSONDocument("$nin" -> recipients)
       )
 

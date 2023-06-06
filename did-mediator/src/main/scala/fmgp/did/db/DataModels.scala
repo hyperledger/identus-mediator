@@ -3,7 +3,7 @@ package fmgp.did.db
 import fmgp.did._
 import fmgp.did.comm._
 import reactivemongo.api.bson._
-
+import java.time.Instant
 type HASH = Int
 // messages
 case class MessageItem(_id: HASH, msg: EncryptedMessage, headers: ProtectedHeader)
