@@ -11,12 +11,12 @@ import fmgp.did.db._
 
 object ForwardMessageExecuter
     extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & Ref[MediatorDB] & DidAccountRepo & MessageItemRepo
+      ProtocolExecuter.Services & DidAccountRepo & MessageItemRepo
     ] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
-  override def program[R1 <: Ref[MediatorDB] & DidAccountRepo & MessageItemRepo](
+  override def program[R1 <: DidAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
@@ -37,8 +37,6 @@ object ForwardMessageExecuter
               ZIO.logInfo("Add next msg (of the ForwardMessage) to the Message Repo") // TODO change to debug level
           } else
             ZIO.logWarning("Note: No update on the DidAccount of the recipients")
-        // db <- ZIO.service[Ref[MediatorDB]]
-        // _ <- db.update(_.store(m.next, m.msg))
       } yield None
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
