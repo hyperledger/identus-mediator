@@ -28,10 +28,10 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     .map(_.collection(collectionName))
     .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
 
-  def newDidAccount(did: DIDSubject, alias: Seq[DID] = Seq.empty): IO[DidFail, WriteResult] = {
+  def newDidAccount(did: DIDSubject /*, alias: Seq[DID] = Seq.empty*/ ): IO[DidFail, WriteResult] = {
     val value = DidAccount(
       did = did,
-      alias = alias,
+      alias = Seq(did),
       messagesRef = Seq.empty
     )
     for {
