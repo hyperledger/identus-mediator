@@ -7,8 +7,9 @@ import reactivemongo.api.Cursor
 import reactivemongo.api.CursorProducer
 
 import zio._
-import fmgp.did._
 import fmgp.crypto.error._
+import fmgp.did._
+import fmgp.did.comm._
 import scala.concurrent.ExecutionContext
 
 object DidAccountRepo {
@@ -75,12 +76,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     } yield Right(())
 
   }
-  // db.keys.find(_ == newAlias) match
-  //   case Some(did) => Left(s"${did} is alredy enrolled for mediation ")
-  //   case None =>
-  //     alias.find(_._1 == newAlias) match
-  //       case Some((a, ower)) => Left(s"$newAlias is alredy an alias of $ower")
-  //       case None            => Right(this.copy(alias = alias + (newAlias -> ower)))
+
   def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
     def update: BSONDocument = BSONDocument(
@@ -98,9 +94,9 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
         .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
     } yield Right(())
   }
-  // alias.find(_._1 == newAlias) match
-  //   case None                                           => Left(s"$newAlias is not on DB")
-  //   case Some((oldAlias, oldOwer)) if (oldOwer != ower) => Left(s"$newAlias is not owed by $ower")
-  //   case Some((oldAlias, oldOwer)) => Right(this.copy(alias = alias.view.filterKeys(_ == newAlias).toMap))
 
+  /** @return
+    *   numbre of documents updated in DB
+    */
+  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = ???
 }
