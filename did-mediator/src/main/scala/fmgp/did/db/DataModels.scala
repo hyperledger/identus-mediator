@@ -17,6 +17,9 @@ case class MessageMetaData(hash: HASH, recipient: DIDSubject, state: Boolean, ts
 object MessageMetaData {
   given BSONDocumentWriter[MessageMetaData] = Macros.writer[MessageMetaData]
   given BSONDocumentReader[MessageMetaData] = Macros.reader[MessageMetaData]
+  def apply(hash: HASH, recipient: DIDSubject) = {
+    new MessageMetaData(hash = hash, recipient = recipient, state = false, ts = Instant.now().toString)
+  }
 }
 
 // did_account did

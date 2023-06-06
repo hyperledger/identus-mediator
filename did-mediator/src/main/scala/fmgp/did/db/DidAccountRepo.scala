@@ -98,5 +98,31 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
   /** @return
     *   numbre of documents updated in DB
     */
-  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = ???
+  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = {
+    val selector =
+      BSONDocument(
+        "alias" -> BSONDocument("$in" -> recipients),
+        "messagesRef.hash" -> BSONDocument("$nin" -> msg.hashCode()),
+        "messagesRef.recipient" -> BSONDocument("$nin" -> recipients)
+      )
+
+    def update: BSONDocument = BSONDocument(
+      "$push" -> BSONDocument(
+        "messagesRef" -> BSONDocument(
+          "$each" ->
+            recipients.map(recipient => MessageMetaData(msg.hashCode(), recipient))
+        )
+      )
+    )
+
+    for {
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec =>
+          coll.update
+            .one(selector, update) // Just one
+        )
+        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+    } yield result.nModified
+  }
 }
