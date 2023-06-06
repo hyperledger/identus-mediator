@@ -29,11 +29,14 @@ object ForwardMessageExecuter
         _ <- ZIO.logInfo("ForwardMessage")
         repoMessageItem <- ZIO.service[MessageItemRepo]
         repoDidAccount <- ZIO.service[DidAccountRepo]
-        // next = m.next
-        msg = MessageItem(m.msg)
-        aaa = msg
-        aa = repoMessageItem.insertOne(msg)
-
+        recipientsSubject = m.msg.recipientsSubject
+        numbreOfUpdated <- repoDidAccount.addToInboxes(recipientsSubject, m.msg)
+        msg <-
+          if (numbreOfUpdated > 0) { // Or maybe we can add all the time
+            repoMessageItem.insertOne(MessageItem(m.msg)) *>
+              ZIO.logInfo("Add next msg (of the ForwardMessage) to the Message Repo") // TODO change to debug level
+          } else
+            ZIO.logWarning("Note: No update on the DidAccount of the recipients")
         // db <- ZIO.service[Ref[MediatorDB]]
         // _ <- db.update(_.store(m.next, m.msg))
       } yield None

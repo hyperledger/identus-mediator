@@ -13,7 +13,7 @@ object MessageItem {
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }
 
-case class MessageMetaData(hash: HASH, state: Boolean, ts: String)
+case class MessageMetaData(hash: HASH, recipient: DIDSubject, state: Boolean, ts: String)
 object MessageMetaData {
   given BSONDocumentWriter[MessageMetaData] = Macros.writer[MessageMetaData]
   given BSONDocumentReader[MessageMetaData] = Macros.reader[MessageMetaData]
