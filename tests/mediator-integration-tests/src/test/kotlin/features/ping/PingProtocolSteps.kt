@@ -1,6 +1,6 @@
 package features.ping
 
-import abilities.ListenHttp
+import abilities.HttpListener
 import common.DidcommMessageTypes
 import common.EdgeAgent
 import common.Environments.MEDIATOR_PEER_DID
@@ -21,7 +21,7 @@ class PingProtocolSteps {
 
         val pingMessage = Message(
             piuri = DidcommMessageTypes.PING_REQUEST,
-            from = recipient.recall("did"),
+            from = EdgeAgent.peerDID,
             to = MEDIATOR_PEER_DID,
             body = """{"response_requested": true}"""
         )
@@ -35,7 +35,7 @@ class PingProtocolSteps {
     fun recipientGetTrustedPingMessageBack(recipient: Actor) {
 
         val didcommResponse: Message = EdgeAgent.unpackMessage(
-            recipient.usingAbilityTo(ListenHttp::class.java).receivedResponse()!!
+            HttpListener.receivedResponse()!!
         )
         val httpResponse = SerenityRest.lastResponse()
 
@@ -43,7 +43,7 @@ class PingProtocolSteps {
             that(httpResponse.statusCode).isEqualTo(SC_OK),
             that(didcommResponse.piuri).isEqualTo(DidcommMessageTypes.PING_RESPONSE),
             that(didcommResponse.from.toString()).isEqualTo(MEDIATOR_PEER_DID.toString()),
-            that(didcommResponse.to.toString()).isEqualTo(recipient.recall<DID>("did").toString()),
+            that(didcommResponse.to.toString()).isEqualTo(EdgeAgent.peerDID.toString()),
         )
 
     }

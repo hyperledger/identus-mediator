@@ -1,5 +1,6 @@
 package common
 
+import abilities.HttpListener
 import io.iohk.atala.prism.walletsdk.apollo.ApolloImpl
 import io.iohk.atala.prism.walletsdk.castor.CastorImpl
 import io.iohk.atala.prism.walletsdk.domain.models.*
@@ -20,6 +21,15 @@ object EdgeAgent {
         DIDCommWrapper(castor, pluto, apollo),
         ApiImpl(httpClient())
     )
+
+    val peerDID: DID
+
+    init {
+        runBlocking {
+            pluto.start()
+        }
+        peerDID = createPeerDid(HttpListener.endpoint())
+    }
 
     fun unpackMessage(message: String): Message {
         return mercury.unpackMessage(message)
@@ -76,11 +86,5 @@ object EdgeAgent {
             }
         }
         return did
-    }
-
-    init {
-        runBlocking {
-            pluto.start()
-        }
     }
 }

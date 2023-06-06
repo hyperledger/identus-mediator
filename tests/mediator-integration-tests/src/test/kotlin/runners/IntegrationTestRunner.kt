@@ -6,9 +6,9 @@ import org.junit.runner.RunWith
 
 @CucumberOptions(
     features = [
-        "src/test/resources/features/mediation_coordination",
+        "src/test/resources/features",
     ],
-    glue = ["features.mediation_coordination", "features"],
+    glue = ["features"],
     snippets = CucumberOptions.SnippetType.CAMELCASE,
     plugin = [
         "pretty",

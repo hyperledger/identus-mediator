@@ -12,14 +12,17 @@ import net.serenitybdd.screenplay.Interaction
 import net.serenitybdd.screenplay.rest.interactions.Post
 import net.serenitybdd.screenplay.rest.interactions.RestInteraction
 
-open class SendDidcommMessage(val message: Message): Interaction {
+open class SendDidcommMessage(
+    val message: Message,
+    val contentType: String = "application/didcomm-encrypted+json"): Interaction {
     override fun <T : Actor> performAs(actor: T) {
         val packedMessage = packMessage(message)
+        // We have to rewrite spec to remove all unnecessary hardcoded headers
+        // from standard serenity rest interaction
         val spec = RequestSpecBuilder().noContentType()
-            .setContentType("application/didcomm-encrypted+json")
+            .setContentType(contentType)
             .setConfig(RestAssured.config()
-                .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)
-                    .encodeContentTypeAs("*/*", ContentType.JSON)))
+                .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .setBody(packedMessage)
             .build()
         Post.to("/").with {
