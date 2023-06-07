@@ -29,7 +29,7 @@ object ForwardMessageExecuter
         _ <- ZIO.logInfo("ForwardMessage")
         repoMessageItem <- ZIO.service[MessageItemRepo]
         repoDidAccount <- ZIO.service[DidAccountRepo]
-        recipientsSubject = m.msg.recipientsSubject
+        recipientsSubject = Set(m.next) // m.msg.recipientsSubject
         numbreOfUpdated <- repoDidAccount.addToInboxes(recipientsSubject, m.msg)
         msg <-
           if (numbreOfUpdated > 0) { // Or maybe we can add all the time
