@@ -117,12 +117,9 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     def update: BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
-          "$each" -> BSONArray(
+          "$each" ->
             recipients.map(recipient =>
-              MessageMetaData.given_BSONDocumentWriter_MessageMetaData
-                .writeTry(MessageMetaData(msg.hashCode, recipient))
-                .get: BSONDocument
-            )
+                MessageMetaData(msg.hashCode, recipient)
           )
         )
       )
