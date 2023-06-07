@@ -108,7 +108,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
                 "$elemMatch" ->
                   BSONDocument(
                     "hash" -> msg.hashCode,
-                    "recipient" -> BSONDocument("$in" -> BSONArray(recipients.map(_.did)))
+                    "recipient" -> BSONDocument("$in" -> recipients.map(_.did))
                   )
               )
           )
