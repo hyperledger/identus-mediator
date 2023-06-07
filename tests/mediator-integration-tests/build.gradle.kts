@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.8.21"
+    kotlin("plugin.serialization") version "1.8.21"
     idea
     jacoco
     id("net.serenity-bdd.serenity-gradle-plugin") version "3.4.2"
@@ -47,6 +48,8 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 
 }
 

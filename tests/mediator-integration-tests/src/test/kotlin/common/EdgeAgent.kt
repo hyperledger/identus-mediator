@@ -11,6 +11,8 @@ import io.iohk.atala.prism.walletsdk.pluto.data.DbConnection
 import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM1
 import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM_MESSAGING
 import kotlinx.coroutines.runBlocking
+import models.MediationGrantResponse
+import net.serenitybdd.rest.SerenityRest
 
 object EdgeAgent {
     val apollo = ApolloImpl()
@@ -29,6 +31,10 @@ object EdgeAgent {
             pluto.start()
         }
         peerDID = createPeerDid(HttpListener.endpoint())
+    }
+
+    fun unpackLastDidcommMessage(): Message {
+        return unpackMessage(SerenityRest.lastResponse().asString())
     }
 
     fun unpackMessage(message: String): Message {
