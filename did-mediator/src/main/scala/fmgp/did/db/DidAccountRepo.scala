@@ -5,7 +5,6 @@ import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.Cursor
 import reactivemongo.api.CursorProducer
-
 import zio._
 import fmgp.crypto.error._
 import fmgp.did._
@@ -101,27 +100,30 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
   def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = {
     def selector =
       BSONDocument(
-        "alias" -> BSONDocument("$in" -> recipients),
-        BSONDocument(
-          "messagesRef" ->
-            BSONDocument(
-              "$not" ->
-                BSONDocument(
-                  "$elemMatch" ->
-                    BSONDocument(
-                      "hash" -> msg.hashCode,
-                      "recipient" -> BSONDocument("$in" -> recipients)
-                    )
-                )
-            )
-        )
+        "alias" -> BSONDocument("$in" -> recipients.map(_.did)),
+        "messagesRef" ->
+          BSONDocument(
+            "$not" ->
+              BSONDocument(
+                "$elemMatch" ->
+                  BSONDocument(
+                    "hash" -> msg.hashCode,
+                    "recipient" -> BSONDocument("$in" -> BSONArray(recipients.map(_.did)))
+                  )
+              )
+          )
       )
 
     def update: BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
-          "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.hashCode, recipient))
+          "$each" -> BSONArray(
+            recipients.map(recipient =>
+              MessageMetaData.given_BSONDocumentWriter_MessageMetaData
+                .writeTry(MessageMetaData(msg.hashCode, recipient))
+                .get: BSONDocument
+            )
+          )
         )
       )
     )

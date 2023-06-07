@@ -55,7 +55,6 @@ lazy val D = new {
   val zioConfigTypesafe = Def.setting("dev.zio" %% "zio-config-typesafe" % V.zioConfig) // For HOCON
   val zioLoggingSl4j = Def.setting("dev.zio" %% "zio-logging-slf4j" % V.zioSl4j)
   val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
-
 //   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
   val munit = Def.setting("org.scalameta" %%% "munit" % V.munit % Test)
 }

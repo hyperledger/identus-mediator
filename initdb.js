@@ -12,7 +12,6 @@ const collectionMessages = 'messages';
 
 // The current database to use.
 use(database);
-
 // Create  collections.
 db.createCollection(collectionDidAccount);
 db.createCollection(collectionMessages);
