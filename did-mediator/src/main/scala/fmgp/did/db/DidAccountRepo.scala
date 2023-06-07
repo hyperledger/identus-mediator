@@ -136,4 +136,16 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
         .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
     } yield result.nModified
   }
+
+  def makeAsDelivered(didAccount: DIDSubject, hashs: Seq[HASH]): ZIO[Any, DidFail, Int] = {
+    def selector = BSONDocument("did" -> didAccount.did, "messagesRef.hash" -> BSONDocument("$in" -> hashs))
+    def update: BSONDocument = BSONDocument("messagesRef.$.state" -> true)
+
+    for {
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec => coll.update.one(selector, update)) // Just one
+        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+    } yield result.nModified
+  }
 }

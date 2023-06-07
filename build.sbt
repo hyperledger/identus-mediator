@@ -155,7 +155,12 @@ lazy val mediator = project
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
     libraryDependencies += D.zioHttp.value,
-    libraryDependencies ++= Seq(D.zioConfig.value, D.zioConfigMagnolia.value, D.zioConfigTypesafe.value, D.zioLoggingSl4j.value),
+    libraryDependencies ++= Seq(
+      D.zioConfig.value,
+      D.zioConfigMagnolia.value,
+      D.zioConfigTypesafe.value,
+      D.zioLoggingSl4j.value
+    ),
     libraryDependencies += D.mongo.value,
   )
   .settings(

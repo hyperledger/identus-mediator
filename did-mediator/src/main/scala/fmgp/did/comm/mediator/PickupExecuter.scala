@@ -8,8 +8,10 @@ import fmgp.did.comm._
 import fmgp.did.comm.Operations._
 import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.pickup3._
+import fmgp.did.db._
 
-object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & Ref[MediatorDB]] {
+object PickupExecuter
+    extends ProtocolExecuterWithServices[ProtocolExecuter.Services & DidAccountRepo & MessageItemRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
     StatusRequest.piuri,
@@ -20,7 +22,7 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
     LiveModeChange.piuri,
   )
 
-  override def program[R1 <: Ref[MediatorDB]](
+  override def program[R1 <: DidAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, DidFail, Action] = {
     // the val is from the match to be definitely stable
@@ -44,19 +46,25 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
       case m: DeliveryRequest =>
         for {
           _ <- ZIO.logInfo("DeliveryRequest")
-          db <- ZIO.service[Ref[MediatorDB]]
-          mediatorDB <- db.get
+          repoMessageItem <- ZIO.service[MessageItemRepo]
+          repoDidAccount <- ZIO.service[DidAccountRepo]
           didRequestingMessages = m.from.asFROMTO
-          messages = mediatorDB.getMessages(
-            to = didRequestingMessages.toDID,
-            from = m.recipient_did.map(_.toDID)
+          mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
+          msgHash = mDidAccount match
+            case None             => ???
+            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
+          allMessagesFor <- repoMessageItem.findByIds(msgHash)
+          messagesToReturn = allMessagesFor.filterNot(
+            _.msg.recipientsSubject
+              .map(_.did)
+              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
           )
           deliveryRequest = MessageDelivery(
             thid = m.id,
             from = m.to.asFROM,
             to = m.from.asTO,
             recipient_did = m.recipient_did,
-            attachments = messages.map(m => (m.hashCode.toString, m)).toMap,
+            attachments = messagesToReturn.map(m => (m.hashCode.toString, m.msg)).toMap,
           )
         } yield SyncReplyOnly(deliveryRequest.toPlaintextMessage)
       case m: MessageDelivery =>
@@ -71,8 +79,17 @@ object PickupExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Serv
               ).toPlaintextMessage
             )
           )
-      case m: MessagesReceived => ZIO.logInfo("MessagesReceived") *> ZIO.succeed(NoReply)
-      case m: LiveModeChange   => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
+      case m: MessagesReceived =>
+        for {
+          _ <- ZIO.logInfo("MessagesReceived")
+          repoDidAccount <- ZIO.service[DidAccountRepo]
+          didRequestingMessages = m.from.asFROMTO
+          mDidAccount <- repoDidAccount.makeAsDelivered(
+            didRequestingMessages.toDID,
+            m.message_id_list.map(e => e.toInt) // TODO have it safe 'toInt'
+          )
+        } yield NoReply
+      case m: LiveModeChange => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
 
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)

@@ -34,8 +34,24 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     } yield result
   }
 
-  def findById(id: HASH): IO[DidFail, Seq[MessageItem]] = {
+  def findById(id: HASH): IO[DidFail, Option[MessageItem]] = {
     def selector: BSONDocument = BSONDocument("_id" -> id)
+    def projection: Option[BSONDocument] = None
+    for {
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec =>
+          coll
+            .find(selector, projection)
+            .cursor[MessageItem]()
+            .collect[Seq](1, Cursor.FailOnError[Seq[MessageItem]]())
+        )
+        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+    } yield result.headOption
+  }
+
+  def findByIds(ids: Seq[HASH]): IO[DidFail, Seq[MessageItem]] = {
+    def selector: BSONDocument = BSONDocument("_id" -> BSONDocument("$in" -> ids))
     def projection: Option[BSONDocument] = None
     for {
       coll <- collection
