@@ -7,7 +7,7 @@ db.createUser({
 });
 
 const database = 'mediator';
-const collectionDidAccount = 'did_account';
+const collectionDidAccount = 'user.account';
 const collectionMessages = 'messages';
 
 // The current database to use.

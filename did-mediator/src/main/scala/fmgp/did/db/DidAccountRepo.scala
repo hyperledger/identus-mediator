@@ -102,15 +102,26 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     def selector =
       BSONDocument(
         "alias" -> BSONDocument("$in" -> recipients),
-        "messagesRef.hash" -> BSONDocument("$nin" -> msg.hashCode),
-        "messagesRef.recipient" -> BSONDocument("$nin" -> recipients)
+        BSONDocument(
+          "messagesRef" ->
+            BSONDocument(
+              "$not" ->
+                BSONDocument(
+                  "$elemMatch" ->
+                    BSONDocument(
+                      "hash" -> msg.hashCode,
+                      "recipient" -> BSONDocument("$in" -> recipients)
+                    )
+                )
+            )
+        )
       )
 
     def update: BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.hashCode(), recipient))
+            recipients.map(recipient => MessageMetaData(msg.hashCode, recipient))
         )
       )
     )

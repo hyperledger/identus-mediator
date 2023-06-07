@@ -18,7 +18,7 @@ object MessageItemRepo {
 }
 
 class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
-  def collectionName: String = "message"
+  def collectionName: String = "messages"
 
   def collection: IO[DidFail, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
