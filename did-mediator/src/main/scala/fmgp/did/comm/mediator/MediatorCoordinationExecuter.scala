@@ -10,57 +10,6 @@ import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.mediatorcoordination2._
 import fmgp.did.db.DidAccountRepo
 
-/** Store all forwarded message */
-case class MediatorDB(db: Map[DIDSubject, Seq[EncryptedMessage]], alias: Map[DIDSubject, DIDSubject]) {
-  def isServing(subject: DIDSubject) = db.get(subject).isDefined
-  def enroll(subject: DIDSubject): Either[String, MediatorDB] =
-    alias.keys.find(_.string == subject.string) match
-      case Some(value) => Left(s"${subject.string} is alredy used as a alias for ${value.string}")
-      case None =>
-        Right(
-          this.copy(
-            db = db.updatedWith(subject) {
-              case Some(value) => Some(value)
-              case None        => Some(Seq.empty)
-            }
-          )
-        )
-  def addAlias(ower: DIDSubject, newAlias: DIDSubject) =
-    db.keys.find(_ == newAlias) match
-      case Some(did) => Left(s"${did} is alredy enrolled for mediation ")
-      case None =>
-        alias.find(_._1 == newAlias) match
-          case Some((a, ower)) => Left(s"$newAlias is alredy an alias of $ower")
-          case None            => Right(this.copy(alias = alias + (newAlias -> ower)))
-  def removeAlias(ower: DIDSubject, newAlias: DIDSubject) =
-    alias.find(_._1 == newAlias) match
-      case None                                           => Left(s"$newAlias is not on DB")
-      case Some((oldAlias, oldOwer)) if (oldOwer != ower) => Left(s"$newAlias is not owed by $ower")
-      case Some((oldAlias, oldOwer)) => Right(this.copy(alias = alias.view.filterKeys(_ == newAlias).toMap))
-
-  def store(to: DIDSubject, msg: EncryptedMessage) =
-    MediatorDB(
-      db = db.updatedWith(alias.getOrElse(to, to))(_.map(e => msg +: e)),
-      alias = alias
-    )
-
-  def getMessages(to: DIDSubject, from: Option[DIDSubject]): Seq[EncryptedMessage] =
-    val allMessageToDid = db.get(to).toSeq.flatten
-    from match
-      case None => allMessageToDid
-      case Some(f) =>
-        allMessageToDid.filter { case em =>
-          em.`protected`.obj match
-            case header: AuthProtectedHeader => header.skid.did == f
-            case _                           => false
-
-        }
-}
-
-object MediatorDB {
-  def empty = MediatorDB(db = Map.empty, alias = Map.empty)
-}
-
 object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & DidAccountRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(

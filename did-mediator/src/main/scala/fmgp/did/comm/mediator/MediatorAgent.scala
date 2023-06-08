@@ -33,8 +33,8 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB] & DidAccountRepo & MessageItemRepo
-  val protocolHandlerLayer: URLayer[Ref[MediatorDB] & DidAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
+  type Services = Resolver & Agent & Operations & MessageDispatcher & DidAccountRepo & MessageItemRepo
+  val protocolHandlerLayer: URLayer[DidAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
     ZLayer.succeed(
       ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
@@ -90,7 +90,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
     MediatorError,
     Option[EncryptedMessage]
   ] =
@@ -111,7 +111,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
     MediatorError,
     Option[EncryptedMessage]
   ] =
@@ -153,7 +153,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
+    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & DidAccountRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -264,7 +264,7 @@ object MediatorAgent {
             .copy(status = Status.BadRequest)
         )
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
+      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
       Throwable,
       Request,
       Response
