@@ -76,7 +76,7 @@ given BSONReader[Base64Obj[ProtectedHeader]] with {
     bson
       .asTry[String]
       .flatMap(v =>
-        v.fromJson[Base64Obj[ProtectedHeader]] match
+        ("\"" + v + "\"").fromJson[Base64Obj[ProtectedHeader]] match // FIXME with a new methods from ScalaDid
           case Left(value)  => Failure(RuntimeException(value))
           case Right(value) => Try(value)
       )
