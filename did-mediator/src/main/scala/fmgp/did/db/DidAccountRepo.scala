@@ -136,7 +136,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
 
   def makeAsDelivered(didAccount: DIDSubject, hashs: Seq[HASH]): ZIO[Any, StorageError, Int] = {
     def selector = BSONDocument("did" -> didAccount.did, "messagesRef.hash" -> BSONDocument("$in" -> hashs))
-    def update: BSONDocument = BSONDocument("messagesRef.$.state" -> true)
+    def update: BSONDocument = BSONDocument("$set" -> BSONDocument("messagesRef.$.state" -> true))
 
     for {
       coll <- collection
