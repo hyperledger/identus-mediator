@@ -53,7 +53,10 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
   }
 
   def findByIds(ids: Seq[HASH]): IO[StorageError, Seq[MessageItem]] = {
-    def selector: BSONDocument = BSONDocument("_id" -> BSONDocument("$in" -> ids))
+    def selector: BSONDocument = {
+      println(s""" {"_id": {"$$in" -> $ids}} """)
+      BSONDocument("_id" -> BSONDocument("$in" -> ids))
+    }
     def projection: Option[BSONDocument] = None
     for {
       coll <- collection

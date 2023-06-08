@@ -54,11 +54,15 @@ object PickupExecuter
             case None             => ???
             case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
           allMessagesFor <- repoMessageItem.findByIds(msgHash)
-          messagesToReturn = allMessagesFor.filterNot(
-            _.msg.recipientsSubject
-              .map(_.did)
-              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
-          )
+          messagesToReturn =
+            if (m.recipient_did.isEmpty) allMessagesFor
+            else {
+              allMessagesFor.filterNot(
+                _.msg.recipientsSubject
+                  .map(_.did)
+                  .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+              )
+            }
           deliveryRequest = MessageDelivery(
             thid = m.id,
             from = m.to.asFROM,
