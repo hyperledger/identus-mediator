@@ -12,6 +12,7 @@ import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM1
 import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM_MESSAGING
 import kotlinx.coroutines.runBlocking
 import models.MediationGrantResponse
+import net.serenitybdd.core.Serenity
 import net.serenitybdd.rest.SerenityRest
 
 object EdgeAgent {
@@ -34,7 +35,9 @@ object EdgeAgent {
     }
 
     fun unpackLastDidcommMessage(): Message {
-        return unpackMessage(SerenityRest.lastResponse().asString())
+        val didcommMessage = unpackMessage(SerenityRest.lastResponse().asString())
+        Serenity.recordReportData().withTitle("DIDComm Response").andContents(didcommMessage.body)
+        return didcommMessage
     }
 
     fun unpackMessage(message: String): Message {

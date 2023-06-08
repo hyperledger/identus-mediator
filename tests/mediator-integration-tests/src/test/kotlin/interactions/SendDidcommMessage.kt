@@ -3,6 +3,7 @@ package interactions
 import net.serenitybdd.screenplay.Actor
 
 import common.EdgeAgent.packMessage
+import common.TestConstants
 import io.iohk.atala.prism.walletsdk.domain.models.Message
 import io.restassured.RestAssured
 import io.restassured.builder.RequestSpecBuilder
@@ -10,12 +11,11 @@ import io.restassured.config.EncoderConfig
 import net.serenitybdd.core.Serenity
 import net.serenitybdd.screenplay.Interaction
 import net.serenitybdd.screenplay.rest.interactions.Post
-import net.serenitybdd.screenplay.rest.questions.ResponseConsequence
-import org.apache.http.HttpStatus
 
 open class SendDidcommMessage(
     val message: Message,
-    val contentType: String = "application/didcomm-encrypted+json"): Interaction {
+    val contentType: String = TestConstants.DIDCOMM_V2_CONTENT_TYPE_ENCRYPTED
+): Interaction {
     override fun <T : Actor> performAs(actor: T) {
         Serenity.recordReportData().withTitle("DIDComm Message").andContents(
             message.toJsonString()
@@ -26,7 +26,11 @@ open class SendDidcommMessage(
         val spec = RequestSpecBuilder().noContentType()
             .setContentType(contentType)
             .setConfig(RestAssured.config()
-                .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+                .encoderConfig(
+                    EncoderConfig
+                        .encoderConfig()
+                        .appendDefaultContentCharsetToContentTypeIfUndefined(false))
+            )
             .setBody(packedMessage)
             .build()
         Post.to("/").with {

@@ -5,67 +5,48 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@Serializable
+sealed interface JsonEncoded {
+    fun toJsonString(): String {
+        return Json.encodeToString(this)
+    }
+}
 
 @Serializable
 data class MediationGrantResponse(
-    val routing_did: String = "",
-) {
-    companion object {
-        fun fromJsonString(json: String): MediationGrantResponse {
-            return Json.decodeFromString<MediationGrantResponse>(json)
-        }
-    }
-}
+    val routing_did: String
+): JsonEncoded
 
 @Serializable
 data class MediationKeylistRequest(
-    val updates: Array<MediationKeylistRequestMessage> = arrayOf()
-) {
-    fun toJsonString(): String {
-        return Json.encodeToString(this)
-    }
-}
+    val updates: Array<MediationKeylistRequestMessage>
+): JsonEncoded
 
 @Serializable
 data class MediationKeylistResponse(
-    val updated: Array<MediationKeylistResponseMessage> = arrayOf(),
-) {
-    companion object {
-        fun fromJsonString(json: String): MediationKeylistResponse {
-            return Json.decodeFromString<MediationKeylistResponse>(json)
-        }
-    }
-}
+    val updated: Array<MediationKeylistResponseMessage>
+): JsonEncoded
 
 @Serializable
 data class MediationKeylistRequestMessage(
-    val action: String = "",
-    val recipient_did: String = "",
-)
+    val action: String,
+    val recipient_did: String
+): JsonEncoded
 
 @Serializable
 data class MediationKeylistResponseMessage(
-    val result: String = "",
-    val action: String = "",
-    val routing_did: String = "",
-)
-
-//"paginate": {
-//    "limit": 30,
-//    "offset": 0
-//}
+    val result: String,
+    val action: String,
+    val routing_did: String
+): JsonEncoded
 
 @Serializable
 data class MediationKeylistQueryRequest(
-    val paginate: Paginate = Paginate(),
-) {
-    fun toJsonString(): String {
-        return Json.encodeToString(this)
-    }
-}
+    val paginate: Paginate
+): JsonEncoded
 
 @Serializable
 data class Paginate(
-    val limit: Int = 0,
-    val offset: Int = 0,
-)
+    val limit: Int,
+    val offset: Int
+): JsonEncoded
