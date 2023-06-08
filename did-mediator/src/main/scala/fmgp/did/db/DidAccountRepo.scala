@@ -71,7 +71,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex))
     } yield Right(())
 
   }
@@ -90,7 +90,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex))
     } yield Right(())
   }
 
@@ -130,7 +130,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex))
     } yield result.nModified
   }
 
@@ -142,7 +142,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.update.one(selector, update)) // Just one
-        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex))
     } yield result.nModified
   }
 }
