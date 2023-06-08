@@ -225,8 +225,9 @@ object MediatorAgent {
   def didCommApp = {
     Http.collectZIO[Request] {
       case req @ Method.GET -> !! if req.headersAsList.exists { h =>
-            h.key == "content-type" &&
-            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+            h.key.toString.toLowerCase == "content-type" &&
+            (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
+              h.value.toString.startsWith(MediaTypes.ENCRYPTED.typ))
           } =>
         for {
           agent <- ZIO.service[MediatorAgent]
@@ -240,8 +241,9 @@ object MediatorAgent {
           ret <- agent.websocketListenerApp(annotationMap)
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
-            h.key == "content-type" &&
-            (h.value == MediaTypes.SIGNED || h.value == MediaTypes.ENCRYPTED.typ)
+            h.key.toString.toLowerCase == "content-type" &&
+            (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
+              h.value.toString.startsWith(MediaTypes.ENCRYPTED.typ))
           } =>
         for {
           agent <- ZIO.service[MediatorAgent]
@@ -256,16 +258,11 @@ object MediatorAgent {
 
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
-        for {
-          agent <- ZIO.service[MediatorAgent]
-          data <- req.body.asString
-          ret <- agent
-            .receiveMessage(data, None)
-            .mapError(fail => MediatorException(fail))
-        } yield Response
-          .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
-      // .copy(status = Status.BadRequest) but ok for now
-
+        ZIO.succeed(
+          Response
+            .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
+            .copy(status = Status.BadRequest)
+        )
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
       Throwable,
