@@ -126,7 +126,7 @@ case class MediatorAgent(
             else
               for {
                 messageItemRepo <- ZIO.service[MessageItemRepo]
-                _ <- messageItemRepo.insertOne(MessageItem(msg)) // store all message
+                _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
 
                 _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)

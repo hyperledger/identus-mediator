@@ -76,7 +76,7 @@ given BSONReader[Base64Obj[ProtectedHeader]] with {
     bson
       .asTry[String]
       .flatMap(v =>
-        ("\"" + v + "\"").fromJson[Base64Obj[ProtectedHeader]] match // FIXME with a new methods from ScalaDid
+        ("\"" + v + "\"").fromJson[Base64Obj[ProtectedHeader]] match // TODO with a new methods from ScalaDid
           case Left(value)  => Failure(RuntimeException(value))
           case Right(value) => Try(value)
       )
@@ -114,13 +114,6 @@ given BSONReader[KTY] with {
   def readTry(bson: BSONValue): Try[KTY] = bson.asTry[String].map(v => KTY.valueOf(v))
 }
 
-// given BSONWriter[KTY.OKP.type] with {
-//   def writeTry(obj: KTY.OKP.type): Try[BSONValue] = Try(BSONString(obj.toString()))
-// }
-// given BSONReader[KTY.OKP.type] with {
-//   def readTry(bson: BSONValue): Try[KTY.OKP.type] = bson.asTry[String].map(v => KTY.OKP)
-// }
-
 given BSONWriter[Curve] with {
   def writeTry(obj: Curve): Try[BSONValue] = Try(BSONString(obj.toString()))
 }
@@ -147,9 +140,6 @@ given BSONWriter[MediaTypes] with {
 given BSONReader[MediaTypes] with {
   def readTry(bson: BSONValue): Try[MediaTypes] = bson.asTry[String].map(v => MediaTypes.valueOf(v))
 }
-
-// given BSONDocumentWriter[KTY] = Macros.writer[KTY] ... SCALA BUG infinit compilation
-// given BSONDocumentReader[KTY] = Macros.reader[KTY] ... SCALA BUG infinit compilation
 
 given BSONDocumentWriter[PublicKey] with {
   override def writeTry(obj: PublicKey): Try[BSONDocument] =

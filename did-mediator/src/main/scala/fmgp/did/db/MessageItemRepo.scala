@@ -26,8 +26,7 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  // TODO Rename method
-  def insertOne(value: MessageItem): IO[StorageError, WriteResult] = {
+  def insert(value: MessageItem): IO[StorageError, WriteResult] = {
     for {
       coll <- collection
       result <- ZIO
