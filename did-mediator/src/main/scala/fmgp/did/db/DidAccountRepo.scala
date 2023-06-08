@@ -23,11 +23,11 @@ object DidAccountRepo {
 class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
   def collectionName: String = "user.account"
 
-  def collection: IO[DidFail, BSONCollection] = reactiveMongoApi.database
+  def collection: IO[StorageCollection, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
-    .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+    .mapError(ex => StorageCollection(ex))
 
-  def newDidAccount(did: DIDSubject /*, alias: Seq[DID] = Seq.empty*/ ): IO[DidFail, WriteResult] = {
+  def newDidAccount(did: DIDSubject /*, alias: Seq[DID] = Seq.empty*/ ): IO[StorageError, WriteResult] = {
     val value = DidAccount(
       did = did,
       alias = Seq(did),
@@ -37,11 +37,11 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.insert.one(value))
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+        .mapError(ex => StorageThrowable(ex))
     } yield result
   }
 
-  def getDidAccount(did: DIDSubject) = {
+  def getDidAccount(did: DIDSubject): IO[StorageError, Option[DidAccount]] = {
     def selector: BSONDocument = BSONDocument("did" -> did)
     def projection: Option[BSONDocument] = None
     for {
@@ -53,11 +53,11 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
             .cursor[DidAccount]()
             .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+        .mapError(ex => StorageThrowable(ex))
     } yield result.headOption
   }
 
-  def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = {
+  def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Unit]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
     def update: BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
@@ -71,12 +71,12 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
     } yield Right(())
 
   }
 
-  def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, DidFail, Either[String, Unit]] = {
+  def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Unit]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
     def update: BSONDocument = BSONDocument(
       "$pull" -> BSONDocument(
@@ -90,14 +90,14 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
     } yield Right(())
   }
 
   /** @return
     *   numbre of documents updated in DB
     */
-  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, DidFail, Int] = {
+  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, StorageError, Int] = {
     def selector =
       BSONDocument(
         "alias" -> BSONDocument("$in" -> recipients.map(_.did)),
@@ -118,9 +118,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient =>
-                MessageMetaData(msg.hashCode, recipient)
-          )
+            recipients.map(recipient => MessageMetaData(msg.hashCode, recipient))
         )
       )
     )
@@ -132,11 +130,11 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
           coll.update
             .one(selector, update) // Just one
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
     } yield result.nModified
   }
 
-  def makeAsDelivered(didAccount: DIDSubject, hashs: Seq[HASH]): ZIO[Any, DidFail, Int] = {
+  def makeAsDelivered(didAccount: DIDSubject, hashs: Seq[HASH]): ZIO[Any, StorageError, Int] = {
     def selector = BSONDocument("did" -> didAccount.did, "messagesRef.hash" -> BSONDocument("$in" -> hashs))
     def update: BSONDocument = BSONDocument("messagesRef.$.state" -> true)
 
@@ -144,7 +142,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.update.one(selector, update)) // Just one
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex))) // TODO may appropriate error
+        .mapError(ex => StorageThrowable(ex)) // TODO may appropriate error
     } yield result.nModified
   }
 }

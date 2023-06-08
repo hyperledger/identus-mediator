@@ -6,6 +6,7 @@ import reactivemongo.api.bson._
 import java.time.Instant
 type HASH = Int
 // messages
+
 case class MessageItem(_id: HASH, msg: EncryptedMessage, headers: ProtectedHeader)
 object MessageItem {
   def apply(msg: EncryptedMessage): MessageItem = new MessageItem(msg.hashCode(), msg, msg.`protected`.obj)

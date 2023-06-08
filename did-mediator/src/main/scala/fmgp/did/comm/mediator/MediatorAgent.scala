@@ -52,11 +52,11 @@ case class MediatorAgent(
   //   override def keys: Seq[PrivateKey] = _keyStoreAux
   // })
 
-  val messageDispatcherLayer: ZLayer[Client, DidFail, MessageDispatcher] =
-    MessageDispatcherJVM.layer.mapError(ex => SomeThrowable(ex))
+  val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
+    MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
-  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, DidFail, PlaintextMessage] =
+  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError, PlaintextMessage] =
     for {
       ops <- ZIO.service[Operations]
       plaintextMessage <- msg match
@@ -64,17 +64,26 @@ case class MediatorAgent(
         case em: EncryptedMessage =>
           {
             em.`protected`.obj match
-              case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ops.anonDecrypt(em)
-              case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => ops.authDecrypt(em)
+              case AnonProtectedHeader(epk, apv, typ, enc, alg) =>
+                ops
+                  .anonDecrypt(em)
+                  .mapError(ex => MediatorDidError(ex))
+              case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) =>
+                ops
+                  .authDecrypt(em)
+                  .mapError(ex => MediatorDidError(ex))
           }.flatMap(decrypt _)
         case sm: SignedMessage =>
-          ops.verify(sm).flatMap {
-            case false => ZIO.fail(ValidationFailed)
-            case true =>
-              sm.payload.content.fromJson[Message] match
-                case Left(error) => ZIO.fail(FailToParse(error))
-                case Right(msg2) => decrypt(msg2)
-          }
+          ops
+            .verify(sm)
+            .mapError(ex => MediatorDidError(ex))
+            .flatMap {
+              case false => ZIO.fail(MediatorDidError(ValidationFailed))
+              case true =>
+                sm.payload.content.fromJson[Message] match
+                  case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
+                  case Right(msg2) => decrypt(msg2)
+            }
     } yield (plaintextMessage)
 
   def receiveMessage(
@@ -82,14 +91,14 @@ case class MediatorAgent(
       mSocketID: Option[SocketID],
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
-    DidFail,
+    MediatorError,
     Option[EncryptedMessage]
   ] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
           ZIO.logError(s"Data is not a EncryptedMessage: $error")
-            *> ZIO.fail(FailToParse(error))
+            *> ZIO.fail(MediatorDidError(FailToParse(error)))
         case Right(message) =>
           ZIO.logDebug(
             "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
@@ -103,7 +112,7 @@ case class MediatorAgent(
       mSocketID: Option[SocketID]
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB] & MessageItemRepo & DidAccountRepo,
-    DidFail,
+    MediatorError,
     Option[EncryptedMessage]
   ] =
     ZIO
@@ -159,7 +168,7 @@ case class MediatorAgent(
           DIDSocketManager
             .newMessage(ch, text)
             .flatMap { case (socketID, encryptedMessage) => receiveMessage(encryptedMessage, Some(socketID)) }
-            .mapError(ex => DidException(ex))
+            .mapError(ex => MediatorException(ex))
         }
       case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
@@ -239,7 +248,7 @@ object MediatorAgent {
           data <- req.body.asString
           maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
-            .mapError(fail => DidException(fail))
+            .mapError(fail => MediatorException(fail))
           ret = maybeSyncReplyMsg match
             case None        => Response.ok
             case Some(value) => Response.json(value.toJson)
@@ -252,7 +261,7 @@ object MediatorAgent {
           data <- req.body.asString
           ret <- agent
             .receiveMessage(data, None)
-            .mapError(fail => DidException(fail))
+            .mapError(fail => MediatorException(fail))
         } yield Response
           .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
       // .copy(status = Status.BadRequest) but ok for now

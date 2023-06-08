@@ -18,7 +18,7 @@ object ForwardMessageExecuter
 
   override def program[R1 <: DidAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, DidFail, Action] = {
+  ): ZIO[R1, MediatorError, Action] = {
     // the val is from the match to be definitely stable
     val piuriForwardMessage = ForwardMessage.piuri
 

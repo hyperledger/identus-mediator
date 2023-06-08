@@ -75,7 +75,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
 
   override def program[R1 <: (DidAccountRepo)](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, DidFail, Action] = {
+  ): ZIO[R1, MediatorError, Action] = {
     // the val is from the match to be definitely stable
     val piuriMediateRequest = MediateRequest.piuri
     val piuriMediateGrant = MediateGrant.piuri

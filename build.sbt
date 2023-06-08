@@ -140,6 +140,7 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
 lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .in(file("http-utils"))
   .settings(publish / skip := true)
+  .settings((setupTestConfig): _*)
   .settings(
     libraryDependencies += D.scalaDID.value,
   )
@@ -150,6 +151,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
 lazy val mediator = project
   .in(file("did-mediator"))
   .settings(publish / skip := true)
+  .settings((setupTestConfig): _*)
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,

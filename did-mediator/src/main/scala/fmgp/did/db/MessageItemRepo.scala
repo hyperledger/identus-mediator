@@ -1,13 +1,15 @@
 package fmgp.did.db
 
+import zio._
+import scala.concurrent.ExecutionContext
+
 import reactivemongo.api.bson._
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.Cursor
-import scala.concurrent.ExecutionContext
-import zio._
 import reactivemongo.api.CursorProducer
-import fmgp.crypto.error._
+
+import fmgp.did._
 object MessageItemRepo {
   def layer: ZLayer[ReactiveMongoApi, Throwable, MessageItemRepo] =
     ZLayer {
@@ -20,21 +22,21 @@ object MessageItemRepo {
 class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
   def collectionName: String = "messages"
 
-  def collection: IO[DidFail, BSONCollection] = reactiveMongoApi.database
+  def collection: IO[StorageCollection, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
-    .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+    .mapError(ex => StorageCollection(ex))
 
   // TODO Rename method
-  def insertOne(value: MessageItem): IO[DidFail, WriteResult] = {
+  def insertOne(value: MessageItem): IO[StorageError, WriteResult] = {
     for {
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.insert.one(value))
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+        .mapError(ex => StorageThrowable(ex))
     } yield result
   }
 
-  def findById(id: HASH): IO[DidFail, Option[MessageItem]] = {
+  def findById(id: HASH): IO[StorageError, Option[MessageItem]] = {
     def selector: BSONDocument = BSONDocument("_id" -> id)
     def projection: Option[BSONDocument] = None
     for {
@@ -46,11 +48,11 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .cursor[MessageItem]()
             .collect[Seq](1, Cursor.FailOnError[Seq[MessageItem]]())
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+        .mapError(ex => StorageThrowable(ex))
     } yield result.headOption
   }
 
-  def findByIds(ids: Seq[HASH]): IO[DidFail, Seq[MessageItem]] = {
+  def findByIds(ids: Seq[HASH]): IO[StorageError, Seq[MessageItem]] = {
     def selector: BSONDocument = BSONDocument("_id" -> BSONDocument("$in" -> ids))
     def projection: Option[BSONDocument] = None
     for {
@@ -62,7 +64,7 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .cursor[MessageItem]()
             .collect[Seq](-1, Cursor.FailOnError[Seq[MessageItem]]())
         )
-        .catchAll(ex => ZIO.fail(SomeThrowable(ex)))
+        .mapError(ex => StorageThrowable(ex))
     } yield result
   }
 
