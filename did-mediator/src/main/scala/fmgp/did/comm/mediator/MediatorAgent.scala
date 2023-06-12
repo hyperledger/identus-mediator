@@ -24,9 +24,8 @@ import reactivemongo.api.bson.Macros.{_, given}
 
 case class MediatorAgent(
     override val id: DID,
-    override val keyStore: KeyStore, // Shound we make it lazy with ZIO
+    override val keyStore: KeyStore, // Should we make it lazy with ZIO
     didSocketManager: Ref[DIDSocketManager],
-    messageDB: Ref[MessageDB],
 ) extends Agent {
   override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
 
@@ -127,8 +126,6 @@ case class MediatorAgent(
               for {
                 messageItemRepo <- ZIO.service[MessageItemRepo]
                 _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
-
-                _ <- messageDB.update(db => db.add(msg))
                 plaintextMessage <- decrypt(msg)
                 _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
                   ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
@@ -214,13 +211,7 @@ object MediatorAgent {
 
   def make(id: DID, keyStore: KeyStore): ZIO[Any, Nothing, MediatorAgent] = for {
     sm <- DIDSocketManager.make
-    db <- Ref.make(MessageDB())
-  } yield MediatorAgent(id, keyStore, sm, db)
-
-  // def make(agent: AgentDIDPeer): ZIO[Any, Nothing, MediatorAgent] = for {
-  //   sm <- DIDSocketManager.make
-  //   db <- Ref.make(MessageDB())
-  // } yield MediatorAgent(agent.id, agent.keyStore, sm, db)
+  } yield MediatorAgent(id, keyStore, sm)
 
   def didCommApp = {
     Http.collectZIO[Request] {

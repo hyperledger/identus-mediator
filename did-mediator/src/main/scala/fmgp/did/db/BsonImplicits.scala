@@ -75,11 +75,11 @@ given BSONReader[Base64Obj[ProtectedHeader]] with {
   def readTry(bson: BSONValue): Try[Base64Obj[ProtectedHeader]] =
     bson
       .asTry[String]
-      .flatMap(v =>
-        ("\"" + v + "\"").fromJson[Base64Obj[ProtectedHeader]] match // TODO with a new methods from ScalaDid
+      .flatMap{v =>
+        s""""$v"""".fromJson[Base64Obj[ProtectedHeader]] match // TODO with a new methods from ScalaDid
           case Left(value)  => Failure(RuntimeException(value))
           case Right(value) => Try(value)
-      )
+}
 }
 
 given BSONWriter[Base64] with {
