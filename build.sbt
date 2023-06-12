@@ -25,21 +25,8 @@ lazy val V = new {
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
-//   val zioPrelude = "1.0.0-RC19"
-
-//   // https://mvnrepository.com/artifact/io.github.cquiroz/scala-java-time
-//   val scalaJavaTime = "2.3.0"
-
-//   val logbackClassic = "1.2.10"
-//   val scalaLogging = "3.9.4"
-
-//   val laika = "0.19.1"
-
-//   val laminar = "15.0.1"
-//   val waypoint = "6.0.0"
-//   val upickle = "3.1.0"
-//   // https://www.npmjs.com/package/material-components-web
-//   val materialComponents = "12.0.0"
+  val zioSl4j = "2.1.13"
+  val mongo = "1.1.0-RC10"
 }
 
 /** Dependencies */
@@ -66,28 +53,10 @@ lazy val D = new {
   val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
   val zioConfigMagnolia = Def.setting("dev.zio" %% "zio-config-magnolia" % V.zioConfig) // For deriveConfig
   val zioConfigTypesafe = Def.setting("dev.zio" %% "zio-config-typesafe" % V.zioConfig) // For HOCON
-//   val zioPrelude = Def.setting("dev.zio" %%% "zio-prelude" % V.zioPrelude)
-//   // val zioTest = Def.setting("dev.zio" %%% "zio-test" % V.zio % Test)
-//   // val zioTestSBT = Def.setting("dev.zio" %%% "zio-test-sbt" % V.zio % Test)
-//   // val zioTestMagnolia = Def.setting("dev.zio" %%% "zio-test-magnolia" % V.zio % Test)
-//   val zioMunitTest = Def.setting("com.github.poslegm" %%% "munit-zio" % V.zioMunitTest % Test)
-
-//   // Needed for ZIO
-//   val scalaJavaT = Def.setting("io.github.cquiroz" %%% "scala-java-time" % V.scalaJavaTime)
-//   val scalaJavaTZ = Def.setting("io.github.cquiroz" %%% "scala-java-time-tzdb" % V.scalaJavaTime)
-
-//   // Test DID comm
-//   // val didcomm = Def.setting("org.didcommx" % "didcomm" % "0.3.1")
-
+  val zioLoggingSl4j = Def.setting("dev.zio" %% "zio-logging-slf4j" % V.zioSl4j)
+  val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
 //   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
   val munit = Def.setting("org.scalameta" %%% "munit" % V.munit % Test)
-
-//   val laika = Def.setting("org.planet42" %%% "laika-core" % V.laika) // JVM & JS
-
-//   // For WEBAPP
-//   val laminar = Def.setting("com.raquo" %%% "laminar" % V.laminar)
-//   val waypoint = Def.setting("com.raquo" %%% "waypoint" % V.waypoint)
-//   val upickle = Def.setting("com.lihaoyi" %%% "upickle" % V.upickle)
 }
 
 inThisBuild(
@@ -171,6 +140,7 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
 lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .in(file("http-utils"))
   .settings(publish / skip := true)
+  .settings((setupTestConfig): _*)
   .settings(
     libraryDependencies += D.scalaDID.value,
   )
@@ -181,11 +151,18 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
 lazy val mediator = project
   .in(file("did-mediator"))
   .settings(publish / skip := true)
+  .settings((setupTestConfig): _*)
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
     libraryDependencies += D.zioHttp.value,
-    libraryDependencies ++= Seq(D.zioConfig.value, D.zioConfigMagnolia.value, D.zioConfigTypesafe.value),
+    libraryDependencies ++= Seq(
+      D.zioConfig.value,
+      D.zioConfigMagnolia.value,
+      D.zioConfigTypesafe.value,
+      D.zioLoggingSl4j.value
+    ),
+    libraryDependencies += D.mongo.value,
   )
   .settings(
     Compile / mainClass := Some("fmgp.did.demo.MediatorStandalone"),
