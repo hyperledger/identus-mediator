@@ -1,16 +1,26 @@
 version: '3.9'
 
 services:
-  # mongo:
-  #   image: mongo:5.0
-  #   ports:
-  #     - 27017:27017
-  #   #volumes:
-  #   # - ./tmp/mongo:/data/db
-  #   environment:
-  #     - MONGO_INITDB_ROOT_USERNAME=admin
-  #     - MONGO_INITDB_ROOT_PASSWORD=admin
-
+  mongo:
+    image: mongo:6.0
+    ports:
+      - 27017:27017
+    #volumes:
+    # - ./tmp/mongo:/data/db
+    command: ["--auth"]
+    # command: ["--bind_ip_all","--keyFile", "/opt/keyfile/keyfile","--replSet", "rs0","--auth"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+      - MONGO_INITDB_DATABASE=mediator
+      # - MONGO_REPLICA_SET_NAME=rs0
+    volumes:
+      - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
+    #   - ./:/opt/keyfile/
+    # healthcheck:
+    #   test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
+    #   interval: 10s
+    #   start_period: 30s
   atalaprism-mediator:
     image: ghcr.io/input-output-hk/mediator:0.1.1-SNAPSHOT
     ports:
@@ -24,15 +34,20 @@ services:
       - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
       - SERVICE_ENDPOINT=https://k8s-int.atalaprism.io/mediator
       # Config storage
-      #- DB_URL=mongodb://admin:admin@mongo:27017
-      #- MONGODB_USER=admin
-      #- MONGODB_PASSWORD=admin
-    # depends_on:
-    #   - "mongo"
+      #- DB_URL=mongodb://admin:admin@localhost:27017
+      - MONGODB_USER=admin
+      - MONGODB_PASSWORD=admin
+      - MONGODB_PROTOCOL=mongodb
+      - MONGODB_HOST=localhost
+      - MONGODB_PORT=27017
+      - MONGODB_DB_NAME=mediator
+    depends_on:
+      - "mongo"
 
 
 # RUN
 # docker-compose up -d
 # docker-compose ps
+# docker-compose up mongo
 # docker-compose exec mongo /bin/sh
 # docker exec -it mongo-1 bash
