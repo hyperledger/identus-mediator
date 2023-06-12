@@ -5,6 +5,7 @@ Scenario: Successful Mediation Request
   Then Mediator responds to Recipient with mediate grant message
 
 # BUG: field should be called recipient_did instead of routing_did, Fabio to fix soon
+# https://input-output.atlassian.net/browse/ATL-4845
 Scenario: Recipient adds new key to keylist
   Given Recipient successfully set up a connection with the mediator
   When Recipient sends a keylist update message to the mediator with a new peer did
@@ -17,12 +18,14 @@ Scenario: Recipient removes alias from keylist
   Then Mediator responds to Recipient with a correct keylist update remove message
 
 # BUG: server-error is returned, lets change to no_change
+# https://input-output.atlassian.net/browse/ATL-4847
 Scenario: Recipient removes not existing alias
   Given Recipient successfully set up a connection with the mediator
   When Recipient sends a keylist update message to the mediator to remove not existing alias
   Then Mediator responds to Recipient with a message with no_change status
 
 # BUG: server-error is returned, no logs available on the mediator side
+# https://input-output.atlassian.net/browse/ATL-4848
 Scenario: Recipient removes the last alias from keylist
   Given Recipient successfully set up a connection with the mediator
   When Recipient sends a keylist update message to the mediator to remove the last alias

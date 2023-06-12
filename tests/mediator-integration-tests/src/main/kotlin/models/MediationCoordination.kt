@@ -1,16 +1,6 @@
 package models
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
-@Serializable
-sealed interface JsonEncoded {
-    fun toJsonString(): String {
-        return Json.encodeToString(this)
-    }
-}
 
 @Serializable
 data class MediationGrantResponse(
@@ -19,12 +9,12 @@ data class MediationGrantResponse(
 
 @Serializable
 data class MediationKeylistRequest(
-    val updates: Array<MediationKeylistRequestMessage>
+    val updates: List<MediationKeylistRequestMessage>
 ): JsonEncoded
 
 @Serializable
 data class MediationKeylistResponse(
-    val updated: Array<MediationKeylistResponseMessage>
+    val updated: List<MediationKeylistResponseMessage>
 ): JsonEncoded
 
 @Serializable
@@ -37,7 +27,7 @@ data class MediationKeylistRequestMessage(
 data class MediationKeylistResponseMessage(
     val result: String,
     val action: String,
-    val routing_did: String
+    val recipient_did: String
 ): JsonEncoded
 
 @Serializable

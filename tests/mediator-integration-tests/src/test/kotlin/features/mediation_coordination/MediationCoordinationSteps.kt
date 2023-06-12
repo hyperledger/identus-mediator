@@ -35,7 +35,6 @@ class MediationCoordinationSteps {
     fun mediatorRespondsToHimWithMediateGrantMessage(recipient: Actor) {
         val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
         val didcommBody = Json.decodeFromString<MediationGrantResponse>(didcommMessage.body)
-        Serenity.recordReportData().withTitle("Mediator response").andContents(didcommMessage.body)
         recipient.attemptsTo(
             Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_GRANT),
             Ensure.that(didcommMessage.from.toString()).isEqualTo(Environments.MEDIATOR_PEER_DID.toString()),
@@ -66,7 +65,7 @@ class MediationCoordinationSteps {
             from = EdgeAgent.peerDID,
             to = Environments.MEDIATOR_PEER_DID,
             body = MediationKeylistRequest(
-                updates = arrayOf(
+                updates = listOf(
                     MediationKeylistRequestMessage(
                         action = "add",
                         recipient_did = newPeerDid.toString(),
@@ -83,13 +82,12 @@ class MediationCoordinationSteps {
     fun mediatorRespondsToHimWithACorrectKeylistUpdateAddMessage(recipient: Actor) {
         val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
         val didcommBody = Json.decodeFromString<MediationKeylistResponse>(didcommMessage.body)
-        Serenity.recordReportData().withTitle("Mediator response").andContents(didcommMessage.body)
         recipient.attemptsTo(
             Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_RESPONSE),
             Ensure.that(didcommBody.updated.size).isGreaterThan(0),
-            Ensure.that(didcommBody.updated[0].result).isEqualTo("success"),
-            Ensure.that(didcommBody.updated[0].action).isEqualTo("add"),
-            Ensure.that(didcommBody.updated[0].routing_did).isEqualTo(
+            Ensure.that(didcommBody.updated[0].result).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_RESULT_SUCCESS),
+            Ensure.that(didcommBody.updated[0].action).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_ADD),
+            Ensure.that(didcommBody.updated[0].recipient_did).isEqualTo(
                 recipient.recall<DID>("newPeerDid").toString()
             ),
         )
@@ -97,20 +95,21 @@ class MediationCoordinationSteps {
 
     @When("{actor} sends a keylist query message to the mediator")
     fun recipientSendsAKeylistQueryMessageToTheMediator(recipient: Actor) {
-        val keylistUpdateMessage = Message(
-            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
-            from = EdgeAgent.peerDID,
-            to = Environments.MEDIATOR_PEER_DID,
-            body = MediationKeylistQueryRequest(
-                paginate = Paginate(
-                    limit = 2,
-                    offset = 0
-                )
-            ).toJsonString()
-        )
-        recipient.attemptsTo(
-            SendDidcommMessage(keylistUpdateMessage)
-        )
+        TODO("Not supported by the PRISM Mediator yet")
+//        val keylistUpdateMessage = Message(
+//            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
+//            from = EdgeAgent.peerDID,
+//            to = Environments.MEDIATOR_PEER_DID,
+//            body = MediationKeylistQueryRequest(
+//                paginate = Paginate(
+//                    limit = 2,
+//                    offset = 0
+//                )
+//            ).toJsonString()
+//        )
+//        recipient.attemptsTo(
+//            SendDidcommMessage(keylistUpdateMessage)
+//        )
     }
 
     @Then("Mediator responds to {actor} with keylist message containing the current list of keys")
@@ -125,7 +124,7 @@ class MediationCoordinationSteps {
             from = EdgeAgent.peerDID,
             to = Environments.MEDIATOR_PEER_DID,
             body = MediationKeylistRequest(
-                updates = arrayOf(
+                updates = listOf(
                     MediationKeylistRequestMessage(
                         action = "remove",
                         recipient_did = EdgeAgent.peerDID.toString()
@@ -145,7 +144,7 @@ class MediationCoordinationSteps {
             from = EdgeAgent.peerDID,
             to = Environments.MEDIATOR_PEER_DID,
             body = MediationKeylistRequest(
-                updates = arrayOf(
+                updates = listOf(
                     MediationKeylistRequestMessage(
                         action = "remove",
                         recipient_did = recipient.recall<DID>("newPeerDid").toString()
@@ -178,7 +177,7 @@ class MediationCoordinationSteps {
             from = EdgeAgent.peerDID,
             to = Environments.MEDIATOR_PEER_DID,
             body = MediationKeylistRequest(
-                updates = arrayOf(
+                updates = listOf(
                     MediationKeylistRequestMessage(
                         action = TestConstants.MEDIATOR_COORDINATION_ACTION_REMOVE,
                         recipient_did = TestConstants.EXAMPLE_DID
