@@ -15,31 +15,34 @@ import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol._
+import fmgp.did.db._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
+
+import reactivemongo.api.bson.{_, given}
+import reactivemongo.api.bson.Macros.{_, given}
 
 case class MediatorAgent(
     override val id: DID,
-    override val keyStore: KeyStore, // Shound we make it lazy with ZIO
+    override val keyStore: KeyStore, // Should we make it lazy with ZIO
     didSocketManager: Ref[DIDSocketManager],
-    messageDB: Ref[MessageDB],
 ) extends Agent {
   override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
 
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & Ref[MediatorDB]
-  val protocolHandlerLayer: URLayer[Ref[MediatorDB], ProtocolExecuter[Services]] =
-    ZLayer {
-      for {
-        ref <- ZIO.service[Ref[MediatorDB]]
-      } yield ProtocolExecuterCollection[Services](
+  type Services = Resolver & Agent & Operations & MessageDispatcher & DidAccountRepo & MessageItemRepo
+  val protocolHandlerLayer: URLayer[DidAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
+    ZLayer.succeed(
+      ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
         new TrustPingExecuter,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
         PickupExecuter,
       )
-    }
+    )
 
   // private def _didSubjectAux = id
   // private def _keyStoreAux = keyStore.keys.toSeq
@@ -48,11 +51,11 @@ case class MediatorAgent(
   //   override def keys: Seq[PrivateKey] = _keyStoreAux
   // })
 
-  val messageDispatcherLayer: ZLayer[Client, DidFail, MessageDispatcher] =
-    MessageDispatcherJVM.layer.mapError(ex => SomeThrowable(ex))
+  val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
+    MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
-  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, DidFail, PlaintextMessage] =
+  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError, PlaintextMessage] =
     for {
       ops <- ZIO.service[Operations]
       plaintextMessage <- msg match
@@ -60,32 +63,41 @@ case class MediatorAgent(
         case em: EncryptedMessage =>
           {
             em.`protected`.obj match
-              case AnonProtectedHeader(epk, apv, typ, enc, alg)            => ops.anonDecrypt(em)
-              case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) => ops.authDecrypt(em)
+              case AnonProtectedHeader(epk, apv, typ, enc, alg) =>
+                ops
+                  .anonDecrypt(em)
+                  .mapError(ex => MediatorDidError(ex))
+              case AuthProtectedHeader(epk, apv, skid, apu, typ, enc, alg) =>
+                ops
+                  .authDecrypt(em)
+                  .mapError(ex => MediatorDidError(ex))
           }.flatMap(decrypt _)
         case sm: SignedMessage =>
-          ops.verify(sm).flatMap {
-            case false => ZIO.fail(ValidationFailed)
-            case true =>
-              sm.payload.content.fromJson[Message] match
-                case Left(error) => ZIO.fail(FailToParse(error))
-                case Right(msg2) => decrypt(msg2)
-          }
+          ops
+            .verify(sm)
+            .mapError(ex => MediatorDidError(ex))
+            .flatMap {
+              case false => ZIO.fail(MediatorDidError(ValidationFailed))
+              case true =>
+                sm.payload.content.fromJson[Message] match
+                  case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
+                  case Right(msg2) => decrypt(msg2)
+            }
     } yield (plaintextMessage)
 
   def receiveMessage(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
-    DidFail,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
+    MediatorError,
     Option[EncryptedMessage]
   ] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
           ZIO.logError(s"Data is not a EncryptedMessage: $error")
-            *> ZIO.fail(FailToParse(error))
+            *> ZIO.fail(MediatorDidError(FailToParse(error)))
         case Right(message) =>
           ZIO.logDebug(
             "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
@@ -98,8 +110,8 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
-    DidFail,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
+    MediatorError,
     Option[EncryptedMessage]
   ] =
     ZIO
@@ -112,7 +124,8 @@ case class MediatorAgent(
                 *> ZIO.none
             else
               for {
-                _ <- messageDB.update(db => db.add(msg))
+                messageItemRepo <- ZIO.service[MessageItemRepo]
+                _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
                 plaintextMessage <- decrypt(msg)
                 _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
                   ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
@@ -137,7 +150,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & Ref[MediatorDB],
+    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & DidAccountRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -152,7 +165,7 @@ case class MediatorAgent(
           DIDSocketManager
             .newMessage(ch, text)
             .flatMap { case (socketID, encryptedMessage) => receiveMessage(encryptedMessage, Some(socketID)) }
-            .mapError(ex => DidException(ex))
+            .mapError(ex => MediatorException(ex))
         }
       case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
@@ -198,13 +211,7 @@ object MediatorAgent {
 
   def make(id: DID, keyStore: KeyStore): ZIO[Any, Nothing, MediatorAgent] = for {
     sm <- DIDSocketManager.make
-    db <- Ref.make(MessageDB())
-  } yield MediatorAgent(id, keyStore, sm, db)
-
-  // def make(agent: AgentDIDPeer): ZIO[Any, Nothing, MediatorAgent] = for {
-  //   sm <- DIDSocketManager.make
-  //   db <- Ref.make(MessageDB())
-  // } yield MediatorAgent(agent.id, agent.keyStore, sm, db)
+  } yield MediatorAgent(id, keyStore, sm)
 
   def didCommApp = {
     Http.collectZIO[Request] {
@@ -234,7 +241,7 @@ object MediatorAgent {
           data <- req.body.asString
           maybeSyncReplyMsg <- agent
             .receiveMessage(data, None)
-            .mapError(fail => DidException(fail))
+            .mapError(fail => MediatorException(fail))
           ret = maybeSyncReplyMsg match
             case None        => Response.ok
             case Some(value) => Response.json(value.toJson)
@@ -248,7 +255,7 @@ object MediatorAgent {
             .copy(status = Status.BadRequest)
         )
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & Ref[MediatorDB],
+      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
       Throwable,
       Request,
       Response
