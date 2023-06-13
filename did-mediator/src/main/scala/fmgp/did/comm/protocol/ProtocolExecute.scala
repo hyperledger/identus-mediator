@@ -11,6 +11,7 @@ import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.basicmessage2._
 import fmgp.did.comm.protocol.trustping2._
 import fmgp.did.db._
+import io.iohk.atala.mediator.comm.*
 
 //TODO pick a better name // maybe "Protocol" only
 

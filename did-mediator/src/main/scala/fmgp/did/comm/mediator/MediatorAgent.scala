@@ -9,7 +9,8 @@ import zio.http.socket.SocketApp
 
 import io.netty.handler.codec.http.HttpHeaderNames
 
-import fmgp.util._
+
+import io.iohk.atala.mediator.utils._
 import fmgp.did._
 import fmgp.crypto._
 import fmgp.crypto.error._
@@ -18,7 +19,7 @@ import fmgp.did.comm.protocol._
 import fmgp.did.db._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
-
+import io.iohk.atala.mediator.comm.*
 import reactivemongo.api.bson.{_, given}
 import reactivemongo.api.bson.Macros.{_, given}
 

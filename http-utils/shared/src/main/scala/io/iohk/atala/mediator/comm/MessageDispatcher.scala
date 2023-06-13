@@ -1,12 +1,11 @@
-package fmgp.did.comm
+package io.iohk.atala.mediator.comm
 
-import zio._
-import zio.json._
-
-import fmgp.did._
-import fmgp.did.comm._
-import fmgp.crypto.error._
-import fmgp.util.MyHeaders
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import io.iohk.atala.mediator.utils.MyHeaders
+import zio.*
+import zio.json.*
 
 trait MessageDispatcher {
   def send(

@@ -1,6 +1,6 @@
-package fmgp.util
+package io.iohk.atala.mediator.utils
 
-import zio._
+import zio.*
 
 type SocketID = String
 case class MyChannel(id: SocketID, socketOutHub: Hub[String])

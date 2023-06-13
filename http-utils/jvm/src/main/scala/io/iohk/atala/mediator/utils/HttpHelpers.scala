@@ -1,7 +1,7 @@
-package fmgp.util
+package io.iohk.atala.mediator.utils
 
-import zio._
-import zio.http._
+import zio.*
+import zio.http.*
 
 extension [R, Err](app: HttpApp[R, Err])
   def annotateLogs: HttpApp[R, Err] =

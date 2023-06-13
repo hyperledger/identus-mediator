@@ -12,12 +12,12 @@ import zio.http.Http.Static
 import zio.config._
 import zio.config.magnolia._
 import zio.config.typesafe._
-
+import io.iohk.atala.mediator.comm.*
+import io.iohk.atala.mediator.utils._
 import scala.io.Source
 
 import fmgp.crypto._
 import fmgp.crypto.error._
-import fmgp.util._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.mediator._

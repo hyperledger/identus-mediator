@@ -1,14 +1,13 @@
-package fmgp.util
+package io.iohk.atala.mediator.utils
 
-import zio._
-import zio.json._
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import zio.*
+import zio.http.socket.*
 import zio.http.{Channel, ChannelEvent}
-import zio.http.socket._
-import zio.stream._
-
-import fmgp.did._
-import fmgp.did.comm._
-import fmgp.crypto.error._
+import zio.json.*
+import zio.stream.*
 
 case class DIDSocketManager(
     sockets: Map[SocketID, MyChannel] = Map.empty,
