@@ -1,30 +1,29 @@
-package fmgp.did.demo
+package io.iohk.atala.mediator.app
 
-import zio._
-import zio.json._
-import zio.stream._
-import zio.http._
-import zio.http.model._
-import zio.http.socket._
-import zio.http.ZClient.ClientLive
-import zio.http.Http.Empty
-import zio.http.Http.Static
-import zio.config._
-import zio.config.magnolia._
-import zio.config.typesafe._
+import fmgp.crypto.*
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import fmgp.did.comm.protocol.*
+import fmgp.did.method.peer.*
+import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
-import io.iohk.atala.mediator.utils._
+import io.iohk.atala.mediator.db.*
+import io.iohk.atala.mediator.protocols.*
+import io.iohk.atala.mediator.utils.*
+import zio.*
+import zio.config.*
+import zio.config.magnolia.*
+import zio.config.typesafe.*
+import zio.http.*
+import zio.http.Http.{Empty, Static}
+import zio.http.ZClient.ClientLive
+import zio.http.model.*
+import zio.http.socket.*
+import zio.json.*
+import zio.stream.*
+
 import scala.io.Source
-
-import fmgp.crypto._
-import fmgp.crypto.error._
-import fmgp.did._
-import fmgp.did.comm._
-import fmgp.did.comm.mediator._
-import fmgp.did.comm.protocol._
-import fmgp.did.method.peer._
-import fmgp.did.db._
-
 case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),

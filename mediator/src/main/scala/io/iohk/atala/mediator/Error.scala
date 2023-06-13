@@ -1,9 +1,9 @@
-package fmgp.did
+package io.iohk.atala.mediator
 
-import fmgp.crypto.error._
-import fmgp.did._
-import fmgp.did.comm._
-import zio.json._
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import zio.json.*
 
 trait MediatorError
 

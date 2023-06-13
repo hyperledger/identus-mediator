@@ -1,8 +1,9 @@
-package fmgp.did.db
+package io.iohk.atala.mediator.db
 
-import fmgp.did._
-import fmgp.did.comm._
-import reactivemongo.api.bson._
+import fmgp.did.*
+import fmgp.did.comm.*
+import reactivemongo.api.bson.*
+
 import java.time.Instant
 type HASH = Int
 // messages

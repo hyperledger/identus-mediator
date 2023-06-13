@@ -1,28 +1,27 @@
-package fmgp.did.comm.mediator
+package io.iohk.atala.mediator.app
 
-import zio._
-import zio.json._
-import zio.http._
-import zio.http.model._
-import zio.http.socket._
-import zio.http.socket.SocketApp
-
+import fmgp.crypto.*
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import fmgp.did.comm.protocol.*
+import io.iohk.atala.mediator.*
+import io.iohk.atala.mediator.actions.*
+import io.iohk.atala.mediator.comm.*
+import io.iohk.atala.mediator.db.*
+import io.iohk.atala.mediator.protocols.*
+import io.iohk.atala.mediator.utils.*
 import io.netty.handler.codec.http.HttpHeaderNames
+import reactivemongo.api.bson.Macros.{*, given}
+import reactivemongo.api.bson.{*, given}
+import zio.*
+import zio.http.*
+import zio.http.model.*
+import zio.http.socket.*
+import zio.json.*
 
-
-import io.iohk.atala.mediator.utils._
-import fmgp.did._
-import fmgp.crypto._
-import fmgp.crypto.error._
-import fmgp.did.comm._
-import fmgp.did.comm.protocol._
-import fmgp.did.db._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
-import io.iohk.atala.mediator.comm.*
-import reactivemongo.api.bson.{_, given}
-import reactivemongo.api.bson.Macros.{_, given}
-
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO

@@ -1,4 +1,4 @@
-package fmgp.did.comm.protocol
+package io.iohk.atala.mediator.actions
 
 import fmgp.did.comm.PlaintextMessage
 

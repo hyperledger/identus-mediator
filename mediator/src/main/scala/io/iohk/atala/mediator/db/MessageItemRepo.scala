@@ -1,15 +1,14 @@
-package fmgp.did.db
+package io.iohk.atala.mediator.db
 
-import zio._
-import scala.concurrent.ExecutionContext
-
-import reactivemongo.api.bson._
+import fmgp.did.*
+import io.iohk.atala.mediator.{StorageCollection, StorageError, StorageThrowable}
+import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.Cursor
-import reactivemongo.api.CursorProducer
+import reactivemongo.api.{Cursor, CursorProducer}
+import zio.*
 
-import fmgp.did._
+import scala.concurrent.ExecutionContext
 object MessageItemRepo {
   def layer: ZLayer[ReactiveMongoApi, Throwable, MessageItemRepo] =
     ZLayer {

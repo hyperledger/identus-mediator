@@ -1,16 +1,16 @@
-package fmgp.did.db
+package io.iohk.atala.mediator.db
 
-import scala.util._
-import zio.json._
-import reactivemongo.api.bson._
+import fmgp.crypto.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import fmgp.util.*
+import reactivemongo.api.bson.*
+import zio.json.*
 
-import fmgp.crypto._
-import fmgp.did._
-import fmgp.did.comm._
-import fmgp.util._
+import scala.util.*
 
 given BSONWriter[DIDSubject] with {
-  import DIDSubject._
+  import DIDSubject.*
   def writeTry(obj: DIDSubject): Try[BSONValue] = Try(BSONString(obj.string))
 }
 
@@ -19,7 +19,7 @@ given BSONReader[DIDSubject] with {
 }
 
 given BSONWriter[DID] with {
-  import DID._
+  import DID.*
   def writeTry(obj: DID): Try[BSONValue] = Try(BSONString(obj.string))
 }
 
@@ -28,7 +28,7 @@ given BSONReader[DID] with {
 }
 
 given BSONWriter[APV] with {
-  import APV._
+  import APV.*
   def writeTry(obj: APV): Try[BSONValue] = Try(BSONString(obj.value))
 }
 given BSONReader[APV] with {
@@ -36,7 +36,7 @@ given BSONReader[APV] with {
 }
 
 given BSONWriter[APU] with {
-  import APU._
+  import APU.*
   def writeTry(obj: APU): Try[BSONValue] = Try(BSONString(obj.value))
 }
 given BSONReader[APU] with {
@@ -44,7 +44,7 @@ given BSONReader[APU] with {
 }
 
 given BSONWriter[CipherText] with {
-  import CipherText._
+  import CipherText.*
   def writeTry(obj: CipherText): Try[BSONValue] = Try(BSONString(obj.value))
 }
 
@@ -53,14 +53,14 @@ given BSONReader[CipherText] with {
 }
 
 given BSONWriter[TAG] with {
-  import TAG._
+  import TAG.*
   def writeTry(obj: TAG): Try[BSONValue] = Try(BSONString(obj.value))
 }
 given BSONReader[TAG] with {
   def readTry(bson: BSONValue): Try[TAG] = bson.asTry[String].map(v => TAG(v))
 }
 given BSONWriter[IV] with {
-  import IV._
+  import IV.*
   def writeTry(obj: IV): Try[BSONValue] = Try(BSONString(obj.value))
 }
 given BSONReader[IV] with {
@@ -68,7 +68,7 @@ given BSONReader[IV] with {
 }
 
 given BSONWriter[Base64Obj[ProtectedHeader]] with {
-  import Base64Obj._
+  import Base64Obj.*
   def writeTry(obj: Base64Obj[ProtectedHeader]): Try[BSONValue] = Try(BSONString(obj.base64url))
 }
 given BSONReader[Base64Obj[ProtectedHeader]] with {
@@ -83,12 +83,12 @@ given BSONReader[Base64Obj[ProtectedHeader]] with {
 }
 
 given BSONWriter[Base64] with {
-  import Base64._
+  import Base64.*
   def writeTry(obj: Base64): Try[BSONValue] = Try(BSONString(obj.urlBase64))
 }
 
 given BSONReader[Base64] with {
-  import Base64._
+  import Base64.*
   def readTry(bson: BSONValue): Try[Base64] = bson.asTry[String].map(v => Base64.fromBase64url(v))
 }
 

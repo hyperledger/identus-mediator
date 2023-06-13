@@ -1,10 +1,10 @@
-package fmgp.did.db
+package io.iohk.atala.mediator.db
 
-import zio.{TaskLayer, ZIO, ZLayer}
-import scala.concurrent.duration.DurationInt
 import reactivemongo.api.{AsyncDriver, DB, MongoConnection}
-import zio.{Task, ZIO, ZLayer}
+import zio.{Task, TaskLayer, ZIO, ZLayer}
+
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 object AsyncDriverResource {
   private def acquire = ZIO.attempt(AsyncDriver())

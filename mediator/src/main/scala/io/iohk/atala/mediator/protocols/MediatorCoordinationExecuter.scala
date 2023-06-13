@@ -1,15 +1,16 @@
-package fmgp.did.comm.mediator
+package io.iohk.atala.mediator.protocols
 
-import zio._
-import zio.json._
-import fmgp.crypto.error._
-import fmgp.did._
-import fmgp.did.comm._
-import fmgp.did.comm.Operations._
-import fmgp.did.comm.protocol._
-import fmgp.did.comm.protocol.mediatorcoordination2._
-import fmgp.did.db.DidAccountRepo
-
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import fmgp.did.comm.Operations.*
+import fmgp.did.comm.protocol.*
+import fmgp.did.comm.protocol.mediatorcoordination2.*
+import io.iohk.atala.mediator.*
+import io.iohk.atala.mediator.actions.*
+import io.iohk.atala.mediator.db.DidAccountRepo
+import zio.*
+import zio.json.*
 object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & DidAccountRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(

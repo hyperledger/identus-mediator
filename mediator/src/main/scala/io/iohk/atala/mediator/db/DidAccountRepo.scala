@@ -1,14 +1,15 @@
-package fmgp.did.db
+package io.iohk.atala.mediator.db
 
-import reactivemongo.api.bson._
+import fmgp.crypto.error.*
+import fmgp.did.*
+import fmgp.did.comm.*
+import io.iohk.atala.mediator.*
+import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.Cursor
-import reactivemongo.api.CursorProducer
-import zio._
-import fmgp.crypto.error._
-import fmgp.did._
-import fmgp.did.comm._
+import reactivemongo.api.{Cursor, CursorProducer}
+import zio.*
+
 import scala.concurrent.ExecutionContext
 
 object DidAccountRepo {
