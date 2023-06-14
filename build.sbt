@@ -149,7 +149,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   )
 
 lazy val mediator = project
-  .in(file("did-mediator"))
+  .in(file("mediator"))
   .settings(publish / skip := true)
   .settings((setupTestConfig): _*)
   .settings(
@@ -165,7 +165,7 @@ lazy val mediator = project
     libraryDependencies += D.mongo.value,
   )
   .settings(
-    Compile / mainClass := Some("fmgp.did.demo.MediatorStandalone"),
+    Compile / mainClass := Some("io.iohk.atala.mediator.app.MediatorStandalone"),
     Docker / maintainer := "atala-coredid@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),
