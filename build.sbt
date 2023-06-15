@@ -27,6 +27,12 @@ lazy val V = new {
   val zioConfig = "4.0.0-RC16"
   val zioSl4j = "2.1.13"
   val mongo = "1.1.0-RC10"
+  val embedMongo = "4.7.0"
+  val munitZio = "0.1.1"
+  val zioTest = "2.0.5"
+  val zioTestSbt = "2.0.5"
+  val zioTestMagnolia = "2.0.5"
+
 }
 
 /** Dependencies */
@@ -57,6 +63,12 @@ lazy val D = new {
   val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
 //   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
   val munit = Def.setting("org.scalameta" %%% "munit" % V.munit % Test)
+  val embedMongo = Def.setting("de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % V.embedMongo % Test)
+  // For munit zio https://github.com/poslegm/munit-zio
+  val munitZio = Def.setting("com.github.poslegm" %% "munit-zio" % V.munitZio % Test)
+  val zioTest = Def.setting("dev.zio" %% "zio-test" % V.zioTest % Test)
+  val zioTestSbt = Def.setting("dev.zio" %% "zio-test-sbt" % V.zioTestSbt % Test)
+  val zioTestMagnolia = Def.setting("dev.zio" %% "zio-test-magnolia" % V.zioTestMagnolia % Test)
 }
 
 inThisBuild(
@@ -163,6 +175,14 @@ lazy val mediator = project
       D.zioLoggingSl4j.value
     ),
     libraryDependencies += D.mongo.value,
+    libraryDependencies ++= Seq(
+      D.munit.value,
+      D.embedMongo.value,
+      D.zioTest.value,
+      D.zioTestSbt.value,
+      D.zioTestMagnolia.value,
+    ),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .settings(
     Compile / mainClass := Some("io.iohk.atala.mediator.app.MediatorStandalone"),
