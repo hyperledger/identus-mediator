@@ -32,8 +32,8 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & DidAccountRepo & MessageItemRepo
-  val protocolHandlerLayer: URLayer[DidAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
+  type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo
+  val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
     ZLayer.succeed(
       ProtocolExecuterCollection[Services](
         BasicMessageExecuter,
@@ -89,7 +89,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
     MediatorError,
     Option[EncryptedMessage]
   ] =
@@ -110,7 +110,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
     MediatorError,
     Option[EncryptedMessage]
   ] =
@@ -150,7 +150,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & DidAccountRepo,
+    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & UserAccountRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -255,7 +255,7 @@ object MediatorAgent {
             .copy(status = Status.BadRequest)
         )
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & DidAccountRepo,
+      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
       Throwable,
       Request,
       Response

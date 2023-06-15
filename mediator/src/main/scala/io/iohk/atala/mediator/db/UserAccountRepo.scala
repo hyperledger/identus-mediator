@@ -12,23 +12,23 @@ import zio.*
 
 import scala.concurrent.ExecutionContext
 
-object DidAccountRepo {
-  def layer: ZLayer[ReactiveMongoApi, Throwable, DidAccountRepo] =
+object UserAccountRepo {
+  def layer: ZLayer[ReactiveMongoApi, Throwable, UserAccountRepo] =
     ZLayer {
       for {
         ref <- ZIO.service[ReactiveMongoApi]
-      } yield DidAccountRepo(ref)(using scala.concurrent.ExecutionContext.global)
+      } yield UserAccountRepo(ref)(using scala.concurrent.ExecutionContext.global)
     }
 }
 
-class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
+class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
   def collectionName: String = "user.account"
 
   def collection: IO[StorageCollection, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  def newDidAccount(did: DIDSubject /*, alias: Seq[DID] = Seq.empty*/ ): IO[StorageError, WriteResult] = {
+  def newDidAccount(did: DIDSubject): IO[StorageError, WriteResult] = {
     val value = DidAccount(
       did = did,
       alias = Seq(did),
@@ -96,7 +96,7 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
   }
 
   /** @return
-    *   numbre of documents updated in DB
+    *   number of documents updated in DB
     */
   def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, StorageError, Int] = {
     def selector =
@@ -135,8 +135,8 @@ class DidAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCont
     } yield result.nModified
   }
 
-  def makeAsDelivered(didAccount: DIDSubject, hashs: Seq[HASH]): ZIO[Any, StorageError, Int] = {
-    def selector = BSONDocument("did" -> didAccount.did, "messagesRef.hash" -> BSONDocument("$in" -> hashs))
+  def markAsDelivered(didAccount: DIDSubject, hashes: Seq[HASH]): ZIO[Any, StorageError, Int] = {
+    def selector = BSONDocument("did" -> didAccount.did, "messagesRef.hash" -> BSONDocument("$in" -> hashes))
     def update: BSONDocument = BSONDocument("$set" -> BSONDocument("messagesRef.$.state" -> true))
 
     for {
