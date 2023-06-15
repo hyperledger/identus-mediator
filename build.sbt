@@ -192,6 +192,7 @@ lazy val mediator = project
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
   )
+  .settings(Test / parallelExecution := false)
   .dependsOn(httpUtils.jvm) // did, didExample,
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
