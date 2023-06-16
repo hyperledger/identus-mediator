@@ -8,10 +8,10 @@ import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.mediatorcoordination2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.actions.*
-import io.iohk.atala.mediator.db.DidAccountRepo
+import io.iohk.atala.mediator.db.UserAccountRepo
 import zio.*
 import zio.json.*
-object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & DidAccountRepo] {
+object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & UserAccountRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
@@ -23,7 +23,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
     Keylist.piuri,
   )
 
-  override def program[R1 <: (DidAccountRepo)](
+  override def program[R1 <: (UserAccountRepo)](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, MediatorError, Action] = {
     // the val is from the match to be definitely stable
@@ -49,7 +49,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
       case m: MediateRequest =>
         for {
           _ <- ZIO.logInfo("MediateRequest")
-          repo <- ZIO.service[DidAccountRepo]
+          repo <- ZIO.service[UserAccountRepo]
           result <- repo.newDidAccount(m.from.asDIDURL.toDID)
           reply = result.n match
             case 1 => m.makeRespondMediateGrant.toPlaintextMessage
@@ -58,7 +58,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
       case m: KeylistUpdate =>
         for {
           _ <- ZIO.logInfo("KeylistUpdate")
-          repo <- ZIO.service[DidAccountRepo]
+          repo <- ZIO.service[UserAccountRepo]
           updateResponse <- ZIO.foreach(m.updates) {
             case (fromto, KeylistAction.add) =>
               repo.addAlias(m.from.toDID, fromto.toDID).map {
