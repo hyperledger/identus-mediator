@@ -1,9 +1,22 @@
-#Feature: Pickup message protocol
-#
-#Scenario:
-#  Given the mediator has messages for the recipient
-#  When the recipient sends a status-request message
-#  Then the mediator responds with a status message detailing the queued messages
+Feature: Pickup message protocol
+
+#Scenario: Recipient sends a status-request message
+#  Given Recipient sends a mediate request message to the mediator
+#  And Mediator responds to Recipient with mediate grant message
+#  And Sender sent a forward message to Recipient
+#  When Recipient sends a status-request message
+#  Then Mediator responds with a status message detailing the queued messages of Recipient
+
+  Scenario: Shailesh
+    When Recipient shailesh step
+
+#Scenario: Recipient sends a delivery-request message
+#  Given Recipient sends a mediate request message to the mediator
+#  And Mediator responds to Recipient with mediate grant message
+#  And Sender sent a forward message to Recipient
+#  When Recipient sends a delivery-request message
+#  Then Mediator delivers message of Sender to Recipient
+
 #
 #Scenario:
 #  Given the mediator has no messages for the recipient

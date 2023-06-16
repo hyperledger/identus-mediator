@@ -1,6 +1,7 @@
 package features
 
 import common.Agents.Recipient
+import common.Agents.Sender
 import common.Agents.createAgents
 import io.cucumber.java.Before
 import io.cucumber.java.BeforeAll
@@ -16,7 +17,7 @@ class CommonSteps {
         createAgents()
         val cast = object : Cast() {
             override fun getActors(): MutableList<Actor> {
-                return mutableListOf(Recipient)
+                return mutableListOf(Recipient, Sender)
             }
         }
         OnStage.setTheStage(cast)

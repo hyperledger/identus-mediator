@@ -8,4 +8,10 @@ object DidcommMessageTypes {
     const val MEDIATE_KEYLIST_UPDATE = "https://didcomm.org/coordinate-mediation/2.0/keylist-update"
     const val MEDIATE_KEYLIST_RESPONSE = "https://didcomm.org/coordinate-mediation/2.0/keylist-update-response"
     const val MEDIATE_KEYLIST_QUERY = "https://didcomm.org/coordinate-mediation/2.0/keylist-query"
+    const val FORWARD_REQUEST = "https://didcomm.org/routing/2.0/forward"
+    const val BASIC_MESSAGE = "https://didcomm.org/basicmessage/2.0/message"
+    const val PICKUP_STATUS_REQUEST = "https://didcomm.org/messagepickup/3.0/status-request"
+    const val PICKUP_DELIVERY_REQUEST = "https://didcomm.org/messagepickup/3.0/delivery-request"
+    const val PICKUP_STATUS = "https://didcomm.org/messagepickup/3.0/status"
+    const val CONNECTION_RESPONSE = "https://atalaprism.io/mercury/connections/1.0/response"
 }

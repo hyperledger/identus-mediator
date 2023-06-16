@@ -11,9 +11,12 @@ import io.iohk.atala.prism.walletsdk.pluto.data.DbConnection
 import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM1
 import io.iohk.atala.prism.walletsdk.prismagent.DIDCOMM_MESSAGING
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import models.MediationGrantResponse
 import net.serenitybdd.core.Serenity
 import net.serenitybdd.rest.SerenityRest
+import org.didcommx.didcomm.common.Typ
+import org.didcommx.didcomm.model.PackEncryptedParams
 
 object EdgeAgent {
     val apollo = ApolloImpl()
