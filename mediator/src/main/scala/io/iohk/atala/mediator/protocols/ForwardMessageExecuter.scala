@@ -13,12 +13,12 @@ import zio.json.*
 
 object ForwardMessageExecuter
     extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & DidAccountRepo & MessageItemRepo
+      ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo
     ] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
-  override def program[R1 <: DidAccountRepo & MessageItemRepo](
+  override def program[R1 <: UserAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, MediatorError, Action] = {
     // the val is from the match to be definitely stable
@@ -30,7 +30,7 @@ object ForwardMessageExecuter
       for {
         _ <- ZIO.logInfo("ForwardMessage")
         repoMessageItem <- ZIO.service[MessageItemRepo]
-        repoDidAccount <- ZIO.service[DidAccountRepo]
+        repoDidAccount <- ZIO.service[UserAccountRepo]
         recipientsSubject = Set(m.next) // m.msg.recipientsSubject
         numbreOfUpdated <- repoDidAccount.addToInboxes(recipientsSubject, m.msg)
         msg <-

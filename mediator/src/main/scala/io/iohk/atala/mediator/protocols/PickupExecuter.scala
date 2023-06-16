@@ -12,7 +12,7 @@ import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
 object PickupExecuter
-    extends ProtocolExecuterWithServices[ProtocolExecuter.Services & DidAccountRepo & MessageItemRepo] {
+    extends ProtocolExecuterWithServices[ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
     StatusRequest.piuri,
@@ -23,7 +23,7 @@ object PickupExecuter
     LiveModeChange.piuri,
   )
 
-  override def program[R1 <: DidAccountRepo & MessageItemRepo](
+  override def program[R1 <: UserAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
   ): ZIO[R1, MediatorError, Action] = {
     // the val is from the match to be definitely stable
@@ -48,7 +48,7 @@ object PickupExecuter
         for {
           _ <- ZIO.logInfo("DeliveryRequest")
           repoMessageItem <- ZIO.service[MessageItemRepo]
-          repoDidAccount <- ZIO.service[DidAccountRepo]
+          repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
           msgHash = mDidAccount match
@@ -87,9 +87,9 @@ object PickupExecuter
       case m: MessagesReceived =>
         for {
           _ <- ZIO.logInfo("MessagesReceived")
-          repoDidAccount <- ZIO.service[DidAccountRepo]
+          repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
-          mDidAccount <- repoDidAccount.makeAsDelivered(
+          mDidAccount <- repoDidAccount.markAsDelivered(
             didRequestingMessages.toDID,
             m.message_id_list.map(e => e.toInt) // TODO have it safe 'toInt'
           )
