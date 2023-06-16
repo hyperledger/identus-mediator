@@ -14,14 +14,13 @@ import net.serenitybdd.screenplay.rest.interactions.Post
 
 open class SendDidcommMessage(
     val message: Message,
-    val contentType: String = TestConstants.DIDCOMM_V2_CONTENT_TYPE_ENCRYPTED,
-    val forward: Boolean = false
+    val contentType: String = TestConstants.DIDCOMM_V2_CONTENT_TYPE_ENCRYPTED
 ): Interaction {
     override fun <T : Actor> performAs(actor: T) {
         Serenity.recordReportData().withTitle("DIDComm Message").andContents(
             message.toJsonString()
         )
-        val packedMessage = packMessage(message, forward)
+        val packedMessage = packMessage(message)
         // We have to rewrite spec to remove all unnecessary hardcoded headers
         // from standard serenity rest interaction
         val spec = RequestSpecBuilder().noContentType()

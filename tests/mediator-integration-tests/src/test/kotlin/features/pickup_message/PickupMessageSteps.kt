@@ -216,12 +216,12 @@ class PickupMessageSteps {
 //        )
 
         println("Message after encrypting:")
-        println(EdgeAgent.packMessage(message, forward = true))
-        println(EdgeAgent.packMessage(message, forward = false))
+        println(EdgeAgent.packMessage(message))
+        println(EdgeAgent.packMessage(message))
 
         val forwardMessage = ForwardMessage(
             body = ForwardMessage.ForwardBody(message.to.toString()),
-            encryptedMessage = EdgeAgent.packMessage(message, forward = true),
+            encryptedMessage = EdgeAgent.packMessage(message),
             from = message.from!!,
             to = Environments.MEDIATOR_PEER_DID,
         ).makeMessage()
@@ -230,7 +230,7 @@ class PickupMessageSteps {
         println(forwardMessage)
 
         recipient.attemptsTo(
-            SendDidcommMessage(forwardMessage, forward = false)
+            SendDidcommMessage(forwardMessage)
         )
 
     }
@@ -295,7 +295,7 @@ class PickupMessageSteps {
         val decoded = Base64.getUrlDecoder().decode(data.base64).decodeToString()
         println("whats in the attachments:")
         println(decoded)
-        val initialMessage = EdgeAgent.unpackMessage(decoded,  true)
+        val initialMessage = EdgeAgent.unpackMessage(decoded)
 //        println(initialMessage)
     }
 }
