@@ -47,7 +47,7 @@ case class DataBaseConfig(
 object MediatorStandalone extends ZIOAppDefault {
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & DidAccountRepo,
+    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo,
     Throwable
   ] = MediatorAgent.didCommApp
     ++ Http
@@ -104,7 +104,7 @@ object MediatorStandalone extends ZIOAppDefault {
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-          >>> MessageItemRepo.layer.and(DidAccountRepo.layer)
+          >>> MessageItemRepo.layer.and(UserAccountRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
