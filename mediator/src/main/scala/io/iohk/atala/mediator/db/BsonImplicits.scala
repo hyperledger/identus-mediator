@@ -69,17 +69,23 @@ given BSONReader[IV] with {
 
 given BSONWriter[Base64Obj[ProtectedHeader]] with {
   import Base64Obj.*
-  def writeTry(obj: Base64Obj[ProtectedHeader]): Try[BSONValue] = Try(BSONString(obj.base64url))
+  def writeTry(obj: Base64Obj[ProtectedHeader]): Try[BSONValue] = {
+    val protectedHeader: String = (obj.obj, obj.original) match {
+      case (_, Some(op)) => op.urlBase64
+      case (p, None)     => obj.base64url
+    }
+    Try(BSONString(protectedHeader))
+  }
 }
 given BSONReader[Base64Obj[ProtectedHeader]] with {
   def readTry(bson: BSONValue): Try[Base64Obj[ProtectedHeader]] =
     bson
       .asTry[String]
-      .flatMap{v =>
+      .flatMap { v =>
         s""""$v"""".fromJson[Base64Obj[ProtectedHeader]] match // TODO with a new methods from ScalaDid
           case Left(value)  => Failure(RuntimeException(value))
           case Right(value) => Try(value)
-}
+      }
 }
 
 given BSONWriter[Base64] with {
