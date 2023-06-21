@@ -23,9 +23,10 @@ import zio.http.socket.*
 import zio.json.*
 import zio.stream.*
 import zio.logging.backend.SLF4J
-import zio.logging.{LogColor, LogFormat}
+import zio.logging.{ConsoleLoggerConfig, LogColor, LogFilter, LogFormat, consoleJsonLogger}
 import zio.logging.LogFormat.*
 
+import java.time.format.DateTimeFormatter
 import scala.io.Source
 case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
@@ -55,9 +56,23 @@ object MediatorStandalone extends ZIOAppDefault {
       line.highlight |-|
       cause.highlight
 
+  // If we need json format
+  val mediatorConsoleJsonLogger = consoleJsonLogger(
+    ConsoleLoggerConfig(
+      label("timestamp", timestamp(DateTimeFormatter.ISO_LOCAL_DATE_TIME)) +
+        label("level", level) +
+        label("thread", fiberId) +
+        label("message", line) +
+        (space + label("cause", cause)).filter(LogFilter.causeNonEmpty) +
+        annotations +
+        spans,
+      LogFilter.logLevel(LogLevel.Info),
+    )
+  )
+
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(
-      mediatorColorFormat + LogFormat.annotations + LogFormat.spans
+      mediatorColorFormat + LogFormat.annotations
     )
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
