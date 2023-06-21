@@ -26,6 +26,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
 
   def collection: IO[StorageCollection, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
+    .tapError(err => ZIO.logError(s"Couldn't get collection ${err.getMessage}"))
     .mapError(ex => StorageCollection(ex))
 
   def newDidAccount(did: DIDSubject): IO[StorageError, WriteResult] = {
@@ -35,17 +36,22 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
       messagesRef = Seq.empty
     )
     for {
+      _ <- ZIO.logInfo("newDidAccount")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.insert.one(value))
+        .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
+
     } yield result
   }
 
   def getDidAccount(did: DIDSubject): IO[StorageError, Option[DidAccount]] = {
     def selector: BSONDocument = BSONDocument("did" -> did)
     def projection: Option[BSONDocument] = None
+
     for {
+      _ <- ZIO.logInfo("getDidAccount")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
@@ -54,24 +60,30 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .cursor[DidAccount]()
             .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
         )
+        .tapError(err => ZIO.logError(s"getDidAccount :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result.headOption
+
   }
 
   def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Unit]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
+
     def update: BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "alias" -> newAlias
       )
     )
+
     for {
+      _ <- ZIO.logInfo("addAlias")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
           coll.update
             .one(selector, update) // Just one
         )
+        .tapError(err => ZIO.logError(s"addAlias :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield Right(())
 
@@ -84,15 +96,19 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
         "alias" -> newAlias
       )
     )
+
     for {
+      _ <- ZIO.logInfo("removeAlias")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
           coll.update
             .one(selector, update) // Just one
         )
+        .tapError(err => ZIO.logError(s"removeAlias :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield Right(())
+
   }
 
   /** @return
@@ -125,14 +141,17 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     )
 
     for {
+      _ <- ZIO.logInfo("addToInboxes")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
           coll.update
             .one(selector, update) // Just one
         )
+        .tapError(err => ZIO.logError(s"addToInboxes :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result.nModified
+
   }
 
   def markAsDelivered(didAccount: DIDSubject, hashes: Seq[HASH]): ZIO[Any, StorageError, Int] = {
@@ -140,9 +159,11 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     def update: BSONDocument = BSONDocument("$set" -> BSONDocument("messagesRef.$.state" -> true))
 
     for {
+      _ <- ZIO.logInfo("markAsDelivered")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.update.one(selector, update)) // Just one
+        .tapError(err => ZIO.logError(s"markAsDelivered :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result.nModified
   }

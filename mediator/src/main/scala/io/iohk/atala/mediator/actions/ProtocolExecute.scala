@@ -147,7 +147,7 @@ object BasicMessageExecuter extends ProtocolExecuter[Any] {
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) = for {
     job <- BasicMessage.fromPlaintextMessage(plaintextMessage) match
       case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
-      case Right(bm)   => Console.printLine(bm.toString).mapError(ex => MediatorThrowable(ex))
+      case Right(bm)   => Console.printLine(bm.toString).mapError(ex => MediatorThrowable(ex)) 
   } yield NoReply
 }
 

@@ -22,6 +22,9 @@ import zio.http.model.*
 import zio.http.socket.*
 import zio.json.*
 import zio.stream.*
+import zio.logging.backend.SLF4J
+import zio.logging.{LogColor, LogFormat}
+import zio.logging.LogFormat.*
 
 import scala.io.Source
 case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
@@ -45,6 +48,17 @@ case class DataBaseConfig(
 }
 
 object MediatorStandalone extends ZIOAppDefault {
+  val mediatorColorFormat: LogFormat =
+    timestamp.color(LogColor.BLUE) |-|
+      level.highlight |-|
+      fiberId.color(LogColor.YELLOW) |-|
+      line.highlight |-|
+      cause.highlight
+
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(
+      mediatorColorFormat + LogFormat.annotations + LogFormat.spans
+    )
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
     Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo,
