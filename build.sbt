@@ -147,7 +147,7 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
-    buildInfoPackage := "fmgp",
+    buildInfoPackage := "io.iohk.atala.mediator",
     // buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
