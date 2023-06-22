@@ -114,36 +114,39 @@ case class MediatorAgent(
     MediatorError,
     Option[EncryptedMessage]
   ] =
-    ZIO
-      .logAnnotate("msgHash", msg.hashCode.toString) {
-        for {
-          _ <- ZIO.log(s"receiveMessage with hashCode: ${msg.hashCode}")
-          maybeSyncReplyMsg <-
-            if (!msg.recipientsSubject.contains(id))
-              ZIO.logError(s"This mediator '${id.string}' is not a recipient")
-                *> ZIO.none
-            else
-              for {
-                messageItemRepo <- ZIO.service[MessageItemRepo]
-                _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
-                plaintextMessage <- decrypt(msg)
-                _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
-                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
-                }
-                _ <- mSocketID match
-                  case None => ZIO.unit
-                  case Some(socketID) =>
-                    plaintextMessage.from match
-                      case None       => ZIO.unit
-                      case Some(from) => didSocketManager.update { _.link(from.asFROMTO, socketID) }
-                // TODO Store context of the decrypt unwarping
-                // TODO SreceiveMessagetore context with MsgID and PIURI
-                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
-                ret <- protocolHandler
-                  .execute(plaintextMessage)
-                  .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
-              } yield ret
-        } yield maybeSyncReplyMsg
+        ZIO
+          .logAnnotate("msgHash", msg.hashCode.toString) {
+            for {
+              _ <- ZIO.log("receivedMessage")
+              maybeSyncReplyMsg <-
+                if (!msg.recipientsSubject.contains(id))
+                  ZIO.logError(s"This mediator '${id.string}' is not a recipient")
+                    *> ZIO.none
+                else
+                  for {
+                    messageItemRepo <- ZIO.service[MessageItemRepo]
+                    _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
+                    plaintextMessage <- decrypt(msg)
+                    _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
+                      ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
+                    }
+                    _ <- mSocketID match
+                      case None => ZIO.unit
+                      case Some(socketID) =>
+                        plaintextMessage.from match
+                          case None => ZIO.unit
+                          case Some(from) =>
+                            didSocketManager.update {
+                              _.link(from.asFROMTO, socketID)
+                            }
+                    // TODO Store context of the decrypt unwarping
+                    // TODO SreceiveMessagetore context with MsgID and PIURI
+                    protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
+                    ret <- protocolHandler
+                      .execute(plaintextMessage)
+                      .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+                  } yield ret
+            } yield maybeSyncReplyMsg
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 
@@ -249,11 +252,13 @@ object MediatorAgent {
 
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
-        ZIO.succeed(
-          Response
-            .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
-            .copy(status = Status.BadRequest)
-        )
+        ZIO
+          .logError(s"Request Headers : ${req.headers.mkString(",")}")
+          .as(
+            Response
+              .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
+              .setStatus(Status.BadRequest)
+          )
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
       Throwable,
@@ -267,7 +272,8 @@ object MediatorAgent {
         allowedMethods = Some(Set(Method.GET, Method.POST, Method.OPTIONS)),
       )
     )
-    @@ HttpAppMiddleware.updateHeaders(headers =>
+    @@ 
+    HttpAppMiddleware.updateHeaders(headers =>
       Headers(
         headers.map(h =>
           if (h.key == HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN) {
@@ -275,5 +281,5 @@ object MediatorAgent {
           } else h
         )
       )
-    )
+    ) 
 }

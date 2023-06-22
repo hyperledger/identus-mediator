@@ -27,9 +27,11 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
 
   def insert(value: MessageItem): IO[StorageError, WriteResult] = {
     for {
+      _ <- ZIO.logInfo("insert")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec => coll.insert.one(value))
+        .tapError(err => ZIO.logError(s"insert :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result
   }
@@ -37,7 +39,9 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
   def findById(id: HASH): IO[StorageError, Option[MessageItem]] = {
     def selector: BSONDocument = BSONDocument("_id" -> id)
     def projection: Option[BSONDocument] = None
+
     for {
+      _ <- ZIO.logInfo("findById")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
@@ -46,17 +50,21 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .cursor[MessageItem]()
             .collect[Seq](1, Cursor.FailOnError[Seq[MessageItem]]())
         )
+        .tapError(err => ZIO.logError(s"findById :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
+
     } yield result.headOption
+
   }
 
   def findByIds(ids: Seq[HASH]): IO[StorageError, Seq[MessageItem]] = {
     def selector: BSONDocument = {
-      println(s""" {"_id": {"$$in" -> $ids}} """)
       BSONDocument("_id" -> BSONDocument("$in" -> ids))
     }
     def projection: Option[BSONDocument] = None
+
     for {
+      _ <- ZIO.logInfo("findByIds")
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
@@ -65,8 +73,10 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .cursor[MessageItem]()
             .collect[Seq](-1, Cursor.FailOnError[Seq[MessageItem]]())
         )
+        .tapError(err => ZIO.logError(s"findByIds :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result
+
   }
 
 }
