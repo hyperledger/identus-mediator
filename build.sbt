@@ -28,8 +28,8 @@ lazy val V = new {
   val zioLogging = "2.1.13"
   val zioSl4j = "2.1.13"
   val logback = "1.4.8"
+  val logstash = "7.4"
   val jansi = "2.4.0"
-
   val mongo = "1.1.0-RC10"
   val embedMongo = "4.7.0"
   val munitZio = "0.1.1"
@@ -67,6 +67,8 @@ lazy val D = new {
   val zioLogging = Def.setting("dev.zio" %% "zio-logging" % V.zioLogging)
   val zioLoggingSl4j = Def.setting("dev.zio" %% "zio-logging-slf4j" % V.zioSl4j)
   val logback = Def.setting("ch.qos.logback" % "logback-classic" % V.logback)
+  val logstash = Def.setting("net.logstash.logback" % "logstash-logback-encoder" % V.logstash)
+
   val jansi = Def.setting("org.fusesource.jansi" % "jansi" % V.jansi)
 
   val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
@@ -156,8 +158,6 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
     ),
   )
 
-// lazy val core = RootProject(file(".."))
-
 lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .in(file("http-utils"))
   .settings(publish / skip := true)
@@ -185,6 +185,7 @@ lazy val mediator = project
       D.zioLoggingSl4j.value,
       D.logback.value,
       D.jansi.value,
+      D.logstash.value,
     ),
     libraryDependencies += D.mongo.value,
     libraryDependencies ++= Seq(
