@@ -25,7 +25,11 @@ lazy val V = new {
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
+  val zioLogging = "2.1.13"
   val zioSl4j = "2.1.13"
+  val logback = "1.3.8"
+  val logstash = "7.4"
+  val jansi = "2.4.0"
   val mongo = "1.1.0-RC10"
   val embedMongo = "4.7.0"
   val munitZio = "0.1.1"
@@ -55,11 +59,18 @@ lazy val D = new {
 //   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
 //   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
 //   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
+
   val zioHttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
   val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
   val zioConfigMagnolia = Def.setting("dev.zio" %% "zio-config-magnolia" % V.zioConfig) // For deriveConfig
   val zioConfigTypesafe = Def.setting("dev.zio" %% "zio-config-typesafe" % V.zioConfig) // For HOCON
+  val zioLogging = Def.setting("dev.zio" %% "zio-logging" % V.zioLogging)
   val zioLoggingSl4j = Def.setting("dev.zio" %% "zio-logging-slf4j" % V.zioSl4j)
+  val logback = Def.setting("ch.qos.logback" % "logback-classic" % V.logback)
+  val logstash = Def.setting("net.logstash.logback" % "logstash-logback-encoder" % V.logstash)
+
+  val jansi = Def.setting("org.fusesource.jansi" % "jansi" % V.jansi)
+
   val mongo = Def.setting("org.reactivemongo" %% "reactivemongo" % V.mongo)
 //   // For munit https://scalameta.org/munit/docs/getting-started.html#scalajs-setup
   val munit = Def.setting("org.scalameta" %%% "munit" % V.munit % Test)
@@ -136,7 +147,7 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
-    buildInfoPackage := "fmgp",
+    buildInfoPackage := "io.iohk.atala.mediator",
     // buildInfoObject := "BuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
@@ -146,8 +157,6 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
       BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
     ),
   )
-
-// lazy val core = RootProject(file(".."))
 
 lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .in(file("http-utils"))
@@ -172,7 +181,11 @@ lazy val mediator = project
       D.zioConfig.value,
       D.zioConfigMagnolia.value,
       D.zioConfigTypesafe.value,
-      D.zioLoggingSl4j.value
+      D.zioLogging.value,
+      D.zioLoggingSl4j.value,
+      D.logback.value,
+      D.jansi.value,
+      D.logstash.value,
     ),
     libraryDependencies += D.mongo.value,
     libraryDependencies ++= Seq(
