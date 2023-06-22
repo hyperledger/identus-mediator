@@ -272,7 +272,8 @@ object MediatorAgent {
         allowedMethods = Some(Set(Method.GET, Method.POST, Method.OPTIONS)),
       )
     )
-    @@ HttpAppMiddleware.updateHeaders(headers =>
+    @@ 
+    HttpAppMiddleware.updateHeaders(headers =>
       Headers(
         headers.map(h =>
           if (h.key == HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN) {
