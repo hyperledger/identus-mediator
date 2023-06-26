@@ -70,7 +70,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     def selector: BSONDocument = BSONDocument("did" -> owner)
 
     def update: BSONDocument = BSONDocument(
-      "$push" -> BSONDocument(
+      "$addToSet" -> BSONDocument(
         "alias" -> newAlias
       )
     )
