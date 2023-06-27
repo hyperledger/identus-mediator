@@ -3,7 +3,7 @@ resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.3.0", // Also update docs/publishWebsite.sh and any ref to scala-3.2.2
+    scalaVersion := "3.3.0", // Also update docs/publishWebsite.sh and any ref to scala-3.3.0
   )
 )
 
@@ -20,8 +20,8 @@ lazy val V = new {
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
-//   val zio = "2.0.13"
-//   val zioJson = "0.4.2"
+  val zio = "2.0.13"
+  val zioJson = "0.4.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
@@ -37,6 +37,12 @@ lazy val V = new {
   val zioTestSbt = "2.0.15"
   val zioTestMagnolia = "2.0.15"
 
+  // For WEBAPP
+  val laminar = "15.0.1"
+  val waypoint = "6.0.0"
+  val upickle = "3.1.0"
+  // https://www.npmjs.com/package/material-components-web
+  val materialComponents = "12.0.0"
 }
 
 /** Dependencies */
@@ -56,9 +62,9 @@ lazy val D = new {
 
 //   val dom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalajsDom)
 
-//   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
+  val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
 //   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
-//   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
+  val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
 
   val zioHttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
   val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
@@ -80,6 +86,18 @@ lazy val D = new {
   val zioTest = Def.setting("dev.zio" %% "zio-test" % V.zioTest % Test)
   val zioTestSbt = Def.setting("dev.zio" %% "zio-test-sbt" % V.zioTestSbt % Test)
   val zioTestMagnolia = Def.setting("dev.zio" %% "zio-test-magnolia" % V.zioTestMagnolia % Test)
+
+  // For WEBAPP
+  val laminar = Def.setting("com.raquo" %%% "laminar" % V.laminar)
+  val waypoint = Def.setting("com.raquo" %%% "waypoint" % V.waypoint)
+  val upickle = Def.setting("com.lihaoyi" %%% "upickle" % V.upickle)
+}
+
+/** NPM Dependencies */
+lazy val NPM = new {
+  val qrcode = Seq("qrcode-generator" -> "1.4.4")
+
+  val materialDesign = Seq("material-components-web" -> V.materialComponents)
 }
 
 inThisBuild(
@@ -208,6 +226,27 @@ lazy val mediator = project
   .settings(Test / parallelExecution := false)
   .dependsOn(httpUtils.jvm) // did, didExample,
   .enablePlugins(JavaAppPackaging, DockerPlugin)
+
+lazy val webapp = project
+  .in(file("webapp"))
+  .settings(publish / skip := true)
+  .settings(name := "webapp")
+  .configure(scalaJSBundlerConfigure)
+  .configure(buildInfoConfigure)
+  // .dependsOn(serviceworker)
+  .settings(
+    libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
+    libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
+    libraryDependencies ++= Seq(D.scalaDID.value, D.scalaDID_peer.value),
+    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign
+  )
+  .settings(
+    stShortModuleNames := true,
+    webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
+    Compile / scalaJSModuleInitializers += {
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
+    },
+  )
 
 // ############################
 // ####  Release process  #####
