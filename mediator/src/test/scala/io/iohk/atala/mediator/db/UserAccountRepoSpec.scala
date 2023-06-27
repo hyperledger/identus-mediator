@@ -61,27 +61,53 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         assertTrue(result.isEmpty)
       }
     },
-    test("Add alias to existing Did Account return right") {
+    test("Add alias to existing Did Account return right nModified value 1") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         assertTrue(result.isRight)
-        assertTrue(result == Right(()))
+        assertTrue(result == Right((1)))
         assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(alias == Seq(alice, bob))
       }
     },
-    test("Remove alias to existing Did Account should return right") {
+    test("Add same alias to existing Did Account return right with nModified value 0") {
+      for {
+        userAccount <- ZIO.service[UserAccountRepo]
+        result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(alice))
+        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+      } yield {
+        assertTrue(result.isRight)
+        assertTrue(result == Right(0))
+        assertTrue(didAccount.isDefined)
+        val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(alias == Seq(alice, bob))
+      }
+    },
+    test("Remove alias to existing Did Account should return right with nModified value 1 ") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         assertTrue(result.isRight)
-        assertTrue(result == Right(()))
+        assertTrue(result == Right(1))
+        assertTrue(didAccount.isDefined)
+        val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(alias == Seq(alice))
+      }
+    },
+    test("Remove alias to unknown or unregister alias Did  should return right with noModified value 0") {
+      for {
+        userAccount <- ZIO.service[UserAccountRepo]
+        result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
+        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+      } yield {
+        assertTrue(result.isRight)
+        assertTrue(result == Right(0))
         assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(alias == Seq(alice))
@@ -98,7 +124,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         assertTrue(result.isRight)
-        assertTrue(result == Right(()))
+        assertTrue(result == Right(1))
         assertTrue(msgAdded.writeErrors == Nil)
         assertTrue(msgAdded.n == 1)
         assertTrue(addedToInbox == 1)
