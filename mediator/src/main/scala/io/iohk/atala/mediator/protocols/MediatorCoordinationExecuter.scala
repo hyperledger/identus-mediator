@@ -63,11 +63,13 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
             case (fromto, KeylistAction.add) =>
               repo.addAlias(m.from.toDID, fromto.toDID).map {
                 case Left(value)     => (fromto, KeylistAction.add, KeylistResult.server_error)
+                case Right(0)        => (fromto, KeylistAction.add, KeylistResult.no_change)
                 case Right(newState) => (fromto, KeylistAction.add, KeylistResult.success)
               }
             case (fromto, KeylistAction.remove) =>
               repo.removeAlias(m.from.toDID, fromto.toDID).map {
                 case Left(value)     => (fromto, KeylistAction.remove, KeylistResult.server_error)
+                case Right(0)        => (fromto, KeylistAction.remove, KeylistResult.no_change)
                 case Right(newState) => (fromto, KeylistAction.remove, KeylistResult.success)
               }
           }
