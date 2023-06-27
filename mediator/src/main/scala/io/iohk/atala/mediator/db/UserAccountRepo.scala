@@ -66,11 +66,11 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
 
   }
 
-  def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Unit]] = {
+  def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Int]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
 
     def update: BSONDocument = BSONDocument(
-      "$push" -> BSONDocument(
+      "$addToSet" -> BSONDocument(
         "alias" -> newAlias
       )
     )
@@ -85,11 +85,11 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
         )
         .tapError(err => ZIO.logError(s"addAlias :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
-    } yield Right(())
+    } yield Right(result.nModified)
 
   }
 
-  def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Unit]] = {
+  def removeAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Int]] = {
     def selector: BSONDocument = BSONDocument("did" -> owner)
     def update: BSONDocument = BSONDocument(
       "$pull" -> BSONDocument(
@@ -107,7 +107,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
         )
         .tapError(err => ZIO.logError(s"removeAlias :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
-    } yield Right(())
+    } yield Right(result.nModified)
 
   }
 
