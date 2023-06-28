@@ -24,8 +24,8 @@ Scenario: Recipient removes not existing alias
   When Recipient sends a keylist update message to the mediator to remove not existing alias
   Then Mediator responds to Recipient with a message with no_change status
 
-# BUG: server-error is returned, no logs available on the mediator side
 # https://input-output.atlassian.net/browse/ATL-4848
+# https://input-output.atlassian.net/browse/ATL-5020
 Scenario: Recipient removes the last alias from keylist
   Given Recipient successfully set up a connection with the mediator
   When Recipient sends a keylist update message to the mediator to remove the last alias

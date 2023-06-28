@@ -20,6 +20,6 @@ object Agents {
         Recipient.remember("peerDid", EdgeAgent.createPeerDid(HttpListener.endpoint()))
         Sender = Actor.named("Sender")
             .whoCan(CallAnApi.at(Environments.MEDIATOR_URL))
-//        Sender.remember("peerDid", EdgeAgent.createPeerDid(HttpListener.endpoint()))
+        Sender.remember("peerDid", EdgeAgent.createPeerDid(HttpListener.endpoint()))
     }
 }

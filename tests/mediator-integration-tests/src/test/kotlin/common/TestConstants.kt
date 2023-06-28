@@ -2,7 +2,7 @@ package common
 
 object TestConstants {
     const val EMPTY_BODY: String = "{}"
-    const val CONST_BODY: String = """{ "key": "value" }"""
+    const val CONST_BODY: String = """{"key":"value"}"""
     const val UNSUPPORTED_CONTENT_TYPE: String = "unsupported-type+json"
     const val DIDCOMM_V2_CONTENT_TYPE_ENCRYPTED: String = "application/didcomm-encrypted+json"
     const val DIDCOMM_V2_CONTENT_TYPE_PLAIN: String = "application/didcomm-plain+json"
