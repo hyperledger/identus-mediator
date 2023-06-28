@@ -123,8 +123,8 @@ object AppUtils {
       className("mdc-drawer mdc-drawer--modal"),
       div(
         className("mdc-drawer__header"),
-        h3(className("mdc-drawer__title"), "FMGP scala-did"),
-        h6(className("mdc-drawer__subtitle"), "fabiomgpinheiro@gmail.com"),
+        h3(className("mdc-drawer__title"), "IOHP - Atala PRISM Mediator"),
+        h6(className("mdc-drawer__subtitle"), "atlaprism@iohk.io"),
       ),
       div(
         className("mdc-drawer__content"),

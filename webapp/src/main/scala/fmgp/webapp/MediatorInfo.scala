@@ -4,6 +4,7 @@ import org.scalajs.dom
 import com.raquo.laminar.api.L._
 import typings.qrcodeGenerator
 
+import zio.json._
 import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
@@ -28,9 +29,10 @@ object MediatorInfo {
 
   def apply(): HtmlElement = // rootElement
     div(
-      h1("DIDComm v2 Mediator (Alice) invite:"),
+      h1("Invite for the DID Comm Mediator:"),
       h3("Plaintext out of band invitation:"),
       p(code(qrCodeData)),
+      pre(code(invitation.toPlaintextMessage.toJsonPretty)),
       divQRCode,
       h3("Signed out of band invitation:"),
       code("TODO"),

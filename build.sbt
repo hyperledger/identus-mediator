@@ -141,13 +141,13 @@ lazy val scalaJSBundlerConfigure: Project => Project =
       scalaJSLinkerConfig ~= {
         _.withSourceMap(false) // disabled because it somehow triggers warnings and errors
           .withModuleKind(ModuleKind.CommonJSModule) // ModuleKind.ESModule
-          // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
-          .withJSHeader(
-            """/* FMGP scala-did examples and tool
-            | * https://github.com/FabioPinheiro/scala-did
-            | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
-            | */""".stripMargin.trim() + "\n"
-          )
+        // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
+        // .withJSHeader(
+        //   """/* FMGP scala-did examples and tool
+        //   | * https://github.com/FabioPinheiro/scala-did
+        //   | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
+        //   | */""".stripMargin.trim() + "\n"
+        // )
       }
     )
     // .settings( //TODO https://scalacenter.github.io/scalajs-bundler/reference.html#jsdom
