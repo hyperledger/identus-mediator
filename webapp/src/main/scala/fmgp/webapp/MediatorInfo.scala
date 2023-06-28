@@ -12,7 +12,7 @@ import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
 object MediatorInfo {
 
   val invitation = OOBInvitation(
-    from = FROM("did:example:IOHK"),
+    from = Global.mediatorDID,
     goal_code = Some("request-mediate"),
     goal = Some("RequestMediate"),
     accept = Some(Seq("didcomm/v2")),

@@ -25,3 +25,18 @@ A cloud-based agent that forwards messages to mobile devices.
 - [WIP] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
 - [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+
+## How to run
+
+### server
+
+**Start the server**:
+ - shell> `docker-compose up mongo`
+ - sbt> `mediator/reStart`
+### webapp
+
+The webapp/webpage is atm just to show the QRcode with out of band invitation for the Mediator.
+
+**Compile** - sbt> `webapp / Compile / fastOptJS / webpack`
+
+**Open the webpage for develop** - open> `file:///.../webapp/index-fastopt.html`

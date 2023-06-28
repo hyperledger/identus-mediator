@@ -224,6 +224,24 @@ lazy val mediator = project
     dockerBaseImage := "openjdk:11",
   )
   .settings(Test / parallelExecution := false)
+  .settings(
+    // WebScalaJSBundlerPlugin
+    scalaJSProjects := Seq(webapp),
+    /** scalaJSPipeline task runs scalaJSDev when isDevMode is true, runs scalaJSProd otherwise. scalaJSProd task runs
+      * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
+      * development, including Scala.js fastOptJS task and source maps.
+      */
+    Assets / pipelineStages := Seq(scalaJSPipeline),
+    // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.3.0" / "fmgp-serviceworker-fastopt").toFile,
+    Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
+    // Frontend dependency configuration
+    Assets / WebKeys.packagePrefix := "public/",
+    Runtime / managedClasspath += (Assets / packageBin).value,
+  )
+  .enablePlugins(WebScalaJSBundlerPlugin)
   .dependsOn(httpUtils.jvm) // did, didExample,
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
