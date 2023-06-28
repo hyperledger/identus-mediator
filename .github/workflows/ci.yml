@@ -10,7 +10,7 @@ on:
     # tags: ["v*"]
 
 env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   Run-Tests:
@@ -37,8 +37,8 @@ jobs:
           path: ~/.embedmongo
           key: ${{ runner.os }}-embedmongo-4.7.0
           restore-keys: |
-             ${{ runner.os }}-embedmongo-4.7.0
+            ${{ runner.os }}-embedmongo-4.7.0
       ### Compile and TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m "test"
-      #   env:
-      #     NODE_OPTIONS: "--openssl-legacy-provider"
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
