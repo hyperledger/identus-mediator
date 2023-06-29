@@ -59,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
         run: |
           cd "${MEDIATOR_PATH}" || exit 129
-          sbt -mem 2048 -J-Xmx5120m docker:publishLocal
+          NODE_OPTIONS=--openssl-legacy-provider sbt -mem 2048 -J-Xmx5120m docker:publishLocal
           MEDIATOR_VERSION=$(cut version.sbt -d '=' -f2 | tr -d '" ')
           echo ${MEDIATOR_VERSION}
 
