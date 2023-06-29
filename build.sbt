@@ -3,7 +3,7 @@ resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.3.0", // Also update docs/publishWebsite.sh and any ref to scala-3.2.2
+    scalaVersion := "3.3.0", // Also update docs/publishWebsite.sh and any ref to scala-3.3.0
   )
 )
 
@@ -20,8 +20,8 @@ lazy val V = new {
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
-//   val zio = "2.0.13"
-//   val zioJson = "0.4.2"
+  val zio = "2.0.13"
+  val zioJson = "0.4.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
@@ -37,6 +37,12 @@ lazy val V = new {
   val zioTestSbt = "2.0.15"
   val zioTestMagnolia = "2.0.15"
 
+  // For WEBAPP
+  val laminar = "15.0.1"
+  val waypoint = "6.0.0"
+  val upickle = "3.1.0"
+  // https://www.npmjs.com/package/material-components-web
+  val materialComponents = "12.0.0"
 }
 
 /** Dependencies */
@@ -56,9 +62,9 @@ lazy val D = new {
 
 //   val dom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalajsDom)
 
-//   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
+  val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
 //   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
-//   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
+  val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
 
   val zioHttp = Def.setting("dev.zio" %% "zio-http" % V.zioHttp)
   val zioConfig = Def.setting("dev.zio" %% "zio-config" % V.zioConfig)
@@ -80,6 +86,18 @@ lazy val D = new {
   val zioTest = Def.setting("dev.zio" %% "zio-test" % V.zioTest % Test)
   val zioTestSbt = Def.setting("dev.zio" %% "zio-test-sbt" % V.zioTestSbt % Test)
   val zioTestMagnolia = Def.setting("dev.zio" %% "zio-test-magnolia" % V.zioTestMagnolia % Test)
+
+  // For WEBAPP
+  val laminar = Def.setting("com.raquo" %%% "laminar" % V.laminar)
+  val waypoint = Def.setting("com.raquo" %%% "waypoint" % V.waypoint)
+  val upickle = Def.setting("com.lihaoyi" %%% "upickle" % V.upickle)
+}
+
+/** NPM Dependencies */
+lazy val NPM = new {
+  val qrcode = Seq("qrcode-generator" -> "1.4.4")
+
+  val materialDesign = Seq("material-components-web" -> V.materialComponents)
 }
 
 inThisBuild(
@@ -123,13 +141,13 @@ lazy val scalaJSBundlerConfigure: Project => Project =
       scalaJSLinkerConfig ~= {
         _.withSourceMap(false) // disabled because it somehow triggers warnings and errors
           .withModuleKind(ModuleKind.CommonJSModule) // ModuleKind.ESModule
-          // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
-          .withJSHeader(
-            """/* FMGP scala-did examples and tool
-            | * https://github.com/FabioPinheiro/scala-did
-            | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
-            | */""".stripMargin.trim() + "\n"
-          )
+        // must be set to ModuleKind.CommonJSModule in projects where ScalaJSBundler plugin is enabled
+        // .withJSHeader(
+        //   """/* FMGP scala-did examples and tool
+        //   | * https://github.com/FabioPinheiro/scala-did
+        //   | * Copyright: Fabio Pinheiro - fabiomgpinheiro@gmail.com
+        //   | */""".stripMargin.trim() + "\n"
+        // )
       }
     )
     // .settings( //TODO https://scalacenter.github.io/scalajs-bundler/reference.html#jsdom
@@ -206,8 +224,47 @@ lazy val mediator = project
     dockerBaseImage := "openjdk:11",
   )
   .settings(Test / parallelExecution := false)
+  .settings(
+    // WebScalaJSBundlerPlugin
+    scalaJSProjects := Seq(webapp),
+    /** scalaJSPipeline task runs scalaJSDev when isDevMode is true, runs scalaJSProd otherwise. scalaJSProd task runs
+      * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
+      * development, including Scala.js fastOptJS task and source maps.
+      */
+    Assets / pipelineStages := Seq(scalaJSPipeline),
+    // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.3.0" / "fmgp-serviceworker-fastopt").toFile,
+    Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
+    // Frontend dependency configuration
+    Assets / WebKeys.packagePrefix := "public/",
+    Runtime / managedClasspath += (Assets / packageBin).value,
+  )
+  .enablePlugins(WebScalaJSBundlerPlugin)
   .dependsOn(httpUtils.jvm) // did, didExample,
   .enablePlugins(JavaAppPackaging, DockerPlugin)
+
+lazy val webapp = project
+  .in(file("webapp"))
+  .settings(publish / skip := true)
+  .settings(Test / test := {})
+  .settings(name := "webapp")
+  .configure(scalaJSBundlerConfigure)
+  .configure(buildInfoConfigure)
+  .settings(
+    libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
+    libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
+    libraryDependencies ++= Seq(D.scalaDID.value, D.scalaDID_peer.value),
+    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign
+  )
+  .settings(
+    stShortModuleNames := true,
+    webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
+    Compile / scalaJSModuleInitializers += {
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
+    },
+  )
 
 // ############################
 // ####  Release process  #####

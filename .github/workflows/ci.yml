@@ -10,7 +10,7 @@ on:
     # tags: ["v*"]
 
 env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   Run-Tests:
@@ -23,12 +23,12 @@ jobs:
           fetch-depth: 0 # Needed for the release tag // `git fetch --tags` will also work
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v14
-      # - name: Setup Node
-      #   uses: actions/setup-node@v2
-      #   with:
-      #     node-version: "16" # or whatever
-      # - name: Setup Scala.JS
-      #   uses: japgolly/setup-scalajs@v1
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+      - name: Setup Scala.JS
+        uses: japgolly/setup-scalajs@v1
       - name: Cache sbt
         uses: coursier/cache-action@v6.3
       - name: Cache embedmongo
@@ -37,8 +37,8 @@ jobs:
           path: ~/.embedmongo
           key: ${{ runner.os }}-embedmongo-4.7.0
           restore-keys: |
-             ${{ runner.os }}-embedmongo-4.7.0
+            ${{ runner.os }}-embedmongo-4.7.0
       ### Compile and TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m "test"
-      #   env:
-      #     NODE_OPTIONS: "--openssl-legacy-provider"
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
