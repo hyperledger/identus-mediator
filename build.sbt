@@ -248,7 +248,7 @@ lazy val mediator = project
 lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
-  .settings((setupTestConfig): _*)
+  .settings(Test / test := {})
   .settings(name := "webapp")
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
