@@ -89,7 +89,7 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
                           head.getServiceEndpointAsURIs.headOption // TODO head
                         case Seq() => None // TODO
                       }
-                      jobToRun = mURL match
+                      jobToRun <- mURL match
                         case None => ZIO.logWarning(s"No url to send message")
                         case Some(url) => {
                           ZIO.log(s"Send to url: $url") *>
