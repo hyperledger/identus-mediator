@@ -126,6 +126,7 @@ object MediatorStandalone extends ZIOAppDefault {
       .fork
     _ <- ZIO.log(s"Mediator Started")
     _ <- myServer.join *> ZIO.log(s"Mediator End")
+    _ <- ZIO.log(s"*" * 100)
   } yield ()
 
 }

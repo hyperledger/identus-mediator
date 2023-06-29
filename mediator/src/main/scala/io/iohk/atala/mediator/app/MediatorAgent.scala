@@ -22,6 +22,7 @@ import zio.json.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
+import scala.io.Source
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO
@@ -114,39 +115,39 @@ case class MediatorAgent(
     MediatorError,
     Option[EncryptedMessage]
   ] =
-        ZIO
-          .logAnnotate("msgHash", msg.hashCode.toString) {
-            for {
-              _ <- ZIO.log("receivedMessage")
-              maybeSyncReplyMsg <-
-                if (!msg.recipientsSubject.contains(id))
-                  ZIO.logError(s"This mediator '${id.string}' is not a recipient")
-                    *> ZIO.none
-                else
-                  for {
-                    messageItemRepo <- ZIO.service[MessageItemRepo]
-                    _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
-                    plaintextMessage <- decrypt(msg)
-                    _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
-                      ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
-                    }
-                    _ <- mSocketID match
+    ZIO
+      .logAnnotate("msgHash", msg.hashCode.toString) {
+        for {
+          _ <- ZIO.log("receivedMessage")
+          maybeSyncReplyMsg <-
+            if (!msg.recipientsSubject.contains(id))
+              ZIO.logError(s"This mediator '${id.string}' is not a recipient")
+                *> ZIO.none
+            else
+              for {
+                messageItemRepo <- ZIO.service[MessageItemRepo]
+                _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
+                plaintextMessage <- decrypt(msg)
+                _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
+                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
+                }
+                _ <- mSocketID match
+                  case None => ZIO.unit
+                  case Some(socketID) =>
+                    plaintextMessage.from match
                       case None => ZIO.unit
-                      case Some(socketID) =>
-                        plaintextMessage.from match
-                          case None => ZIO.unit
-                          case Some(from) =>
-                            didSocketManager.update {
-                              _.link(from.asFROMTO, socketID)
-                            }
-                    // TODO Store context of the decrypt unwarping
-                    // TODO SreceiveMessagetore context with MsgID and PIURI
-                    protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
-                    ret <- protocolHandler
-                      .execute(plaintextMessage)
-                      .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
-                  } yield ret
-            } yield maybeSyncReplyMsg
+                      case Some(from) =>
+                        didSocketManager.update {
+                          _.link(from.asFROMTO, socketID)
+                        }
+                // TODO Store context of the decrypt unwarping
+                // TODO SreceiveMessagetore context with MsgID and PIURI
+                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
+                ret <- protocolHandler
+                  .execute(plaintextMessage)
+                  .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+              } yield ret
+        } yield maybeSyncReplyMsg
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 
@@ -259,12 +260,28 @@ object MediatorAgent {
               .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
               .setStatus(Status.BadRequest)
           )
+      case req @ Method.GET -> !! => { // html.Html.fromDomElement()
+        val data = Source.fromResource(s"public/index.html").mkString("")
+        ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
+      }
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
       Throwable,
       Request,
       Response
     ]
+  } ++ Http.fromResource(s"public/webapp-fastopt-library.js").when {
+    case Method.GET -> !! / "public" / "webapp-fastopt-library.js" => true
+    case _                                                         => false
+  } ++ {
+    Http.fromResource(s"public/webapp-fastopt-bundle.js").when {
+      case Method.GET -> !! / "public" / path => true
+      // Response(
+      //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
+      //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
+      // )
+      case _ => false
+    }
   } @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
@@ -272,7 +289,7 @@ object MediatorAgent {
         allowedMethods = Some(Set(Method.GET, Method.POST, Method.OPTIONS)),
       )
     )
-    @@ 
+    @@
     HttpAppMiddleware.updateHeaders(headers =>
       Headers(
         headers.map(h =>
@@ -281,5 +298,5 @@ object MediatorAgent {
           } else h
         )
       )
-    ) 
+    )
 }
