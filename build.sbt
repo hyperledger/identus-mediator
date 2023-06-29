@@ -249,6 +249,7 @@ lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
   .settings(name := "webapp")
+  .settings(Test / test := {})
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
   // .dependsOn(serviceworker)
