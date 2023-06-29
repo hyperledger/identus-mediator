@@ -26,6 +26,7 @@ Scenario: Recipient removes not existing alias
 
 # https://input-output.atlassian.net/browse/ATL-4848
 # https://input-output.atlassian.net/browse/ATL-5020
+@BUG_ATL-5020
 Scenario: Recipient removes the last alias from keylist
   Given Recipient successfully set up a connection with the mediator
   When Recipient sends a keylist update message to the mediator to remove the last alias
