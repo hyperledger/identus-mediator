@@ -56,34 +56,33 @@ jobs:
           cd "${MEDIATOR_PATH}" || exit 129
           sbt docker:publishLocal
           MEDIATOR_VERSION=$(cut version.sbt -d '=' -f2 | tr -d '" ')
-          sed -i.bak "s/PRISM_AGENT_VERSION=.*/PRISM_AGENT_VERSION=${PRISM_AGENT_VERSION}/" "${ENV_FILE}" && rm -f "${ENV_FILE}.bak"
-          cat "${ENV_FILE}"
+          echo ${MEDIATOR_VERSION}
 
-      - name: Start services for issuer
+      - name: Start Mediator
         env:
           PORT: 8080
           NETWORK: prism
         uses: isbang/compose-action@v1.4.1
         with:
           compose-file: "./docker-compose.yml"
-          compose-flags: "--env-file ./infrastructure/local/.env -p issuer"
+          compose-flags: ""
           up-flags: "--wait"
           down-flags: "--volumes"
 
       - name: Run e2e tests
         continue-on-error: true
         run: |
-          ./gradlew test --tests "E2eTestsRunner" || true
+          ./gradlew test || true
           ./gradlew reports
 
-      - name: Update X-Ray test execution
-        uses: ./.github/actions/upload-to-xray
-        if: github.ref_name == 'main'
-        with:
-          username: ${{ secrets.XRAY_CLIENT_ID }}
-          password: ${{ secrets.XRAY_CLIENT_SECRET }}
-          json: "tests/e2e-tests/target/serenity-reports/cucumber_report.json"
-          execution_tag: ${{ env.XRAY_EXECUTION_TAG_LOCALHOST }}
+#      - name: Update X-Ray test execution
+#        uses: ./.github/actions/upload-to-xray
+#        if: github.ref_name == 'main'
+#        with:
+#          username: ${{ secrets.XRAY_CLIENT_ID }}
+#          password: ${{ secrets.XRAY_CLIENT_SECRET }}
+#          json: "tests/e2e-tests/target/serenity-reports/cucumber_report.json"
+#          execution_tag: ${{ env.XRAY_EXECUTION_TAG_LOCALHOST }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -97,8 +96,8 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "${{ env.REPORTS_DIR }}/SERENITY-JUNIT-*.xml"
-          comment_title: "E2E Test Results"
-          check_name: "E2E Test Results"
+          comment_title: "Integration Test Results"
+          check_name: "Integration Test Results"
 
       - name: Extract test results
         id: analyze_test_results
@@ -132,16 +131,16 @@ jobs:
             echo "ignored=${IGNORED_TESTS}";
           } >> "$GITHUB_OUTPUT"
 
-      - name: Slack Notification
-        if: github.ref_name == 'main' && steps.analyze_test_results.outputs.conclusion == 'failure'
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_COLOR: ${{ steps.analyze_test_results.outputs.conclusion }}
-          SLACK_MESSAGE: |
-            Total: ${{ steps.analyze_test_results.outputs.tests }}
-            Failed: ${{ steps.analyze_test_results.outputs.failures }}
-            Errors in tests: ${{ steps.analyze_test_results.outputs.errors }}
-            Skipped (known bugs): ${{ steps.analyze_test_results.outputs.skipped }}
-          SLACK_TITLE: "Mediator E2E tests: ${{ steps.analyze_test_results.outputs.conclusion }}"
-          SLACK_USERNAME: circleci
-          SLACK_WEBHOOK: ${{ secrets.E2E_TESTS_SLACK_WEBHOOK }}
+#      - name: Slack Notification
+#        if: github.ref_name == 'main' && steps.analyze_test_results.outputs.conclusion == 'failure'
+#        uses: rtCamp/action-slack-notify@v2
+#        env:
+#          SLACK_COLOR: ${{ steps.analyze_test_results.outputs.conclusion }}
+#          SLACK_MESSAGE: |
+#            Total: ${{ steps.analyze_test_results.outputs.tests }}
+#            Failed: ${{ steps.analyze_test_results.outputs.failures }}
+#            Errors in tests: ${{ steps.analyze_test_results.outputs.errors }}
+#            Skipped (known bugs): ${{ steps.analyze_test_results.outputs.skipped }}
+#          SLACK_TITLE: "Mediator Integration tests: ${{ steps.analyze_test_results.outputs.conclusion }}"
+#          SLACK_USERNAME: circleci
+#          SLACK_WEBHOOK: ${{ secrets.E2E_TESTS_SLACK_WEBHOOK }}
