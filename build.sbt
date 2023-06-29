@@ -190,6 +190,14 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
 lazy val mediator = project
   .in(file("mediator"))
   .settings(publish / skip := true)
+  .settings(
+    // FIX TODO (maybe the next version of the library will hide this compilation error)
+    // [error] -- Error: api/target/shaded/scala-3.2.2/src_managed/main/velocity/DefaultBSONHandlers.scala:379:2
+    // [error] undefined: new com.github.ghik.silencer.silent # -1: TermRef(TypeRef(TermRef(TermRef(TermRef(TermRef(ThisType(TypeRef(NoPrefix,module class <root>)),object com),object github),object ghik),object silencer),silent),<init>) at readTasty
+    // [error] one error found
+    // [error] (mediator / Compile / doc) DottyDoc Compilation Failed
+    Compile / doc / sources := Seq.empty
+  )
   .settings((setupTestConfig): _*)
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
