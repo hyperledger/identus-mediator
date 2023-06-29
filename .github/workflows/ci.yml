@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-         node-version: "lts/*"
+          node-version: "lts/*"
       - name: Setup Scala.JS
         uses: japgolly/setup-scalajs@v1
       - name: Cache sbt
@@ -40,5 +40,5 @@ jobs:
             ${{ runner.os }}-embedmongo-4.7.0
       ### Compile and TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m "test"
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
+        # env:
+        #   NODE_OPTIONS: "--openssl-legacy-provider"

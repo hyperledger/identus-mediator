@@ -249,10 +249,8 @@ lazy val webapp = project
   .in(file("webapp"))
   .settings(publish / skip := true)
   .settings(name := "webapp")
-  .settings(Test / test := {})
   .configure(scalaJSBundlerConfigure)
   .configure(buildInfoConfigure)
-  // .dependsOn(serviceworker)
   .settings(
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
