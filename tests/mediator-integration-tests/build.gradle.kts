@@ -20,6 +20,13 @@ repositories {
         }
     }
     maven {
+        this.url = uri("https://maven.pkg.github.com/input-output-hk/atala-prism-apollo")
+        credentials {
+            this.username = System.getenv("ATALA_GITHUB_ACTOR")
+            this.password = System.getenv("ATALA_GITHUB_TOKEN")
+        }
+    }
+    maven {
         url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
     }
 }
