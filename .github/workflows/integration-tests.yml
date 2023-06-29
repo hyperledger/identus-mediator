@@ -16,6 +16,10 @@ defaults:
     shell: bash
     working-directory: "tests/mediator-integration-tests"
 
+env:
+  ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
+  ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
+
 jobs:
   run-integration-tests:
     name: "Run integration tests"
