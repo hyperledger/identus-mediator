@@ -4,16 +4,12 @@ services:
   mongo:
     image: mongo:6.0
     ports:
-      - 27017:27017
-    #volumes:
-    # - ./tmp/mongo:/data/db
+      - "27017:27017"
     command: ["--auth"]
-    # command: ["--bind_ip_all","--keyFile", "/opt/keyfile/keyfile","--replSet", "rs0","--auth"]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin
       - MONGO_INITDB_DATABASE=mediator
-      # - MONGO_REPLICA_SET_NAME=rs0
     volumes:
       - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
     #   - ./:/opt/keyfile/
