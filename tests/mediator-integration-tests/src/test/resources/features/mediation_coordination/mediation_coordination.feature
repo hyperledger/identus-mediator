@@ -33,7 +33,7 @@ Scenario: Recipient removes the last alias from keylist
   Then Mediator responds to Recipient with a correct keylist update remove message
 
 # NOT IMPLEMENTED YET
-Scenario: Recipient query keylist
-  Given Recipient successfully set up a connection with the mediator
-  When Recipient sends a keylist query message to the mediator
-  Then Mediator responds to Recipient with keylist message containing the current list of keys
+#Scenario: Recipient query keylist
+#  Given Recipient successfully set up a connection with the mediator
+#  When Recipient sends a keylist query message to the mediator
+#  Then Mediator responds to Recipient with keylist message containing the current list of keys
