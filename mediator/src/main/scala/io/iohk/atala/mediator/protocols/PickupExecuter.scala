@@ -42,8 +42,29 @@ object PickupExecuter
       case `piuriMessagesReceived` => plaintextMessage.toMessagesReceived
       case `piuriLiveModeChange`   => plaintextMessage.toLiveModeChange
     }).map {
-      case m: StatusRequest => ZIO.succeed(NoReply) // FIXME
-      case m: Status        => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
+      case m: StatusRequest =>
+        for {
+          _ <- ZIO.logInfo("StatusRequest")
+          repoDidAccount <- ZIO.service[UserAccountRepo]
+          didRequestingMessages = m.from.asFROMTO
+          mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
+          msgHash = mDidAccount match
+            case None             => ??? // TODO FIXME
+            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
+          status = Status(
+            thid = m.id,
+            from = m.to.asFROM,
+            to = m.from.asTO,
+            recipient_did = m.recipient_did,
+            message_count = msgHash.size,
+            longest_waited_seconds = None, // TODO
+            newest_received_time = None, // TODO
+            oldest_received_time = None, // TODO
+            total_bytes = None, // TODO
+            live_delivery = None, // TODO
+          )
+        } yield Reply(status.toPlaintextMessage)
+      case m: Status => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
           _ <- ZIO.logInfo("DeliveryRequest")
