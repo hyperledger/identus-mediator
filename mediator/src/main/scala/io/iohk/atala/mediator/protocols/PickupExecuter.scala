@@ -63,7 +63,7 @@ object PickupExecuter
             total_bytes = None, // TODO
             live_delivery = None, // TODO
           )
-        } yield ZIO.succeed(Reply(status.toPlaintextMessage))
+        } yield Reply(status.toPlaintextMessage)
       case m: Status => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
