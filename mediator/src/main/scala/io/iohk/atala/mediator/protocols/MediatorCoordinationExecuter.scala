@@ -75,8 +75,24 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
           }
         } yield SyncReplyOnly(m.makeKeylistResponse(updateResponse).toPlaintextMessage)
       case m: KeylistResponse => ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply)
-      case m: KeylistQuery    => ZIO.logError("Not implemented KeylistQuery") *> ZIO.succeed(NoReply) // TODO
-      case m: Keylist         => ZIO.logWarning("Keylist") *> ZIO.succeed(NoReply)
+      case m: KeylistQuery =>
+        for {
+          _ <- ZIO.logInfo("KeylistQuery")
+          repo <- ZIO.service[UserAccountRepo]
+          mAccount <- repo.getDidAccount(m.from.toDID)
+          mResponse = mAccount.map { account =>
+            Keylist(
+              thid = m.id,
+              from = m.to.asFROM,
+              to = m.from.asTO,
+              keys = account.alias.map(e => Keylist.RecipientDID(e)),
+              pagination = None,
+            )
+          }
+        } yield mResponse match
+          case None           => NoReply // TODO error report
+          case Some(response) => SyncReplyOnly(response.toPlaintextMessage)
+      case m: Keylist => ZIO.logWarning("Keylist") *> ZIO.succeed(NoReply)
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
       case Right(program) => program
