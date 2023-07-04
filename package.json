@@ -41,7 +41,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
+                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -mem 2048 -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
                 }
             ],
             [
