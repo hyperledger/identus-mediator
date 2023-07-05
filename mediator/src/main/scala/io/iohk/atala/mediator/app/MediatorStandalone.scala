@@ -38,13 +38,14 @@ case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, k
 case class DataBaseConfig(
     protocol: String,
     host: String,
-    port: String,
+    port: Option[String],
     userName: String,
     password: String,
     dbName: String
 ) {
-  val connectionString = s"$protocol://$userName:$password@$host:$port/$dbName"
-  val displayConnectionString = s"$protocol://$userName:******@$host:$port/$dbName"
+  private def maybePort = port.filter(_.nonEmpty).map(":" + _).getOrElse("")
+  val connectionString = s"$protocol://$userName:$password@$host$maybePort/$dbName"
+  val displayConnectionString = s"$protocol://$userName:******@$host$maybePort/$dbName"
   override def toString: String = s"""DataBaseConfig($protocol, $host, $port, $userName, "******", $dbName)"""
 }
 
