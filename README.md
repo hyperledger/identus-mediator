@@ -22,7 +22,8 @@ A cloud-based agent that forwards messages to mobile devices.
 
 ## Protocols
 - [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
-- [WIP] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
+- [DONE] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
+- [TODO] `MediatorCoordination 3.0` - https://didcomm.org/mediator-coordination/3.0
 - [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
 
@@ -40,3 +41,25 @@ The webapp/webpage is atm just to show the QRcode with out of band invitation fo
 **Compile** - sbt> `webapp / Compile / fastOptJS / webpack`
 
 **Open the webpage for develop** - open> `file:///.../webapp/index-fastopt.html`
+
+## Run
+
+This DIDComm Mediator is composed of two elements, a backend service and a the database.
+The backend service is a JVM application and the database used is MongoDB.
+The backend service is also a web service that have a single page application that will give the final user a invitation page.
+
+### Run localy
+
+Everything can be run with a single command with Docker compose `docker-compose.yml`
+
+First build to docker image with `NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal`.
+The latest stable image version can also downloaded from the IOHK repositories.
+
+### MongoBD
+
+Docker compose would do that for you but if you are running separately or on the cloud like MongoDB Atlas.
+You will need to create the table and indexs before start the backend service. See the file `initdb.js`.
+
+### Deploy
+
+You can easy deploy the image everywhere. We recommend a minimum of 250 mb ram to run the mediator backend service.
