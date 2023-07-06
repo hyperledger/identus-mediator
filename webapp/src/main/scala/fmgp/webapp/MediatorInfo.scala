@@ -31,7 +31,7 @@ object MediatorInfo {
     div(
       h1("Invite for the DID Comm Mediator:"),
       h3("Plaintext out of band invitation:"),
-      p(code(qrCodeData)),
+      p(a(href := qrCodeData, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
       pre(code(invitation.toPlaintextMessage.toJsonPretty)),
       divQRCode,
       h3("Signed out of band invitation:"),
