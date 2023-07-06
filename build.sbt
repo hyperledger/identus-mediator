@@ -239,7 +239,7 @@ lazy val mediator = project
       * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
       * development, including Scala.js fastOptJS task and source maps.
       */
-    Assets / pipelineStages := Seq(scalaJSPipeline),
+    Assets / pipelineStages := Seq(scalaJSPipeline, gzip),
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
