@@ -261,8 +261,11 @@ object MediatorAgent {
               .setStatus(Status.BadRequest)
           )
       case req @ Method.GET -> !! => { // html.Html.fromDomElement()
-        val data = Source.fromResource(s"public/index.html").mkString("")
-        ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          _ <- ZIO.log("index.html")
+          ret <- ZIO.succeed(IndexHtml.html(agent.id))
+        } yield ret
       }
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
