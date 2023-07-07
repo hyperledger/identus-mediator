@@ -70,7 +70,7 @@ jobs:
           compose-flags: ""
           up-flags: "--wait"
           down-flags: "--volumes"
-        env :
+        env:
           GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
           ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
