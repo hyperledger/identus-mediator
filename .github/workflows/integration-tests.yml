@@ -71,8 +71,9 @@ jobs:
           up-flags: "--wait"
           down-flags: "--volumes"
         env:
-          GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
-          GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
+          ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
+          ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
+          MEDIATOR_VERSION: ${{ secrets.ATALA_GITHUB_TOKEN }}
 
       - name: Run e2e tests
         env:
