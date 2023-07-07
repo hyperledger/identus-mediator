@@ -10,8 +10,6 @@ graph LR
   M--pickup-->D((Reciever))
 ```
 
-[![CI](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/ci.yml)
-[![Scala Steward](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml/badge.svg)](https://github.com/FabioPinheiro/scala-did/actions/workflows/scala-steward.yml)
  - **CI** automate builds and tests all pushes to the main branch also as all PRs created.
  - **Scala Steward** automate the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
 
@@ -21,11 +19,12 @@ graph LR
 
 ## Description
 
-DID Comm v2 (Decentralized Identifiers Communication Version 2) is a protocol designed for secure, private, and decentralized communication between different entities using decentralized identifiers (DIDs). A DID Comm v2 Mediator acts as an intermediary in the communication process, facilitating the exchange of messages between the parties involved. Here's a high-level description of how a DID Comm v2 Mediator works:
+DID Comm v2 (Decentralized Identifiers Communication Version 2) is a protocol engineered for secure, private, and decentralized communications between various entities utilizing decentralized identifiers (DIDs). A DID Comm v2 Mediator functions as an intermediary in the communication process, streamlining the exchange of messages among the involved parties.
 
-- Establishing logical connections: The Mediator enables entities (such as individuals or organizations) to establish secure connections with each other. Each entity has a unique DID that serves as its identifier on the decentralized network.
-- DID resolution: When an entity wants to communicate with another entity, it resolves the recipient's DID to obtain the necessary information to establish a connection. The resolution process involves retrieving the recipient's public key and associated metadata from a decentralized identity infrastructure, such as a blockchain or a distributed ledger.
-- Message encryption: The sender encrypts the message two times (one for the final receiver and then warp the encrypted message and encrypt again to Mediator) using the mediator's and recipient's public key obtained during the DID resolution process. This ensures that only the intended recipient can decrypt and read the message.
+
+- Establishing Logical Connections - The Mediator empowers entities, which could be individuals or organizations, to forge secure connections amongst themselves. Each entity possesses a unique DID that acts as its identifier within the decentralized network.
+- DID resolution - When an entity seeks to communicate with another, it resolves the recipient's DID to procure the information necessary to establish a connection. This resolution procedure entails retrieving the recipient's public key and correlated metadata from decentralized identity infrastructure, which could be a blockchain or distributed ledger.
+- Message encryption - The sender employs a double encryption technique for the message: initially for the ultimate receiver, and subsequently encapsulates the encrypted message within another encryption layer for the Mediator. This is achieved using the public keys of both the Mediator and the recipient obtained through the DID resolution process. The dual encryption ensures that only the intended recipient has the capacity to decrypt and access the message.
 
 ```mermaid
 graph LR
@@ -36,16 +35,16 @@ graph LR
   end
 ```
 
-- Message routing: The sender sends the encrypted message to the Mediator. The Mediator acts as a routing agent, receiving messages from one entity, decrypted one layer and forwarding them to the intended recipient based on their DID.
-- Mediation process: The Mediator verifies the authenticity and integrity of the incoming message by checking the digital signature attached to it. This signature ensures that the message was indeed sent by the claimed sender and that it hasn't been tampered with during transmission.
+- Message routing - The sender sends the encrypted message to the Mediator. The Mediator acts as a routing agent, receiving messages from one entity, decrypted one layer and forwarding them to the intended recipient based on their DID.
+- Mediation process-  The Mediator verifies the authenticity and integrity of the incoming message by checking the digital signature attached to it. This signature ensures that the message was indeed sent by the claimed sender and that it hasn't been tampered with during transmission.
 
-- Message decryption: After verifying the message's authenticity, the Mediator decrypted one layer of the message using the mediator's private key, which is securely held by the mediator. Once decrypted, the next message becomes readable (the final planetext intended for the final user it's still encrypted).
-- Optional processing: The Mediator may perform additional processing on the message based on predefined rules or business logic. This could include applying filters, applying policies, or invoking external services.
-- Message forwarding: If necessary, the Mediator can further forward the decrypted message to additional entities in the communication flow. This enables multi-party communication scenarios.
+- Message decryption - After verifying the message's authenticity, the Mediator decrypted one layer of the message using the mediator's private key, which is securely held by the mediator. Once decrypted, the next message becomes readable (the final planetext intended for the final user it's still encrypted).
+- Optional processing - The Mediator may perform additional processing on the message based on predefined rules or business logic. This could include applying filters, applying policies, or invoking external services.
+- Message forwarding - If necessary, the Mediator can further forward the decrypted message to additional entities in the communication flow. This enables multi-party communication scenarios.
 
 By acting as an intermediary, the DID Comm v2 Mediator helps facilitate secure and private communication between entities while leveraging the decentralized nature of DIDs and cryptographic techniques to ensure authenticity, integrity, and confidentiality of the messages exchanged.
 
-The mediator is especially useful when the edge entities are not always online, like mobile devices. Usually, we can assume that the mediator is always online.
+The mediator is especially useful when the edge entities are not always online, like mobile paradigm. Usually, we can assume that the mediator is always online.
 
 ## Protocols
 - [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
