@@ -10,6 +10,7 @@ import fmgp.did.comm.protocol.trustping2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
+import io.iohk.atala.mediator.protocols.NullProtocolExecuter
 import zio.*
 import zio.json.*
 //TODO pick a better name // maybe "Protocol" only
@@ -38,14 +39,14 @@ case class ProtocolExecuterCollection[-R](executers: ProtocolExecuter[R]*) exten
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecute.execute(plaintextMessage)
+      case None     => NullProtocolExecuter.execute(plaintextMessage)
       case Some(px) => px.execute(plaintextMessage)
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecute.program(plaintextMessage)
+      case None     => NullProtocolExecuter.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }
 
@@ -132,21 +133,4 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
       plaintextMessage: PlaintextMessage,
       // context: Context
   ): ZIO[R1, MediatorError, Action]
-}
-
-object NullProtocolExecute extends ProtocolExecuter[Any] {
-
-  override def suportedPIURI = Seq()
-  override def program[R1 <: Any](plaintextMessage: PlaintextMessage) =
-    ZIO.fail(MissingProtocolError(plaintextMessage.`type`))
-}
-
-object BasicMessageExecuter extends ProtocolExecuter[Any] {
-
-  override def suportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)
-  override def program[R1 <: Any](plaintextMessage: PlaintextMessage) = for {
-    job <- BasicMessage.fromPlaintextMessage(plaintextMessage) match
-      case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
-      case Right(bm)   => Console.printLine(bm.toString).mapError(ex => MediatorThrowable(ex))
-  } yield NoReply
 }
