@@ -33,6 +33,7 @@ object AppUtils {
       onClick --> menuClickObserver,
       "menu"
     )
+
     typings.materialRipple.mod.MDCRipple.attachTo(menuButton.ref)
 
     // def makeLi(didName: String, icon: String) =
@@ -81,7 +82,6 @@ object AppUtils {
     typings.materialMenu.mod.MDCMenu.attachTo(options.ref)
 
     headerTag(
-      className("mdc-top-app-bar"),
       div(
         className("mdc-top-app-bar__row"),
         sectionTag(
@@ -90,23 +90,22 @@ object AppUtils {
           span(className("mdc-top-app-bar__title"), child.text <-- title)
         ),
         sectionTag(
+          className("mdc-top-app-bar__section mdc-top-app-bar__section--align-start"),
+          div(
+            a(
+              href := "https://atalaprism.io",
+              target := "_blank",
+              img(
+                src := "https://atalaprism.io/images/atala-prism-logo-suite.svg",
+                className := "logo vanilla",
+                alt := "Prism Mediator"
+              ),
+            )
+          )
+        ),
+        sectionTag(
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-end"),
           role("toolbar"),
-          a(
-            className("material-icons mdc-top-app-bar__action-item mdc-icon-button"),
-            href("https://github.com/FabioPinheiro/fmgp-generative-design"),
-            i(aria.label("Github")),
-          ),
-          // button(
-          //   className("material-icons mdc-top-app-bar__action-item mdc-icon-button"),
-          //   aria.label("Search"),
-          //   "search"
-          // ),
-          // select(
-          //   value <-- Global.agentVar.signal.map(Global.getAgentName(_)),
-          //   onChange.mapToValue.map(e => fmgp.did.AgentProvider.allAgents.get(e)) --> Global.agentVar,
-          //   Global.dids.map { step => option(value := step, step) }
-          // ),
           div(
             className("mdc-menu-surface--anchor"),
             optionsButton,
@@ -123,7 +122,7 @@ object AppUtils {
       className("mdc-drawer mdc-drawer--modal"),
       div(
         className("mdc-drawer__header"),
-        h3(className("mdc-drawer__title"), "IOHP - Atala PRISM Mediator"),
+        h3(className("mdc-drawer__title"), "IOHK - Atala PRISM Mediator"),
         h6(className("mdc-drawer__subtitle"), "atlaprism@iohk.io"),
       ),
       div(
