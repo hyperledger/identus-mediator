@@ -18,7 +18,7 @@ services:
     #   interval: 10s
     #   start_period: 30s
   atalaprism-mediator:
-    image: ghcr.io/input-output-hk/mediator:0.2.0-SNAPSHOT
+    image: ghcr.io/input-output-hk/mediator:${MEDIATOR_VERSION:-0.2.0-SNAPSHOT}
     ports:
       - 8080:8080
     network_mode: host #hash on mac remove this the default is bridge we can use host.docker.internal
