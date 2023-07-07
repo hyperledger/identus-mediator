@@ -65,16 +65,13 @@ jobs:
           echo ${MEDIATOR_VERSION}
       - name: Start Mediator
         uses: isbang/compose-action@v1.4.1
-        env:
-         GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
-         GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
-         ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
-         ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
         with:
           compose-file: "./docker-compose.yml"
           compose-flags: ""
           up-flags: "--wait"
           down-flags: "--volumes"
+        env:
+          GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
       - name: Run e2e tests
         env:
           GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
