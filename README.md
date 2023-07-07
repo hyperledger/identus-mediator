@@ -35,8 +35,8 @@ graph LR
   end
 ```
 
-- Message routing - The sender sends the encrypted message to the Mediator. The Mediator acts as a routing agent, receiving messages from one entity, decrypted one layer and forwarding them to the intended recipient based on their DID.
-- Mediation process-  The Mediator verifies the authenticity and integrity of the incoming message by checking the digital signature attached to it. This signature ensures that the message was indeed sent by the claimed sender and that it hasn't been tampered with during transmission.
+- Message routing - The sender transmits an encrypted message to the Mediator, which serves as a routing agent. In this role, the Mediator receives messages from the sender, decrypts one layer, and forwards them to the appropriate recipient based on the recipient's DID.
+- Mediation process- The Mediator verifies the authenticity and integrity of the incoming message by checking the digital signature attached to it. This signature ensures that the message was indeed sent by the claimed sender and that it hasn't been tampered with during transmission.
 
 - Message decryption - After verifying the message's authenticity, the Mediator decrypted one layer of the message using the mediator's private key, which is securely held by the mediator. Once decrypted, the next message becomes readable (the final planetext intended for the final user it's still encrypted).
 - Optional processing - The Mediator may perform additional processing on the message based on predefined rules or business logic. This could include applying filters, applying policies, or invoking external services.
