@@ -49,7 +49,7 @@ jobs:
       - name: Install Compose
         uses: ndeloof/install-compose-action@v0.0.1
         with:
-          version: v2.12.2 # defaults to 'latest'
+          version: v2.19.1 # defaults to 'latest'
           legacy: true    # will also install in PATH as `docker-compose`
 
       - name: Build local version of Mediator Agent
@@ -61,8 +61,8 @@ jobs:
           cd "${MEDIATOR_PATH}" || exit 129
           NODE_OPTIONS=--openssl-legacy-provider sbt -mem 2048 -J-Xmx5120m docker:publishLocal
           MEDIATOR_VERSION=$(cut version.sbt -d '=' -f2 | tr -d '" ')
+          echo "MEDIATOR_VERSION=${MEDIATOR_VERSION}"  >> $GITHUB_ENV
           echo ${MEDIATOR_VERSION}
-
       - name: Start Mediator
         uses: isbang/compose-action@v1.4.1
         with:
@@ -70,7 +70,6 @@ jobs:
           compose-flags: ""
           up-flags: "--wait"
           down-flags: "--volumes"
-
       - name: Run e2e tests
         env:
           GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
