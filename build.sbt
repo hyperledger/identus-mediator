@@ -270,7 +270,7 @@ lazy val webapp = project
     stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("io.iohk.atala.mediator.App", "main")
     },
   )
 

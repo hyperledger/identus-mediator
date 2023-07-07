@@ -1,4 +1,4 @@
-package fmgp.webapp
+package io.iohk.atala.mediator
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
