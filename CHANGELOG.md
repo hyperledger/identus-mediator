@@ -1,3 +1,17 @@
+# [0.3.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.2.0...prism-mediator-v0.3.0) (2023-07-07)
+
+
+### Bug Fixes
+
+* dynamic DID on the web page ([#40](https://github.com/input-output-hk/atala-prism-mediator/issues/40)) ([0949a19](https://github.com/input-output-hk/atala-prism-mediator/commit/0949a191679caf91575a7d27d69ad1ced89577cd))
+* mediator docker-compose image repo and version ([#39](https://github.com/input-output-hk/atala-prism-mediator/issues/39)) ([116174b](https://github.com/input-output-hk/atala-prism-mediator/commit/116174ba616c31f5f28c099dfb1b04a360d258e0))
+* mediator rename package and refactoring ([#41](https://github.com/input-output-hk/atala-prism-mediator/issues/41)) ([c755c99](https://github.com/input-output-hk/atala-prism-mediator/commit/c755c99f3547561b46d3b2cbac4e3cecc467d0c6))
+
+
+### Features
+
+* fix mongo config when no port & support gzip ([#35](https://github.com/input-output-hk/atala-prism-mediator/issues/35)) ([b2b2a02](https://github.com/input-output-hk/atala-prism-mediator/commit/b2b2a02261ffdd5a4362e4b8e28f34479f4eccef))
+
 # [0.2.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.1.1...prism-mediator-v0.2.0) (2023-07-04)
 
 
