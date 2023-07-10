@@ -219,6 +219,11 @@ object MediatorAgent {
 
   def didCommApp = {
     Http.collectZIO[Request] {
+      case req @ Method.GET -> !! / "headers" =>
+        val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
+        ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
+      case req @ Method.GET -> !! / "health" => ZIO.succeed(Response.ok)
+
       case req @ Method.GET -> !! if req.headersAsList.exists { h =>
             h.key.toString.toLowerCase == "content-type" &&
             (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
@@ -261,8 +266,11 @@ object MediatorAgent {
               .setStatus(Status.BadRequest)
           )
       case req @ Method.GET -> !! => { // html.Html.fromDomElement()
-        val data = Source.fromResource(s"public/index.html").mkString("")
-        ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          _ <- ZIO.log("index.html")
+          ret <- ZIO.succeed(IndexHtml.html(agent.id))
+        } yield ret
       }
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
@@ -270,19 +278,39 @@ object MediatorAgent {
       Request,
       Response
     ]
-  } ++ Http.fromResource(s"public/webapp-fastopt-library.js").when {
-    case Method.GET -> !! / "public" / "webapp-fastopt-library.js" => true
-    case _                                                         => false
-  } ++ {
-    Http.fromResource(s"public/webapp-fastopt-bundle.js").when {
-      case Method.GET -> !! / "public" / path => true
-      // Response(
-      //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-      //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-      // )
-      case _ => false
+  } /* ++ Http.fromResource(s"public/webapp-fastopt-bundle.js.gz").when {
+    case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js.gz" => true
+    case _                                                           => false
+  } */ ++ Http
+    .fromResource(s"public/webapp-fastopt-bundle.js.gz")
+    .map(e =>
+      e.setHeaders(
+        Headers(
+          e.headers.filter(_.key != "content-encoding") ++ Seq(
+            Header("content-type", "application/javascript"),
+            Header("content-encoding", "gzip"),
+          )
+        )
+      )
+    )
+    .when {
+      case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js" => true
+      case _                                                        => false
     }
-  } @@
+  //   ++ {
+  //   Http
+  //     .fromResource(s"public/webapp-fastopt-bundle.js")
+  //     // .map(e => e.addHeader())
+  //     .when {
+  //       case Method.GET -> !! / "public" / path => true
+  //       // Response(
+  //       //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
+  //       //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
+  //       // )
+  //       case _ => false
+  //     }
+  // }
+    @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
         allowedOrigins = _ => true,

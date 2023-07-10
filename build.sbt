@@ -39,7 +39,7 @@ lazy val V = new {
 
   // For WEBAPP
   val laminar = "15.0.1"
-  val waypoint = "6.0.0"
+  val waypoint = "7.0.0"
   val upickle = "3.1.0"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
@@ -239,7 +239,7 @@ lazy val mediator = project
       * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
       * development, including Scala.js fastOptJS task and source maps.
       */
-    Assets / pipelineStages := Seq(scalaJSPipeline),
+    Assets / pipelineStages := Seq(scalaJSPipeline, gzip),
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
@@ -270,7 +270,7 @@ lazy val webapp = project
     stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("io.iohk.atala.mediator.App", "main")
     },
   )
 
