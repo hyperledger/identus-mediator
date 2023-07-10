@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.0...prism-mediator-v0.3.1) (2023-07-10)
+
+
+### Bug Fixes
+
+* mediator oob webpage added logo  ([#42](https://github.com/input-output-hk/atala-prism-mediator/issues/42)) ([45debc8](https://github.com/input-output-hk/atala-prism-mediator/commit/45debc8c2d607cb298af0f1b047fb2083a334b71))
+
 # [0.3.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.2.0...prism-mediator-v0.3.0) (2023-07-07)
 
 
