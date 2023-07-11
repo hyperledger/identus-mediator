@@ -45,13 +45,6 @@ case class MediatorAgent(
       )
     )
 
-  // private def _didSubjectAux = id
-  // private def _keyStoreAux = keyStore.keys.toSeq
-  // val indentityLayer = ZLayer.succeed(new Agent {
-  //   override def id: DID = _didSubjectAux
-  //   override def keys: Seq[PrivateKey] = _keyStoreAux
-  // })
-
   val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
     MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
 
@@ -278,10 +271,7 @@ object MediatorAgent {
       Request,
       Response
     ]
-  } /* ++ Http.fromResource(s"public/webapp-fastopt-bundle.js.gz").when {
-    case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js.gz" => true
-    case _                                                           => false
-  } */ ++ Http
+  } ++ Http
     .fromResource(s"public/webapp-fastopt-bundle.js.gz")
     .map(e =>
       e.setHeaders(
@@ -297,19 +287,6 @@ object MediatorAgent {
       case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js" => true
       case _                                                        => false
     }
-  //   ++ {
-  //   Http
-  //     .fromResource(s"public/webapp-fastopt-bundle.js")
-  //     // .map(e => e.addHeader())
-  //     .when {
-  //       case Method.GET -> !! / "public" / path => true
-  //       // Response(
-  //       //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-  //       //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-  //       // )
-  //       case _ => false
-  //     }
-  // }
     @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
