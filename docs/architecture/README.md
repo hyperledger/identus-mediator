@@ -11,7 +11,7 @@ external components, mainly cloud and edge agents.
 
 ## Container Diagram
 
-The container diagram depicts the internal components and their relationships within the Atala PRISM Mediator.
+The container diagram depicts the internal containers/runnables and their relationships within the Atala PRISM Mediator.
 
 ![](diagrams/mediator-container.png)
 
@@ -29,9 +29,9 @@ The Mediator Agent handles the communication and coordination tasks of the Atala
 
 ### Mediator Database
 
-The Mediator Database stores data related to the Atala PRISM Mediator.
+The Mediator Database stores data related to the Atala PRISM Mediator. It contains the following tables:
 
-- **User Accounts**: This table represents the database table for storing user account information.
+- **User Accounts**: for storing user account information of mediated agents.
 
-- **Message Items**: This table represents the database table for storing message items.
+- **Message Items**: for storing messages sent by edge and cloud agents.
 
