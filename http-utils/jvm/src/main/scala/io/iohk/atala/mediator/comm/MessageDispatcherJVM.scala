@@ -25,7 +25,7 @@ class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
       /*context*/
       destination: String,
       xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, String] = {
+  ): ZIO[Any, DispatcherError, String] = {
     val contentTypeHeader = Headers.contentType(msg.`protected`.obj.typ.getOrElse(MediaTypes.ENCRYPTED).typ)
     val xForwardedHostHeader = Headers(xForwardedHost.map(x => Header(MyHeaders.xForwardedHost, x)))
     for {
@@ -37,13 +37,13 @@ class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
           content = Body.fromCharSequence(msg.toJson),
         )
         .tapError(ex => ZIO.logWarning(s"Fail when calling '$destination': ${ex.toString}"))
-        .mapError(ex => SomeThrowable(ex))
+        .mapError(ex => DispatcherError(ex))
       data <- res.body.asString
         .tapError(ex => ZIO.logError(s"Fail parce http response body: ${ex.toString}"))
-        .mapError(ex => SomeThrowable(ex))
+        .mapError(ex => DispatcherError(ex))
       _ <- res.status.isError match
-        case true  => ZIO.logError(data)
+        case true  => ZIO.logWarning(data)
         case false => ZIO.logInfo(data)
     } yield (data)
-  }.provideEnvironment(ZEnvironment(client)) // .host()
+  }.provideEnvironment(ZEnvironment(client))
 }

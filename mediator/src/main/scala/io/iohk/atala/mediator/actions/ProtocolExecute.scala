@@ -105,7 +105,7 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
                                 //     Some(url.drop(8).split(':').head.split('/').head)
                                 //   case _ => None
                               )
-                              .mapError(fail => MediatorDidError(fail))
+                              .catchAll { case DispatcherError(error) => ZIO.logWarning(s"Dispatch Error: $error") }
                         }
 
                     } yield (jobToRun)
