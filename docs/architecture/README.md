@@ -29,7 +29,7 @@ The Mediator Agent handles the communication and coordination tasks of the Atala
 
 ### Mediator Database
 
-The Mediator Database stores data related to the Atala PRISM Mediator. It contains the following tables:
+The Mediator Database stores data related to the Atala PRISM Mediator. It contains the following collection:
 
 - **User Accounts**: for storing user account information of mediated agents.
 
