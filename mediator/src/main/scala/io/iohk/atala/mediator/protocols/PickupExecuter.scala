@@ -112,7 +112,7 @@ object PickupExecuter
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.markAsDelivered(
             didRequestingMessages.toDID,
-            m.message_id_list.map(e => e.toInt) // TODO have it safe 'toInt'
+            m.message_id_list
           )
         } yield NoReply
       case m: LiveModeChange => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
