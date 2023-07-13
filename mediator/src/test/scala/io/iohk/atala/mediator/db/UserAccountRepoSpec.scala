@@ -131,7 +131,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
         assert(messageMetaData)(
           forall(
-            hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.hashCode()))
+            hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
               && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(DIDSubject(bob)))
           )
         )
@@ -141,7 +141,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         msg <- ZIO.fromEither(encryptedMessageAlice)
-        markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.hashCode()))
+        markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.sha1))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         assertTrue(markedDelivered == 1)
