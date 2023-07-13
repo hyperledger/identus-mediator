@@ -38,6 +38,7 @@ lazy val V = new {
   val zioTestMagnolia = "2.0.15"
 
   // For WEBAPP
+  val laminar = "15.0.1"
   val waypoint = "7.0.0"
   val upickle = "3.1.2"
   // https://www.npmjs.com/package/material-components-web
