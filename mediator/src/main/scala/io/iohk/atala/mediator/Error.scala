@@ -14,7 +14,7 @@ object MediatorDidError {
   def apply(error: DidFail) = new MediatorDidError(error)
 }
 
-final case class MediatorThrowable(val error: String) extends StorageError
+final case class MediatorThrowable(val error: String) extends MediatorError
 object MediatorThrowable {
   def apply(throwable: Throwable) = new MediatorThrowable(throwable.getClass.getName() + ":" + throwable.getMessage)
 }
@@ -47,4 +47,4 @@ object ProtocolError {
 }
 
 case class MissingProtocolError(piuri: PIURI) extends ProtocolError
-case class FailToEncodeMessage(piuri: PIURI, error: String) extends ProtocolError
+// case class FailToEncodeMessage(piuri: PIURI, error: String) extends ProtocolError
