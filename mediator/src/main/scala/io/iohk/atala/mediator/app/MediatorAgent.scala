@@ -109,7 +109,7 @@ case class MediatorAgent(
     Option[EncryptedMessage]
   ] =
     ZIO
-      .logAnnotate("msgHash", msg.hashCode.toString) {
+      .logAnnotate("msgHash", msg.sha1) {
         for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
