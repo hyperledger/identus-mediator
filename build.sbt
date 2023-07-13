@@ -98,6 +98,9 @@ lazy val NPM = new {
   val qrcode = Seq("qrcode-generator" -> "1.4.4")
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
+
+  val sha1 = Seq("js-sha1" -> "0.6.0", "@types/js-sha1" -> "0.6.0")
+  val sha256 = Seq("js-sha256" -> "0.9.0")
 }
 
 inThisBuild(
@@ -184,6 +187,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
     libraryDependencies += D.scalaDID.value,
   )
   .jsConfigure(scalaJSBundlerConfigure)
+  .jsSettings(Compile / npmDependencies ++= NPM.sha1 ++ NPM.sha256)
   .jvmSettings(
     libraryDependencies += D.zioHttp.value,
   )
@@ -265,7 +269,7 @@ lazy val webapp = project
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
     libraryDependencies ++= Seq(D.scalaDID.value, D.scalaDID_peer.value),
-    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign
+    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign ++ NPM.sha1 ++ NPM.sha256,
   )
   .settings(
     stShortModuleNames := true,
