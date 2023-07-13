@@ -1,3 +1,16 @@
+# [0.4.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.1...prism-mediator-v0.4.0) (2023-07-13)
+
+
+### Bug Fixes
+
+* Id/hash of the message must be deterministic ([#53](https://github.com/input-output-hk/atala-prism-mediator/issues/53)) ([d122b99](https://github.com/input-output-hk/atala-prism-mediator/commit/d122b993d54b3a8e557374709b9d8628c38ee74e))
+
+
+### Features
+
+* Better error handling for connection refused ([#47](https://github.com/input-output-hk/atala-prism-mediator/issues/47)) ([429940e](https://github.com/input-output-hk/atala-prism-mediator/commit/429940e2ef6807017c4e4ef156432e843c5cdccc))
+* Not send response errors to the caller ([#50](https://github.com/input-output-hk/atala-prism-mediator/issues/50)) ([60ee3ef](https://github.com/input-output-hk/atala-prism-mediator/commit/60ee3ef8e4342fb5fa69501502abdd739c55e22a))
+
 ## [0.3.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.0...prism-mediator-v0.3.1) (2023-07-10)
 
 
