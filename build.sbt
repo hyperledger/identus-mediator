@@ -183,6 +183,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .settings(
     libraryDependencies += D.scalaDID.value,
   )
+  .jsConfigure(scalaJSBundlerConfigure)
   .jvmSettings(
     libraryDependencies += D.zioHttp.value,
   )
