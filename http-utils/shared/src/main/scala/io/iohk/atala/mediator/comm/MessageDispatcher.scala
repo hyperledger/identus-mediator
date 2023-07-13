@@ -13,5 +13,5 @@ trait MessageDispatcher {
       /*context*/
       destination: String,
       xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, String]
+  ): ZIO[Any, DispatcherError, String]
 }
