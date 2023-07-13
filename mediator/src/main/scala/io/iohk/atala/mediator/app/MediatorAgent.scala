@@ -45,13 +45,6 @@ case class MediatorAgent(
       )
     )
 
-  // private def _didSubjectAux = id
-  // private def _keyStoreAux = keyStore.keys.toSeq
-  // val indentityLayer = ZLayer.succeed(new Agent {
-  //   override def id: DID = _didSubjectAux
-  //   override def keys: Seq[PrivateKey] = _keyStoreAux
-  // })
-
   val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
     MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
 
@@ -116,7 +109,7 @@ case class MediatorAgent(
     Option[EncryptedMessage]
   ] =
     ZIO
-      .logAnnotate("msgHash", msg.hashCode.toString) {
+      .logAnnotate("msgHash", msg.sha1) {
         for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
@@ -248,14 +241,30 @@ object MediatorAgent {
         for {
           agent <- ZIO.service[MediatorAgent]
           data <- req.body.asString
-          maybeSyncReplyMsg <- agent
+          ret <- agent
             .receiveMessage(data, None)
-            .mapError(fail => MediatorException(fail))
-          ret = maybeSyncReplyMsg match
-            case None        => Response.ok
-            case Some(value) => Response.json(value.toJson)
+            .map {
+              case None        => Response.ok
+              case Some(value) => Response.json(value.toJson)
+            }
+            .catchAll {
+              case MediatorDidError(error) =>
+                ZIO.logError(s"Error MediatorDidError: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case MediatorThrowable(error) =>
+                ZIO.logError(s"Error MediatorThrowable: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case StorageCollection(error) =>
+                ZIO.logError(s"Error StorageCollection: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case StorageThrowable(error) =>
+                ZIO.logError(s"Error StorageThrowable: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case MissingProtocolError(piuri) =>
+                ZIO.logError(s"MissingProtocolError ('$piuri')") *>
+                  ZIO.succeed(Response.status(Status.BadRequest)) // TODO
+            }
         } yield ret
-
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
         ZIO
@@ -278,10 +287,7 @@ object MediatorAgent {
       Request,
       Response
     ]
-  } /* ++ Http.fromResource(s"public/webapp-fastopt-bundle.js.gz").when {
-    case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js.gz" => true
-    case _                                                           => false
-  } */ ++ Http
+  } ++ Http
     .fromResource(s"public/webapp-fastopt-bundle.js.gz")
     .map(e =>
       e.setHeaders(
@@ -297,19 +303,6 @@ object MediatorAgent {
       case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js" => true
       case _                                                        => false
     }
-  //   ++ {
-  //   Http
-  //     .fromResource(s"public/webapp-fastopt-bundle.js")
-  //     // .map(e => e.addHeader())
-  //     .when {
-  //       case Method.GET -> !! / "public" / path => true
-  //       // Response(
-  //       //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-  //       //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-  //       // )
-  //       case _ => false
-  //     }
-  // }
     @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
