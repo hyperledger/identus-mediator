@@ -124,7 +124,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
               BSONDocument(
                 "$elemMatch" ->
                   BSONDocument(
-                    "hash" -> msg.hashCode,
+                    "hash" -> msg.sha1,
                     "recipient" -> BSONDocument("$in" -> recipients.map(_.did))
                   )
               )
@@ -135,7 +135,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.hashCode, recipient))
+            recipients.map(recipient => MessageMetaData(msg.sha1, recipient))
         )
       )
     )
