@@ -5,12 +5,14 @@ import fmgp.did.comm.*
 import reactivemongo.api.bson.*
 
 import java.time.Instant
-type HASH = Int
+type HASH = String
 // messages
 
 case class MessageItem(_id: HASH, msg: EncryptedMessage, headers: ProtectedHeader)
 object MessageItem {
-  def apply(msg: EncryptedMessage): MessageItem = new MessageItem(msg.hashCode(), msg, msg.`protected`.obj)
+  def apply(msg: EncryptedMessage): MessageItem = {
+    new MessageItem(msg.sha1, msg, msg.`protected`.obj)
+  }
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }
