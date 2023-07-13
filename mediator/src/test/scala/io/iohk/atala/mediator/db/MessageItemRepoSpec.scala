@@ -28,7 +28,7 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
       for {
         messageItem <- ZIO.service[MessageItemRepo]
         msg <- ZIO.fromEither(encryptedMessageAlice)
-        result <- messageItem.findById(msg.hashCode())
+        result <- messageItem.findById(msg.sha1)
       } yield {
         assertTrue(result.contains(MessageItem(msg)))
       }
@@ -39,7 +39,7 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         msg <- ZIO.fromEither(encryptedMessageAlice)
         msg2 <- ZIO.fromEither(encryptedMessageBob)
         msg2Added <- messageItem.insert(MessageItem(msg2))
-        result <- messageItem.findByIds(Seq(msg.hashCode(), msg2.hashCode()))
+        result <- messageItem.findByIds(Seq(msg.sha1, msg2.sha1))
       } yield {
         assertTrue(result.contains(MessageItem(msg)))
         assertTrue(result.contains(MessageItem(msg2)))
