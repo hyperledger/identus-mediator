@@ -10,9 +10,9 @@ object MyRouter {
       val title: String,
       val icon: String // https://fonts.google.com/icons?selected=Material+Icons+Outlined
   )
-  
+
   case object MediatorPage extends Page("Mediator", "diversity_3")
-  
+
   given mediatorPageRW: ReadWriter[MediatorPage.type] = macroRW
 
   given rw: ReadWriter[Page] = macroRW
