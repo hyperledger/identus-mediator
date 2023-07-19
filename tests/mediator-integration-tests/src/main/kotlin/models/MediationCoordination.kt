@@ -13,8 +13,18 @@ data class MediationKeylistRequest(
 ): JsonEncoded
 
 @Serializable
-data class MediationKeylistResponse(
+data class MediationKeylistUpdateResponse(
     val updated: List<MediationKeylistResponseMessage>
+): JsonEncoded
+
+@Serializable
+data class MediationKeylistResponse(
+    val keys: List<MediationKeylistKey>
+): JsonEncoded
+
+@Serializable
+data class MediationKeylistKey(
+    val recipient_did: String
 ): JsonEncoded
 
 @Serializable
