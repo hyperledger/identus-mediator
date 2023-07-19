@@ -32,9 +32,6 @@ class PingProtocolSteps {
 
     @Then("{actor} gets trusted ping message back")
     fun recipientGetTrustedPingMessageBack(recipient: Actor) {
-
-        println(HttpListener.receivedResponse()!!)
-
         val didcommResponse: Message = EdgeAgent.unpackMessage(
             HttpListener.receivedResponse()!!
         )
