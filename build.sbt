@@ -233,6 +233,7 @@ lazy val mediator = project
     Docker / maintainer := "atala-coredid@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),
+    Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
   )
