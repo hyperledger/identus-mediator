@@ -95,26 +95,28 @@ class MediationCoordinationSteps {
 
     @When("{actor} sends a keylist query message to the mediator")
     fun recipientSendsAKeylistQueryMessageToTheMediator(recipient: Actor) {
-        TODO("Not supported by the PRISM Mediator yet")
-//        val keylistUpdateMessage = Message(
-//            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
-//            from = EdgeAgent.peerDID,
-//            to = Environments.MEDIATOR_PEER_DID,
-//            body = MediationKeylistQueryRequest(
-//                paginate = Paginate(
-//                    limit = 2,
-//                    offset = 0
-//                )
-//            ).toJsonString()
-//        )
-//        recipient.attemptsTo(
-//            SendDidcommMessage(keylistUpdateMessage)
-//        )
+        val keyListQueryMessage = Message(
+            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
+            from = EdgeAgent.peerDID,
+            to = Environments.MEDIATOR_PEER_DID,
+            body = MediationKeylistQueryRequest(
+                paginate = Paginate(
+                    limit = 2,
+                    offset = 0
+                )
+            ).toJsonString()
+        )
+        recipient.attemptsTo(
+            SendDidcommMessage(keyListQueryMessage)
+        )
     }
 
     @Then("Mediator responds to {actor} with keylist message containing the current list of keys")
     fun mediatorRespondsToRecipientWithKeylistMessageContainingTheCurrentListOfKeys(recipient: Actor) {
-        TODO("Not supported by the PRISM Mediator yet")
+        val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
+        recipient.attemptsTo(
+            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_RESPONSE)
+        )
     }
 
     @When("{actor} sends a keylist update message to the mediator to remove the last alias")
