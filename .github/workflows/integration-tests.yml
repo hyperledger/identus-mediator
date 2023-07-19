@@ -59,9 +59,10 @@ jobs:
       - name: Build local version of Mediator Agent
         env:
           MEDIATOR_PATH: "../.."
+          NODE_OPTIONS: "--openssl-legacy-provider"
         run: |
           cd "${MEDIATOR_PATH}" || exit 129
-          NODE_OPTIONS=--openssl-legacy-provider sbt -mem 2048 -J-Xmx5120m docker:publishLocal
+          sbt -mem 2048 -J-Xmx5120m docker:publishLocal
           MEDIATOR_VERSION=$(cut version.sbt -d '=' -f2 | tr -d '" ')
           echo "MEDIATOR_VERSION=${MEDIATOR_VERSION}"  >> $GITHUB_ENV
           echo ${MEDIATOR_VERSION}
