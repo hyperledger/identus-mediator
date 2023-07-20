@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.0...prism-mediator-v0.4.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* mediator ATL-4883 pickup status message to sync reply ([#59](https://github.com/input-output-hk/atala-prism-mediator/issues/59)) ([c0b6de0](https://github.com/input-output-hk/atala-prism-mediator/commit/c0b6de0f4fe4702641ff9e8a371b3aff3cd74e1f))
+
 # [0.4.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.1...prism-mediator-v0.4.0) (2023-07-13)
 
 
