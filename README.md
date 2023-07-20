@@ -49,6 +49,7 @@ The mediator is especially useful when the edge entities are not always online, 
 ## Protocols
 - [DONE] `BasicMessage 2.0` - https://didcomm.org/basicmessage/2.0
 - [DONE] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
+ - See [link for the protocol specs](/Coordinate-Mediation-Protocol.md)
 - [TODO] `MediatorCoordination 3.0` - https://didcomm.org/mediator-coordination/3.0
 - [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
@@ -67,6 +68,27 @@ The webapp/webpage is atm just to show the QRcode with out of band invitation fo
 **Compile** - sbt> `webapp / Compile / fastOptJS / webpack`
 
 **Open the webpage for develop** - open> `file:///.../webapp/index-fastopt.html`
+
+### Configure the Mediator
+
+The default configuration is set up [application.conf](/mediator/src/main/resources/application.conf).
+So in order to configure the mediator for your needs.
+You can either change the default configuration, or you can se up environment variables that overrides the defaults:
+
+For set up the mediator identity:
+- `KEY_AGREEMENT_D` - is the key agreement private key (MUST be a X25519 OKP key type).
+- `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
+- `KEY_AUTHENTICATION_D` - is the key authentication private key (MUST be an Ed25519 OKP key type).
+- `KEY_AUTHENTICATION_X` - is the key authentication public key (MUST be an Ed25519 OKP key type).
+- `SERVICE_ENDPOINT` - is the endpoint of the mediator. Where the mediator will be listening to incoming DID Comm messages.
+
+For set up the mediator storage (MongoDB):
+- `MONGODB_PROTOCOL` - is the protocol type used by mongo.
+- `MONGODB_HOST` - is the endpoint where the MongoDB will be listening.
+- `MONGODB_PORT` - is the endpoint's port where the MongoDB will be listening.
+- `MONGODB_USER` - is the user name used by the Mediator service to connect to the database.
+- `MONGODB_PASSWORD` - is the password used by the Mediator service to connect to the database.
+- `MONGODB_DB_NAME` - is the name of the database used by the Mediator.
 
 ## Run
 
