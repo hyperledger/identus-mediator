@@ -17,7 +17,7 @@ spec:
       paths:
       - /mediator
     backends:
-       - serviceName: mediator-server-service
+       - serviceName: mediator-service
          servicePort: 8080
     plugins:
     - name: proxy-rewrite
@@ -33,7 +33,7 @@ spec:
       paths:
       - /public/webapp-fastopt-bundle.js
     backends:
-       - serviceName: mediator-server-service
+       - serviceName: mediator-service
          servicePort: 8080
     plugins:
     - name: proxy-rewrite
@@ -62,7 +62,7 @@ spec:
       paths:
       - /docs/mediator/api/*
     backends:
-       - serviceName: mediator-server-service
+       - serviceName: mediator-service
          servicePort: 8080
     plugins:
     - name: proxy-rewrite
