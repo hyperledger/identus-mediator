@@ -15,7 +15,7 @@ spec:
         - {{ . }}
       {{- end }}
       paths:
-      - /mediator
+      - /*
     backends:
        - serviceName: mediator-service
          servicePort: 8080
@@ -23,24 +23,7 @@ spec:
     - name: proxy-rewrite
       enable: true
       config:
-        uri: "/"
-  - name: mediator-assets-rule
-    match:
-      hosts:
-      {{- range .Values.ingress.applicationUrls }}
-        - {{ . }}
-      {{- end }}
-      paths:
-      - /public/webapp-fastopt-bundle.js
-    backends:
-       - serviceName: mediator-service
-         servicePort: 8080
-    plugins:
-    - name: proxy-rewrite
-      enable: true
-      config:
-        uri: "/public/webapp-fastopt-bundle.js"
-    {{ template "cors" . }}
+        regex_uri: ["^/(.*)","/$1"]
 
 ---
 
