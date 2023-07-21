@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.1...prism-mediator-v0.5.0) (2023-07-21)
+
+
+### Features
+
+* add endpoint to get the OOB mediate invitation ([#63](https://github.com/input-output-hk/atala-prism-mediator/issues/63)) ([c82282c](https://github.com/input-output-hk/atala-prism-mediator/commit/c82282ca8c7061cc1ec702af538ab77e2c9a1f3c))
+
 ## [0.4.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.0...prism-mediator-v0.4.1) (2023-07-20)
 
 
