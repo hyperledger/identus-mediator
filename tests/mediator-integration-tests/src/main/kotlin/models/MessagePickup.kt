@@ -13,9 +13,9 @@ data class MessagePickupStatus(
 data class MessagePickupStatusBody(
     val recipient_did: String,
     val message_count: Int,
-    val longest_waited_seconds: Int,
-    val newest_received_time: Int,
-    val oldest_received_time: Int,
-    val total_bytes: Int,
-    val live_delivery: Boolean
+    val longest_waited_seconds: Int = 0,
+    val newest_received_time: Int = 0,
+    val oldest_received_time: Int = 0,
+    val total_bytes: Int = 0,
+    val live_delivery: Boolean = false
 ): JsonEncoded
