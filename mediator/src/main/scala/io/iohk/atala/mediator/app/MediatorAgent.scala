@@ -5,6 +5,7 @@ import fmgp.crypto.error.*
 import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
+import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
@@ -23,6 +24,7 @@ import zio.json.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import scala.io.Source
+
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO
@@ -232,6 +234,38 @@ object MediatorAgent {
           agent <- ZIO.service[MediatorAgent]
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
           ret <- agent.websocketListenerApp(annotationMap)
+        } yield (ret)
+      case Method.GET -> !! / "invitation" =>
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          invitation = OOBInvitation(
+            from = agent.id,
+            goal_code = Some("request-mediate"),
+            goal = Some("RequestMediate"),
+            accept = Some(Seq("didcomm/v2")),
+          )
+          _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
+          ret <- ZIO.succeed(Response.json(invitation.toPlaintextMessage.toJson))
+
+        } yield (ret)
+      case Method.GET -> !! / "invitationOOB" =>
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          invitation = OOBInvitation(
+            from = agent.id,
+            goal_code = Some("request-mediate"),
+            goal = Some("RequestMediate"),
+            accept = Some(Seq("didcomm/v2")),
+          )
+          _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
+          ret <- ZIO.succeed(
+            Response.text(
+              OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("")
+            )
+          )
+
         } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key.toString.toLowerCase == "content-type" &&
