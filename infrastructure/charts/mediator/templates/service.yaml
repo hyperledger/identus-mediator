@@ -16,6 +16,8 @@ spec:
       targetPort: 8080
   type: ClusterIP
 
+---
+
 {{- if .Values.ingress.enabled }}
 kind: Service
 apiVersion: v1
