@@ -11,6 +11,9 @@ import io.iohk.atala.prism.walletsdk.domain.models.DID
 import java.util.Base64
 import io.iohk.atala.prism.walletsdk.domain.models.Message
 import io.iohk.atala.prism.walletsdk.mercury.forward.ForwardMessage
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import models.MessagePickupStatusBody
 
 class PickupMessageSteps {
 
@@ -54,7 +57,12 @@ class PickupMessageSteps {
 
     @Then("Mediator responds with a status message detailing the queued messages of {actor}")
     fun mediatorRespondsWithAStatusMessageDetailingTheQueuedMessagesOfRecipient(recipient: Actor) {
-        TODO("Not yet implemented https://input-output.atlassian.net/browse/ATL-4883")
+        val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
+        val pickupStatus = Json.decodeFromString<MessagePickupStatusBody>(didcommMessage.body)
+        recipient.attemptsTo(
+            Ensure.that(pickupStatus.recipient_did).isEqualTo(recipient.recall<DID>("peerDid").toString()),
+            Ensure.that(pickupStatus.message_count).isGreaterThan(0)
+        )
     }
 
     @When("{actor} sends a delivery-request message")
