@@ -33,6 +33,10 @@ object MediatorInfo {
       h3("Plaintext out of band invitation:"),
       p(a(href := qrCodeData, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
       pre(code(invitation.toPlaintextMessage.toJsonPretty)),
+      pre(
+        "To facilitate the integration with other systems you can get the plain text invitation and the out-of-band invitation on the following endpoints:",
+        " '/invitation' and '/invitationOOB'"
+      ),
       divQRCode,
       h3("Signed out of band invitation:"),
       code("TODO"),
