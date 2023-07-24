@@ -2,7 +2,7 @@
 apiVersion: apisix.apache.org/v2
 kind: ApisixTls
 metadata:
-  name: "prism-node-base-path-tls"
+  name: "prism-mediator-base-path-tls"
   namespace: "{{ .Release.Namespace }}"
   labels:
     {{ template "labels.common" . }}
