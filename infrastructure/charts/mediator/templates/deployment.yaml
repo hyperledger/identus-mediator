@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediator-server
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+      {{ template "labels.common" . }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prism-mediator-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prism-mediator-server
+        {{ template "labels.common" . }}
+    spec:
+      imagePullSecrets:
+      - name: atala-prism-dev-deployments-github-docker-registry-key
+      containers:
+      - name: mediator-server
+        image: "{{ .Values.server.image.repository }}/{{ .Values.server.image.tag }}:{{ .Values.server.image.version | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGODB_USER
+          value: "admin"
+        - name: MONGODB_PASSWORD
+          value: "admin"
+        - name: MONGODB_PROTOCOL
+          value: "mongodb"
+        - name: MONGODB_HOST
+          value: "mongodb.{{.Release.Namespace}}"
+        - name: MONGODB_PORT
+          value: "27017"
+        - name: MONGODB_DB_NAME
+          value: "mediator"
+        - name: SERVICE_ENDPOINT
+          value: "https://{{ index .Values.ingress.applicationUrls 0 }}/mediator"
