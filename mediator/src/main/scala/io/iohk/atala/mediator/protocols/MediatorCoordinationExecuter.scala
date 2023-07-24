@@ -44,8 +44,34 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
       case `piuriKeylistQuery`    => plaintextMessage.toKeylistQuery
       case `piuriKeylist`         => plaintextMessage.toKeylist
     }).map {
-      case m: MediateGrant => ZIO.logWarning("MediateGrant") *> ZIO.succeed(NoReply)
-      case m: MediateDeny  => ZIO.logWarning("MediateDeny") *> ZIO.succeed(NoReply)
+      case m: MediateGrant =>
+        ZIO.logWarning("MediateGrant") *> ZIO.succeed(NoReply) *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .unsupportedProtocolRole(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
+      case m: MediateDeny =>
+        ZIO.logWarning("MediateDeny") *> ZIO.succeed(NoReply) *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .unsupportedProtocolRole(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
       case m: MediateRequest =>
         for {
           _ <- ZIO.logInfo("MediateRequest")
@@ -74,7 +100,20 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
               }
           }
         } yield SyncReplyOnly(m.makeKeylistResponse(updateResponse).toPlaintextMessage)
-      case m: KeylistResponse => ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply)
+      case m: KeylistResponse =>
+        ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply) *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .unsupportedProtocolRole(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
       case m: KeylistQuery =>
         for {
           _ <- ZIO.logInfo("KeylistQuery")
@@ -94,7 +133,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
           case Some(response) => SyncReplyOnly(response.toPlaintextMessage)
       case m: Keylist => ZIO.logWarning("Keylist") *> ZIO.succeed(NoReply)
     } match
-      case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
+      case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply) // TODO error report
       case Right(program) => program
   }
 

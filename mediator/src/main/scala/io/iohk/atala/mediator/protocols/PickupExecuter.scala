@@ -64,7 +64,20 @@ object PickupExecuter
             live_delivery = None, // TODO
           )
         } yield SyncReplyOnly(status.toPlaintextMessage)
-      case m: Status => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
+      case m: Status =>
+        ZIO.logInfo("Status") *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .unsupportedProtocolRole(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
       case m: DeliveryRequest =>
         for {
           _ <- ZIO.logInfo("DeliveryRequest")
@@ -73,7 +86,7 @@ object PickupExecuter
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
           msgHash = mDidAccount match
-            case None             => ???
+            case None             => ??? // TODO ERROR
             case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
           allMessagesFor <- repoMessageItem.findByIds(msgHash)
           messagesToReturn =
@@ -115,7 +128,20 @@ object PickupExecuter
             m.message_id_list
           )
         } yield NoReply
-      case m: LiveModeChange => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
+      case m: LiveModeChange =>
+        ZIO.logWarning("LiveModeChange not implemented") *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .protocolNotImplemented(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
 
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)

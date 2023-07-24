@@ -13,6 +13,7 @@ import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.NullProtocolExecuter
 import zio.*
 import zio.json.*
+import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
 //TODO pick a better name // maybe "Protocol" only
 
 trait ProtocolExecuter[-R] {
@@ -29,7 +30,7 @@ trait ProtocolExecuter[-R] {
 object ProtocolExecuter {
   type Services = Resolver & Agent & Operations & MessageDispatcher
 }
-case class ProtocolExecuterCollection[-R](executers: ProtocolExecuter[R]*) extends ProtocolExecuter[R] {
+case class ProtocolExecuterCollection[-R <: Agent](executers: ProtocolExecuter[R]*) extends ProtocolExecuter[R] {
 
   override def suportedPIURI: Seq[PIURI] = executers.flatMap(_.suportedPIURI)
 
@@ -39,14 +40,16 @@ case class ProtocolExecuterCollection[-R](executers: ProtocolExecuter[R]*) exten
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecuter.execute(plaintextMessage)
+      // case None     => NullProtocolExecuter.execute(plaintextMessage)
+      case None     => MissingProtocolExecuter.execute(plaintextMessage)
       case Some(px) => px.execute(plaintextMessage)
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecuter.program(plaintextMessage)
+      // case None     => NullProtocolExecuter.program(plaintextMessage)
+      case None     => MissingProtocolExecuter.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }
 
