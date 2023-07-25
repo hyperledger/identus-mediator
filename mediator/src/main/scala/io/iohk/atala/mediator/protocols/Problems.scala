@@ -56,4 +56,21 @@ object Problems {
     escalate_to = None, // Option[String],
   )
 
+  def storageError(
+      to: Set[TO],
+      from: FROM,
+      pthid: MsgID,
+      piuri: PIURI,
+  ) = ProblemReport(
+    // id: MsgID = MsgID(),
+    to = to,
+    from = from, // Can it be Option?
+    pthid = pthid,
+    ack = None, // Option[Seq[MsgID]],
+    code = ProblemCode.ErroFail("me", "res", "storage"),
+    comment = None, // Option[String],
+    args = None, // Option[Seq[String]],
+    escalate_to = None, // Option[String],
+  )
+
 }

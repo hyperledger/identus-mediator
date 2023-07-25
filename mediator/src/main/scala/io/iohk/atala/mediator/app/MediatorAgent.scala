@@ -112,17 +112,60 @@ case class MediatorAgent(
   ] =
     ZIO
       .logAnnotate("msgHash", msg.sha1) {
-        for {
+        val xxx = for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
             if (!msg.recipientsSubject.contains(id))
-              ZIO.logError(s"This mediator '${id.string}' is not a recipient")
-                *> ZIO.none
+              ZIO.logError(s"This mediator '${id.string}' is not a recipient") *> ZIO.none
             else
               for {
                 messageItemRepo <- ZIO.service[MessageItemRepo]
-                _ <- messageItemRepo.insert(MessageItem(msg)) // store all message
+                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
                 plaintextMessage <- decrypt(msg)
+                maybeActionStorageError <- messageItemRepo
+                  .insert(MessageItem(msg)) // store all message
+                  .map(_ /*WriteResult*/ => None
+                  // TODO messages already on the database -> so this might be a replay attack
+                  )
+                  .catchSome {
+                    case StorageCollection(error) =>
+                      // This deals with connection errors to the database.
+                      ZIO.logWarning(s"Error StorageCollection: $error") *>
+                        ZIO
+                          .service[Agent]
+                          .map(agent =>
+                            Some(
+                              Reply(
+                                Problems
+                                  .storageError(
+                                    to = plaintextMessage.from.map(_.asTO).toSet,
+                                    from = agent.id,
+                                    pthid = plaintextMessage.id,
+                                    piuri = plaintextMessage.`type`,
+                                  )
+                                  .toPlaintextMessage
+                              )
+                            )
+                          )
+                    case StorageThrowable(error) =>
+                      ZIO.logWarning(s"Error StorageThrowable: $error") *>
+                        ZIO
+                          .service[Agent]
+                          .map(agent =>
+                            Some(
+                              Reply(
+                                Problems
+                                  .storageError(
+                                    to = plaintextMessage.from.map(_.asTO).toSet,
+                                    from = agent.id,
+                                    pthid = plaintextMessage.id,
+                                    piuri = plaintextMessage.`type`,
+                                  )
+                                  .toPlaintextMessage
+                              )
+                            )
+                          )
+                  }
                 _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
                   ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
                 }
@@ -137,12 +180,14 @@ case class MediatorAgent(
                         }
                 // TODO Store context of the decrypt unwarping
                 // TODO SreceiveMessagetore context with MsgID and PIURI
-                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
-                ret <- protocolHandler
-                  .execute(plaintextMessage)
-                  .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+                ret <- {
+                  maybeActionStorageError match
+                    case Some(reply) => ActionUtils.packResponse(plaintextMessage, reply)
+                    case None        => protocolHandler.execute(plaintextMessage)
+                }.tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
               } yield ret
         } yield maybeSyncReplyMsg
+        xxx
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 

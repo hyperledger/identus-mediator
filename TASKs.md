@@ -26,19 +26,21 @@ Tasks:
    - (sync & async) e.p.crypto.replay - if the message is replay (possible he replay attack).
    - (sync) e.p.req - pickup message before enroling.
    - (sync) e.p.me.res.storage - connection MongoBD is not working.
+    - [QA] catch all StorageCollection Error
    - (sync) e.p.me.res.storage - business logic MongoBD is not working.
+    - [QA] catch all StorageThrowable
    - (sync) e.p.did - for any DID method that is not `did.peer`.
    - (sync) e.p.did.malformed - for any DID method malformed.
    - (sync) e.p.msg - for parsing error from the message.
    - (sync) e.p.msg.unsupported - for the message type LiveModeChange and all message that is not role of the mediator
-     - [DONE] MediateGrant
-     - [DONE] MediateDeny
-     - [DONE] KeylistResponse
-     - [DONE] Status = https://didcomm.org/messagepickup/3.0/status
-     - [DONE] LiveModeChange - https://didcomm.org/messagepickup/3.0/live-delivery-change
+     - [QA] MediateGrant
+     - [QA] MediateDeny
+     - [QA] KeylistResponse
+     - [QA] Status = https://didcomm.org/messagepickup/3.0/status
+     - [QA] LiveModeChange - https://didcomm.org/messagepickup/3.0/live-delivery-change
      - [TODO] ...
    - (sync) e.p.msg.unsupported - for parsing error due to unsupported version or protocol.
-     - [DONE] MissingProtocolExecuter (unsupported protocol it also works fine for unsupported versions)
+     - [QA] MissingProtocolExecuter (unsupported protocol it also works fine for unsupported versions)
    - (sync & async) e.p.req.not_enroll - Get a Forward message to a DID that is not enrolled.
    - (sync & async) e.p.me - catch all error at the end.
  - Receive a problem report (1w):
@@ -75,3 +77,4 @@ Tasks:
   - [optional] Log - https://input-output.atlassian.net/browse/ATL-4147
  - escalate_to must be configurable (1d)
  - [optional] update the protocol with new tokens (2d)
+   - `e.p.me.res.storage`

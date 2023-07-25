@@ -25,7 +25,7 @@ object PickupExecuter
 
   override def program[R1 <: UserAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError, Action] = {
+  ): ZIO[R1, MediatorError & StorageError, Action] = {
     // the val is from the match to be definitely stable
     val piuriStatusRequest = StatusRequest.piuri
     val piuriStatus = Status.piuri
