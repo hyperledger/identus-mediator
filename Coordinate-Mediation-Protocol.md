@@ -2,7 +2,7 @@
 
 This protocol is a part of the [DIDComm](https://didcomm.org/).
 
-Is a protocol to coordinate mediation configuration between a mediating agent and the recipient.
+It coordinates the mediation configuration between a mediating agent and the recipient.
 
 This protocol follows the request-response message exchange pattern, and only requerires the simple state of waiting for a response or to produce a response.
 
