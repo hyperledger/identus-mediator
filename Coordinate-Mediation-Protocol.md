@@ -1,6 +1,6 @@
 # Coordinate Mediation Protocol
 
-This Protocol is parte of the **DIDComm.org**
+This protocol is a part of the [DIDComm](https://didcomm.org/).
 
 Is a protocol to coordinate mediation configuration between a mediating agent and the recipient.
 
