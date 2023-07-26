@@ -24,6 +24,7 @@ spec:
       enable: true
       config:
         regex_uri: ["^/(.*)","/$1"]
+    {{ template "cors" . }}
 
 ---
 
