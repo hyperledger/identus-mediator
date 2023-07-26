@@ -25,6 +25,8 @@ Tasks:
    - (sync) e.p.crypto.unsupported - is message is tampering (any crypto error).
    - (sync & async) e.p.crypto.replay - if the message is replay (possible he replay attack).
    - (sync) e.p.req - pickup message before enroling.
+    - [QA] StatusRequest - https://didcomm.org/messagepickup/3.0/status-request
+    - [QA] DeliveryRequest - https://didcomm.org/messagepickup/3.0/delivery-request
    - (sync) e.p.me.res.storage - connection MongoBD is not working.
     - [QA] catch all StorageCollection Error
    - (sync) e.p.me.res.storage - business logic MongoBD is not working.
@@ -36,7 +38,7 @@ Tasks:
      - [QA] MediateGrant
      - [QA] MediateDeny
      - [QA] KeylistResponse
-     - [QA] Status = https://didcomm.org/messagepickup/3.0/status
+     - [QA] Status - https://didcomm.org/messagepickup/3.0/status
      - [QA] LiveModeChange - https://didcomm.org/messagepickup/3.0/live-delivery-change
      - [TODO] ...
    - (sync) e.p.msg.unsupported - for parsing error due to unsupported version or protocol.

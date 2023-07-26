@@ -5,6 +5,8 @@ import fmgp.did.comm.*
 import fmgp.did.comm.protocol.reportproblem2.*
 
 object Problems {
+  val email = Some("atala@iohk.io")
+
   def unsupportedProtocolType(
       to: Set[TO],
       from: FROM,
@@ -13,13 +15,13 @@ object Problems {
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = to,
-    from = from, // Can it be Option?
+    from = from,
     pthid = pthid,
-    ack = None, // Option[Seq[MsgID]],
+    ack = None,
     code = ProblemCode.ErroFail("msg", "unsupported"),
-    comment = None, // Option[String],
-    args = None, // Option[Seq[String]],
-    escalate_to = None, // Option[String],
+    comment = None,
+    args = None,
+    escalate_to = email,
   )
 
   def unsupportedProtocolRole(
@@ -30,13 +32,13 @@ object Problems {
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = Set(to),
-    from = from, // Can it be Option?
+    from = from,
     pthid = pthid,
-    ack = None, // Option[Seq[MsgID]],
+    ack = None,
     code = ProblemCode.ErroFail("msg", "unsupported"),
-    comment = None, // Option[String],
-    args = None, // Option[Seq[String]],
-    escalate_to = None, // Option[String],
+    comment = None,
+    args = None,
+    escalate_to = email,
   )
 
   def protocolNotImplemented(
@@ -47,13 +49,13 @@ object Problems {
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = Set(to),
-    from = from, // Can it be Option?
+    from = from,
     pthid = pthid,
-    ack = None, // Option[Seq[MsgID]],
+    ack = None,
     code = ProblemCode.ErroFail("msg", "unsupported"),
-    comment = None, // Option[String],
-    args = None, // Option[Seq[String]],
-    escalate_to = None, // Option[String],
+    comment = None,
+    args = None,
+    escalate_to = email,
   )
 
   def storageError(
@@ -64,13 +66,30 @@ object Problems {
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = to,
-    from = from, // Can it be Option?
+    from = from,
     pthid = pthid,
-    ack = None, // Option[Seq[MsgID]],
+    ack = None,
     code = ProblemCode.ErroFail("me", "res", "storage"),
-    comment = None, // Option[String],
-    args = None, // Option[Seq[String]],
-    escalate_to = None, // Option[String],
+    comment = None,
+    args = None,
+    escalate_to = email,
+  )
+
+  def notEnroledError(
+      to: TO,
+      from: FROM,
+      pthid: MsgID,
+      piuri: PIURI,
+  ) = ProblemReport(
+    // id: MsgID = MsgID(),
+    to = Set(to),
+    from = from,
+    pthid = pthid,
+    ack = None,
+    code = ProblemCode.ErroFail("req"),
+    comment = Some("The DID '{1}' is not enroled."),
+    args = Some(Seq(to.value)),
+    escalate_to = email,
   )
 
 }

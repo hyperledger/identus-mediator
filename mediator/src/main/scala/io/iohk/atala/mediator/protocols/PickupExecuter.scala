@@ -48,22 +48,31 @@ object PickupExecuter
           repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
-          msgHash = mDidAccount match
-            case None             => ??? // TODO FIXME
-            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
-          status = Status(
-            thid = m.id,
-            from = m.to.asFROM,
-            to = m.from.asTO,
-            recipient_did = m.recipient_did,
-            message_count = msgHash.size,
-            longest_waited_seconds = None, // TODO
-            newest_received_time = None, // TODO
-            oldest_received_time = None, // TODO
-            total_bytes = None, // TODO
-            live_delivery = None, // TODO
-          )
-        } yield SyncReplyOnly(status.toPlaintextMessage)
+          ret = mDidAccount match
+            case None =>
+              Problems
+                .notEnroledError(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            case Some(didAccount) =>
+              val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
+              Status(
+                thid = m.id,
+                from = m.to.asFROM,
+                to = m.from.asTO,
+                recipient_did = m.recipient_did,
+                message_count = msgHash.size,
+                longest_waited_seconds = None, // TODO
+                newest_received_time = None, // TODO
+                oldest_received_time = None, // TODO
+                total_bytes = None, // TODO
+                live_delivery = None, // TODO
+              ).toPlaintextMessage
+        } yield SyncReplyOnly(ret)
       case m: Status =>
         ZIO.logInfo("Status") *>
           ZIO.succeed(
@@ -85,27 +94,39 @@ object PickupExecuter
           repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
-          msgHash = mDidAccount match
-            case None             => ??? // TODO ERROR
-            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
-          allMessagesFor <- repoMessageItem.findByIds(msgHash)
-          messagesToReturn =
-            if (m.recipient_did.isEmpty) allMessagesFor
-            else {
-              allMessagesFor.filterNot(
-                _.msg.recipientsSubject
-                  .map(_.did)
-                  .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+          ret <- mDidAccount match
+            case None =>
+              ZIO.succeed(
+                Problems
+                  .notEnroledError(
+                    from = m.to.asFROM,
+                    to = m.from.asTO,
+                    pthid = m.id, // TODO CHECK pthid
+                    piuri = m.piuri,
+                  )
+                  .toPlaintextMessage
               )
-            }
-          deliveryRequest = MessageDelivery(
-            thid = m.id,
-            from = m.to.asFROM,
-            to = m.from.asTO,
-            recipient_did = m.recipient_did,
-            attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
-          )
-        } yield SyncReplyOnly(deliveryRequest.toPlaintextMessage)
+            case Some(didAccount) =>
+              val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
+              for {
+                allMessagesFor <- repoMessageItem.findByIds(msgHash)
+                messagesToReturn =
+                  if (m.recipient_did.isEmpty) allMessagesFor
+                  else {
+                    allMessagesFor.filterNot(
+                      _.msg.recipientsSubject
+                        .map(_.did)
+                        .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                    )
+                  }
+              } yield MessageDelivery(
+                thid = m.id,
+                from = m.to.asFROM,
+                to = m.from.asTO,
+                recipient_did = m.recipient_did,
+                attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
+              ).toPlaintextMessage
+        } yield SyncReplyOnly(ret)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
           ZIO.succeed(
@@ -133,7 +154,7 @@ object PickupExecuter
           ZIO.succeed(
             SyncReplyOnly(
               Problems
-                .protocolNotImplemented(
+                .protocolNotImplemented( // TODO
                   from = m.to.asFROM,
                   to = m.from.asTO,
                   pthid = m.id, // TODO CHECK pthid
