@@ -40,4 +40,4 @@ spec:
         - name: MONGODB_DB_NAME
           value: "mediator"
         - name: SERVICE_ENDPOINT
-          value: "https://{{ index .Values.ingress.applicationUrls 0 }}/mediator"
+          value: "https://{{ index .Values.ingress.applicationUrls 0 }}"
