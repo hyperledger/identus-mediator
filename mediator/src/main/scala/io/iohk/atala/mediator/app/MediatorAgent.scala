@@ -36,9 +36,10 @@ case class MediatorAgent(
   //   DynamicResolver.resolverLayer(didSocketManager)
 
   type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo
-  val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo, ProtocolExecuter[Services]] =
+  val protocolHandlerLayer
+      : URLayer[UserAccountRepo & MessageItemRepo, ProtocolExecuter[Services, MediatorError | StorageError]] =
     ZLayer.succeed(
-      ProtocolExecuterCollection[Services](
+      ProtocolExecuterCollection[Services, MediatorError | StorageError](
         BasicMessageExecuter,
         new TrustPingExecuter,
         MediatorCoordinationExecuter,
@@ -86,7 +87,7 @@ case class MediatorAgent(
       mSocketID: Option[SocketID],
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
-    MediatorError,
+    MediatorError | StorageError,
     Option[EncryptedMessage]
   ] =
     for {
@@ -107,7 +108,7 @@ case class MediatorAgent(
       mSocketID: Option[SocketID]
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
-    MediatorError,
+    MediatorError | StorageError,
     Option[EncryptedMessage]
   ] =
     ZIO
@@ -120,7 +121,7 @@ case class MediatorAgent(
             else
               for {
                 messageItemRepo <- ZIO.service[MessageItemRepo]
-                protocolHandler <- ZIO.service[ProtocolExecuter[Services]]
+                protocolHandler <- ZIO.service[ProtocolExecuter[Services, MediatorError | StorageError]]
                 plaintextMessage <- decrypt(msg)
                 maybeActionStorageError <- messageItemRepo
                   .insert(MessageItem(msg)) // store all message
@@ -209,7 +210,10 @@ case class MediatorAgent(
           DIDSocketManager
             .newMessage(ch, text)
             .flatMap { case (socketID, encryptedMessage) => receiveMessage(encryptedMessage, Some(socketID)) }
-            .mapError(ex => MediatorException(ex))
+            .mapError {
+              case ex: MediatorError => MediatorException(ex)
+              case ex: StorageError  => StorageException(ex)
+            }
         }
       case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
         ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
@@ -347,7 +351,7 @@ object MediatorAgent {
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
         ZIO
-          .logError(s"Request Headers : ${req.headers.mkString(",")}")
+          .logError(s"Request Headers: ${req.headers.mkString(",")}")
           .as(
             Response
               .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")

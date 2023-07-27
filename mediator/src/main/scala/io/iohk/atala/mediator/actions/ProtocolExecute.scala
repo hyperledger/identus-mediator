@@ -16,21 +16,25 @@ import zio.json.*
 import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
 //TODO pick a better name // maybe "Protocol" only
 
-trait ProtocolExecuter[-R] {
+trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
 
   def suportedPIURI: Seq[PIURI]
 
   /** @return can return a Sync Reply Msg */
-  def execute[R1 <: R](plaintextMessage: PlaintextMessage): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
+  def execute[R1 <: R](
+      plaintextMessage: PlaintextMessage
+  ): ZIO[R1, E, Option[EncryptedMessage]] =
     program(plaintextMessage) *> ZIO.none
 
-  def program[R1 <: R](plaintextMessage: PlaintextMessage): ZIO[R1, MediatorError, Action]
+  def program[R1 <: R](plaintextMessage: PlaintextMessage): ZIO[R1, E, Action]
 }
 
 object ProtocolExecuter {
   type Services = Resolver & Agent & Operations & MessageDispatcher
 }
-case class ProtocolExecuterCollection[-R <: Agent](executers: ProtocolExecuter[R]*) extends ProtocolExecuter[R] {
+case class ProtocolExecuterCollection[-R <: Agent, +E]( // <: MediatorError | StorageError
+    executers: ProtocolExecuter[R, E]*
+) extends ProtocolExecuter[R, E] {
 
   override def suportedPIURI: Seq[PIURI] = executers.flatMap(_.suportedPIURI)
 
@@ -38,7 +42,7 @@ case class ProtocolExecuterCollection[-R <: Agent](executers: ProtocolExecuter[R
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
-  ): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
+  ): ZIO[R1, E, Option[EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
       // case None     => NullProtocolExecuter.execute(plaintextMessage)
       case None     => MissingProtocolExecuter.execute(plaintextMessage)
@@ -46,19 +50,20 @@ case class ProtocolExecuterCollection[-R <: Agent](executers: ProtocolExecuter[R
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
-  ): ZIO[R1, MediatorError, Action] =
+  ): ZIO[R1, E, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
       // case None     => NullProtocolExecuter.program(plaintextMessage)
       case None     => MissingProtocolExecuter.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }
 
-trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends ProtocolExecuter[R] {
+trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services]
+    extends ProtocolExecuter[R, MediatorError | StorageError] {
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
+  ): ZIO[R1, MediatorError | StorageError, Option[EncryptedMessage]] =
     program(plaintextMessage)
       .tap(v => ZIO.logDebug(v.toString)) // DEBUG
       .flatMap(action => ActionUtils.packResponse(plaintextMessage, action))
@@ -66,5 +71,5 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, MediatorError, Action]
+  ): ZIO[R1, MediatorError | StorageError, Action]
 }

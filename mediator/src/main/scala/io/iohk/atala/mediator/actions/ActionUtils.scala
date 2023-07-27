@@ -20,7 +20,7 @@ object ActionUtils {
   def packResponse(
       plaintextMessage: PlaintextMessage,
       action: Action
-  ): ZIO[Operations & Agent & (Resolver & MessageDispatcher), MediatorError, Option[EncryptedMessage]] =
+  ): ZIO[Operations & Agent & Resolver & MessageDispatcher, MediatorError, Option[EncryptedMessage]] =
     action match {
       case _: NoReply.type => ZIO.succeed(None)
       case action: AnyReply =>
