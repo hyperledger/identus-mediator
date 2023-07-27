@@ -31,8 +31,9 @@ trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
 
 object ProtocolExecuter {
   type Services = Resolver & Agent & Operations & MessageDispatcher
+  type Erros = MediatorError | StorageError
 }
-case class ProtocolExecuterCollection[-R <: Agent, +E]( // <: MediatorError | StorageError
+case class ProtocolExecuterCollection[-R <: Agent, +E](
     executers: ProtocolExecuter[R, E]*
 ) extends ProtocolExecuter[R, E] {
 
@@ -57,13 +58,15 @@ case class ProtocolExecuterCollection[-R <: Agent, +E]( // <: MediatorError | St
       case Some(px) => px.program(plaintextMessage)
 }
 
-trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services]
-    extends ProtocolExecuter[R, MediatorError | StorageError] {
+trait ProtocolExecuterWithServices[
+    -R <: ProtocolExecuter.Services,
+    +E >: MediatorError // ProtocolExecuter.Erros
+] extends ProtocolExecuter[R, E] {
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, MediatorError | StorageError, Option[EncryptedMessage]] =
+  ): ZIO[R1, E, Option[EncryptedMessage]] =
     program(plaintextMessage)
       .tap(v => ZIO.logDebug(v.toString)) // DEBUG
       .flatMap(action => ActionUtils.packResponse(plaintextMessage, action))
@@ -71,5 +74,5 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services]
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, MediatorError | StorageError, Action]
+  ): ZIO[R1, E, Action]
 }

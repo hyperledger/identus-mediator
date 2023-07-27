@@ -11,7 +11,11 @@ import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.UserAccountRepo
 import zio.*
 import zio.json.*
-object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & UserAccountRepo] {
+object MediatorCoordinationExecuter
+    extends ProtocolExecuterWithServices[
+      ProtocolExecuter.Services & UserAccountRepo,
+      ProtocolExecuter.Erros
+    ] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
