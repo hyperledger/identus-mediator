@@ -71,7 +71,6 @@
                         "package.json",
                         "package-lock.json",
                         "infrastructure/charts/mediator/Chart.yaml"
-
                     ],
                     "message": "chore(release): cut prism mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
                 }
