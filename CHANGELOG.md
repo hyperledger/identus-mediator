@@ -1,3 +1,11 @@
+# [0.6.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.5.0...prism-mediator-v0.6.0) (2023-07-27)
+
+
+### Features
+
+* add helm-chart for mediator ([#64](https://github.com/input-output-hk/atala-prism-mediator/issues/64)) ([52e5d3b](https://github.com/input-output-hk/atala-prism-mediator/commit/52e5d3bf031895336279d6981016bada9ce32eaf)), closes [#61](https://github.com/input-output-hk/atala-prism-mediator/issues/61) [#63](https://github.com/input-output-hk/atala-prism-mediator/issues/63)
+* helm-chart appVersion bump and addtional fixes ([#67](https://github.com/input-output-hk/atala-prism-mediator/issues/67)) ([3ccbe3e](https://github.com/input-output-hk/atala-prism-mediator/commit/3ccbe3ed093c7f22dbd4b934e9d9ce8488cbd302))
+
 # [0.5.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.1...prism-mediator-v0.5.0) (2023-07-21)
 
 
