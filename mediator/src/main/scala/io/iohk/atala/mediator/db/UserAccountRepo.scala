@@ -39,10 +39,16 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
       _ <- ZIO.logInfo("newDidAccount")
       coll <- collection
       result <- ZIO
-        .fromFuture(implicit ec => coll.insert.one(value))
+        .fromFuture(implicit ec =>
+          coll.update.one(
+            q = value.queryConditionToInsert,
+            u = value,
+            upsert = true, // Will not insert if the query (q) match
+            multi = false
+          )
+        ) // (q= ???, u = )//value, ))
         .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
-
     } yield result
   }
 
