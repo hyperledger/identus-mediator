@@ -22,7 +22,9 @@ Tasks:
  - Store messages when sending (1w)
  - Catch Errors and send Problem Reports (1w):
    - (sync) e.p.crypto - is message is tampering (any crypto error).
+     - [WIP]
    - (sync) e.p.crypto.unsupported - is message is tampering (any crypto error).
+     - [WIP]
    - (sync & async) e.p.crypto.replay - if the message is replay (possible he replay attack).
    - (sync) e.p.req - pickup message before enroling.
     - [QA] StatusRequest - https://didcomm.org/messagepickup/3.0/status-request
@@ -34,6 +36,8 @@ Tasks:
    - (sync) e.p.did - for any DID method that is not `did.peer`.
    - (sync) e.p.did.malformed - for any DID method malformed.
    - (sync) e.p.msg - for parsing error from the message.
+     - [QA] All parsing errors from the decrypt function
+     - [TODO] parsing for a specific data model of each protocol
    - (sync) e.p.msg.unsupported - for the message type LiveModeChange and all message that is not role of the mediator
      - [QA] MediateGrant
      - [QA] MediateDeny
@@ -44,8 +48,9 @@ Tasks:
    - (sync) e.p.msg.unsupported - for parsing error due to unsupported version or protocol.
      - [QA] MissingProtocolExecuter (unsupported protocol it also works fine for unsupported versions)
    - (sync & async) e.p.req.not_enroll - Get a Forward message to a DID that is not enrolled.
-     - [QA] Send Problem Report if the next DID is not enrolled in the Mediator.
+     - [QA] Send a Problem Report if the next DID is not enrolled in the Mediator.
    - (sync & async) e.p.me - catch all error at the end.
+     - [WIP]
  - Receive a problem report (1w):
   - in case of Warnings Reply `w.p` -> log warnings and escalate to an error `e.p` on the reply
   - in case of Error `e.p` -> log error

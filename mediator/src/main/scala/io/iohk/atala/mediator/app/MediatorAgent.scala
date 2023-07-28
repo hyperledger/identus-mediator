@@ -6,6 +6,7 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
+import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
@@ -52,7 +53,7 @@ case class MediatorAgent(
     MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
-  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError, PlaintextMessage] =
+  def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError | ProblemReport, PlaintextMessage] = {
     for {
       ops <- ZIO.service[Operations]
       plaintextMessage <- msg match
@@ -81,6 +82,7 @@ case class MediatorAgent(
                   case Right(msg2) => decrypt(msg2)
             }
     } yield (plaintextMessage)
+  }
 
   def receiveMessage(
       data: String,
@@ -113,82 +115,88 @@ case class MediatorAgent(
   ] =
     ZIO
       .logAnnotate("msgHash", msg.sha1) {
-        val xxx = for {
+        for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
             if (!msg.recipientsSubject.contains(id))
               ZIO.logError(s"This mediator '${id.string}' is not a recipient") *> ZIO.none
             else
-              for {
-                messageItemRepo <- ZIO.service[MessageItemRepo]
-                protocolHandler <- ZIO.service[ProtocolExecuter[Services, MediatorError | StorageError]]
-                plaintextMessage <- decrypt(msg)
-                maybeActionStorageError <- messageItemRepo
-                  .insert(MessageItem(msg)) // store all message
-                  .map(_ /*WriteResult*/ => None
-                  // TODO messages already on the database -> so this might be a replay attack
-                  )
-                  .catchSome {
-                    case StorageCollection(error) =>
-                      // This deals with connection errors to the database.
-                      ZIO.logWarning(s"Error StorageCollection: $error") *>
-                        ZIO
-                          .service[Agent]
-                          .map(agent =>
-                            Some(
-                              Reply(
-                                Problems
-                                  .storageError(
-                                    to = plaintextMessage.from.map(_.asTO).toSet,
-                                    from = agent.id,
-                                    pthid = plaintextMessage.id,
-                                    piuri = plaintextMessage.`type`,
-                                  )
-                                  .toPlaintextMessage
+              {
+                for {
+                  messageItemRepo <- ZIO.service[MessageItemRepo]
+                  protocolHandler <- ZIO.service[ProtocolExecuter[Services, MediatorError | StorageError]]
+                  plaintextMessage <- decrypt(msg)
+                  maybeActionStorageError <- messageItemRepo
+                    .insert(MessageItem(msg)) // store all message
+                    .map(_ /*WriteResult*/ => None
+                    // TODO messages already on the database -> so this might be a replay attack
+                    )
+                    .catchSome {
+                      case StorageCollection(error) =>
+                        // This deals with connection errors to the database.
+                        ZIO.logWarning(s"Error StorageCollection: $error") *>
+                          ZIO
+                            .service[Agent]
+                            .map(agent =>
+                              Some(
+                                Reply(
+                                  Problems
+                                    .storageError(
+                                      to = plaintextMessage.from.map(_.asTO).toSet,
+                                      from = agent.id,
+                                      pthid = plaintextMessage.id,
+                                      piuri = plaintextMessage.`type`,
+                                    )
+                                    .toPlaintextMessage
+                                )
                               )
                             )
-                          )
-                    case StorageThrowable(error) =>
-                      ZIO.logWarning(s"Error StorageThrowable: $error") *>
-                        ZIO
-                          .service[Agent]
-                          .map(agent =>
-                            Some(
-                              Reply(
-                                Problems
-                                  .storageError(
-                                    to = plaintextMessage.from.map(_.asTO).toSet,
-                                    from = agent.id,
-                                    pthid = plaintextMessage.id,
-                                    piuri = plaintextMessage.`type`,
-                                  )
-                                  .toPlaintextMessage
+                      case StorageThrowable(error) =>
+                        ZIO.logWarning(s"Error StorageThrowable: $error") *>
+                          ZIO
+                            .service[Agent]
+                            .map(agent =>
+                              Some(
+                                Reply(
+                                  Problems
+                                    .storageError(
+                                      to = plaintextMessage.from.map(_.asTO).toSet,
+                                      from = agent.id,
+                                      pthid = plaintextMessage.id,
+                                      piuri = plaintextMessage.`type`,
+                                    )
+                                    .toPlaintextMessage
+                                )
                               )
                             )
-                          )
+                    }
+                  _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
+                    ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
                   }
-                _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
-                  ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
-                }
-                _ <- mSocketID match
-                  case None => ZIO.unit
-                  case Some(socketID) =>
-                    plaintextMessage.from match
-                      case None => ZIO.unit
-                      case Some(from) =>
-                        didSocketManager.update {
-                          _.link(from.asFROMTO, socketID)
-                        }
-                // TODO Store context of the decrypt unwarping
-                // TODO SreceiveMessagetore context with MsgID and PIURI
-                ret <- {
-                  maybeActionStorageError match
-                    case Some(reply) => ActionUtils.packResponse(plaintextMessage, reply)
-                    case None        => protocolHandler.execute(plaintextMessage)
-                }.tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
-              } yield ret
+                  _ <- mSocketID match
+                    case None => ZIO.unit
+                    case Some(socketID) =>
+                      plaintextMessage.from match
+                        case None => ZIO.unit
+                        case Some(from) =>
+                          didSocketManager.update {
+                            _.link(from.asFROMTO, socketID)
+                          }
+                  // TODO Store context of the decrypt unwarping
+                  // TODO SreceiveMessagetore context with MsgID and PIURI
+                  ret <- {
+                    maybeActionStorageError match
+                      case Some(reply) => ActionUtils.packResponse(Some(plaintextMessage), reply)
+                      case None        => protocolHandler.execute(plaintextMessage)
+                  }.tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+                } yield ret
+              }.catchAll {
+                case ex: MediatorError     => ZIO.fail(ex)
+                case pr: ProblemReport     => ActionUtils.packResponse(None, Reply(pr.toPlaintextMessage))
+                case ex: StorageCollection => ZIO.fail(ex)
+                case ex: StorageThrowable  => ZIO.fail(ex)
+              }
         } yield maybeSyncReplyMsg
-        xxx
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 

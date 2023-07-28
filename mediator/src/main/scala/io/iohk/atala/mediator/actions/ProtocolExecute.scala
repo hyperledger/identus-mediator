@@ -69,7 +69,7 @@ trait ProtocolExecuterWithServices[
   ): ZIO[R1, E, Option[EncryptedMessage]] =
     program(plaintextMessage)
       .tap(v => ZIO.logDebug(v.toString)) // DEBUG
-      .flatMap(action => ActionUtils.packResponse(plaintextMessage, action))
+      .flatMap(action => ActionUtils.packResponse(Some(plaintextMessage), action))
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,

@@ -18,7 +18,7 @@ import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
 object ActionUtils {
 
   def packResponse(
-      plaintextMessage: PlaintextMessage,
+      plaintextMessage: Option[PlaintextMessage],
       action: Action
   ): ZIO[Operations & Agent & Resolver & MessageDispatcher, MediatorError, Option[EncryptedMessage]] =
     action match {
@@ -80,9 +80,9 @@ object ActionUtils {
                 .succeed(msg)
                 .when(
                   {
-                    plaintextMessage.return_route.contains(ReturnRoute.all)
+                    plaintextMessage.map(_.return_route).contains(ReturnRoute.all)
                     && {
-                      plaintextMessage.from.map(_.asTO) match {
+                      plaintextMessage.flatMap(_.from.map(_.asTO)) match {
                         case None          => false
                         case Some(replyTo) => send2DIDs.contains(replyTo)
                       }
