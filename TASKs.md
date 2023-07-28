@@ -44,6 +44,7 @@ Tasks:
    - (sync) e.p.msg.unsupported - for parsing error due to unsupported version or protocol.
      - [QA] MissingProtocolExecuter (unsupported protocol it also works fine for unsupported versions)
    - (sync & async) e.p.req.not_enroll - Get a Forward message to a DID that is not enrolled.
+     - [QA] Send Problem Report if the next DID is not enrolled in the Mediator.
    - (sync & async) e.p.me - catch all error at the end.
  - Receive a problem report (1w):
   - in case of Warnings Reply `w.p` -> log warnings and escalate to an error `e.p` on the reply
@@ -80,3 +81,4 @@ Tasks:
  - escalate_to must be configurable (1d)
  - [optional] update the protocol with new tokens (2d)
    - `e.p.me.res.storage`
+   - `e.p.me.res.not_enroll`

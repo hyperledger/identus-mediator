@@ -56,7 +56,7 @@ object PickupExecuter
               Problems
                 .notEnroledError(
                   from = m.to.asFROM,
-                  to = m.from.asTO,
+                  to = Some(m.from.asTO),
                   pthid = m.id, // TODO CHECK pthid
                   piuri = m.piuri,
                 )
@@ -103,7 +103,7 @@ object PickupExecuter
                 Problems
                   .notEnroledError(
                     from = m.to.asFROM,
-                    to = m.from.asTO,
+                    to = Some(m.from.asTO),
                     pthid = m.id, // TODO CHECK pthid
                     piuri = m.piuri,
                   )

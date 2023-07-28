@@ -76,19 +76,19 @@ object Problems {
   )
 
   def notEnroledError(
-      to: TO,
+      to: Option[TO],
       from: FROM,
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
     // id: MsgID = MsgID(),
-    to = Set(to),
+    to = to.toSet,
     from = from,
     pthid = pthid,
     ack = None,
-    code = ProblemCode.ErroFail("req"),
+    code = ProblemCode.ErroFail("req", "not_enroll"),
     comment = Some("The DID '{1}' is not enroled."),
-    args = Some(Seq(to.value)),
+    args = Some(to.map(_.value).toSeq),
     escalate_to = email,
   )
 
