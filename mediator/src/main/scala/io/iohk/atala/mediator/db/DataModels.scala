@@ -32,16 +32,7 @@ case class DidAccount(
     did: DIDSubject,
     alias: Seq[DID],
     messagesRef: Seq[MessageMetaData],
-) {
-  def queryConditionToInsert = BSONDocument(
-    Seq(
-      "$or" -> BSONArray(
-        BSONDocument(Seq("did" -> BSONString(did.did))),
-        BSONDocument(Seq("alias" -> BSONString(did.did))) // TODO test
-      )
-    )
-  )
-}
+)
 
 object DidAccount {
   given BSONDocumentWriter[DidAccount] = Macros.writer[DidAccount]
