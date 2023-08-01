@@ -11,6 +11,7 @@ import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.UserAccountRepo
 import zio.*
 import zio.json.*
+import io.iohk.atala.mediator.db.DidAccount
 object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services & UserAccountRepo] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(
@@ -50,10 +51,13 @@ object MediatorCoordinationExecuter extends ProtocolExecuterWithServices[Protoco
         for {
           _ <- ZIO.logInfo("MediateRequest")
           repo <- ZIO.service[UserAccountRepo]
-          result <- repo.newDidAccount(m.from.asDIDURL.toDID)
-          reply = result.n match
-            case 1 => m.makeRespondMediateGrant.toPlaintextMessage
-            case _ => m.makeRespondMediateDeny.toPlaintextMessage
+          result: Either[String, DidAccount] <- repo.createOrFindDidAccount(m.from.asDIDURL.toDID)
+          reply <- result match
+            case Left(errorStr) =>
+              ZIO.log(s"MediateDeny: $errorStr") *> ZIO.succeed(m.makeRespondMediateDeny.toPlaintextMessage)
+            case Right(value) =>
+              ZIO.log(s"MediateGrant: $value") *>
+                ZIO.succeed(m.makeRespondMediateGrant.toPlaintextMessage)
         } yield SyncReplyOnly(reply)
       case m: KeylistUpdate =>
         for {
