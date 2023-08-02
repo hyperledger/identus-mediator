@@ -58,6 +58,23 @@ object Problems {
     escalate_to = email,
   )
 
+  def liveModeNotSupported(
+      to: TO,
+      from: FROM,
+      pthid: MsgID,
+      piuri: PIURI,
+  ) = ProblemReport(
+    // id: MsgID = MsgID(),
+    to = Set(to),
+    from = from,
+    pthid = pthid,
+    ack = None,
+    code = ProblemCode.ErroUndo("live-mode-not-supported"),
+    comment = Some("Connection does not support Live Delivery"),
+    args = None,
+    escalate_to = email,
+  )
+
   def storageError(
       to: Set[TO],
       from: FROM,

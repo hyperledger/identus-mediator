@@ -153,20 +153,19 @@ object PickupExecuter
           )
         } yield NoReply
       case m: LiveModeChange =>
-        ZIO.logWarning("LiveModeChange not implemented") *>
+        ZIO.logInfo("LiveModeChange Not Supported") *>
           ZIO.succeed(
             SyncReplyOnly(
               Problems
-                .protocolNotImplemented( // TODO
+                .liveModeNotSupported(
                   from = m.to.asFROM,
                   to = m.from.asTO,
-                  pthid = m.id, // TODO CHECK pthid
+                  pthid = m.id,
                   piuri = m.piuri,
                 )
                 .toPlaintextMessage
             )
           )
-
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
       case Right(program) => program

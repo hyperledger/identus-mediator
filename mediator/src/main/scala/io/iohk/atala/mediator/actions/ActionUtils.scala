@@ -60,7 +60,7 @@ object ActionUtils {
                           messageDispatcher
                             .send(
                               msg,
-                              url, // "http://localhost:8080", // FIXME REMOVE (use for local env)
+                              url,
                               None
                               // url match // FIXME REMOVE (use for local env)
                               //   case http if http.startsWith("http://") => Some(url.drop(7).split(':').head.split('/').head)
