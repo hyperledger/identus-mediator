@@ -19,8 +19,7 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         msg <- ZIO.fromEither(encryptedMessageAlice)
         result <- messageItem.insert(MessageItem(msg))
       } yield {
-        println(result)
-        assertTrue(result.writeErrors == Nil)
+        assertTrue(result.writeErrors == Nil) &&
         assertTrue(result.n == 1)
       }
     },
@@ -41,7 +40,7 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         msg2Added <- messageItem.insert(MessageItem(msg2))
         result <- messageItem.findByIds(Seq(msg.sha1, msg2.sha1))
       } yield {
-        assertTrue(result.contains(MessageItem(msg)))
+        assertTrue(result.contains(MessageItem(msg))) &&
         assertTrue(result.contains(MessageItem(msg2)))
       }
     }

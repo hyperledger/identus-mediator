@@ -48,8 +48,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         userAccount <- ZIO.service[UserAccountRepo]
         result <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isDefined)
-        assertTrue(result.exists(_.did == DIDSubject(alice)))
+        assertTrue(result.isDefined) && assertTrue(result.exists(_.did == DIDSubject(alice)))
       }
     },
     test("Get Did Account return for unknown did") {
@@ -66,10 +65,10 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isRight)
-        assertTrue(result == Right((1)))
-        assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right((1))) &&
+        assertTrue(didAccount.isDefined) &&
         assertTrue(alias == Seq(alice, bob))
       }
     },
@@ -87,10 +86,10 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(alice))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isRight)
-        assertTrue(result == Right(0))
-        assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right(0)) &&
+        assertTrue(didAccount.isDefined) &&
         assertTrue(alias == Seq(alice, bob))
       }
     },
@@ -100,11 +99,10 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isRight)
-        assertTrue(result == Right(1))
-        assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
-
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right(1)) &&
+        assertTrue(didAccount.isDefined) &&
         assertTrue(alias == Seq(alice))
       }
     },
@@ -114,10 +112,10 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isRight)
-        assertTrue(result == Right(0))
-        assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right(0)) &&
+        assertTrue(didAccount.isDefined) &&
         assertTrue(alias == Seq(alice))
       }
     },
@@ -131,12 +129,13 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         addedToInbox <- userAccount.addToInboxes(Set(DIDSubject(bob)), msg)
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.isRight)
-        assertTrue(result == Right(1))
-        assertTrue(msgAdded.writeErrors == Nil)
-        assertTrue(msgAdded.n == 1)
-        assertTrue(addedToInbox == 1)
         val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
+
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right(1)) &&
+        assertTrue(msgAdded.writeErrors == Nil) &&
+        assertTrue(msgAdded.n == 1) &&
+        assertTrue(addedToInbox == 1) &&
         assert(messageMetaData)(
           forall(
             hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
@@ -152,8 +151,8 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.sha1))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(markedDelivered == 1)
         val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
+        assertTrue(markedDelivered == 1) &&
         assert(messageMetaData)(
           forall(
             hasField("state", (m: MessageMetaData) => m.state, equalTo(true))
