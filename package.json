@@ -1,6 +1,6 @@
 {
     "name": "atala-prism-mediator",
-    "version": "0.2.0",
+    "version": "0.6.0",
     "engines": {
         "node": ">=16.13.0"
     },
@@ -47,6 +47,12 @@
             [
                 "@semantic-release/exec",
                 {
+                    "prepareCmd": "yq -i '.appVersion = \"${nextRelease.version}\"' ./infrastructure/charts/mediator/Chart.yaml"
+                }
+            ],
+            [
+                "@semantic-release/exec",
+                {
                     "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/atala-prism-mediator:${nextRelease.version} ./mediator/target/docker/stage"
                 }
             ],
@@ -63,7 +69,8 @@
                         "version.sbt",
                         "CHANGELOG.md",
                         "package.json",
-                        "package-lock.json"
+                        "package-lock.json",
+                        "infrastructure/charts/mediator/Chart.yaml"
                     ],
                     "message": "chore(release): cut prism mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
                 }

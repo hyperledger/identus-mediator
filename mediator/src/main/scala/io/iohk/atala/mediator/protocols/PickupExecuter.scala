@@ -63,7 +63,7 @@ object PickupExecuter
             total_bytes = None, // TODO
             live_delivery = None, // TODO
           )
-        } yield Reply(status.toPlaintextMessage)
+        } yield SyncReplyOnly(status.toPlaintextMessage)
       case m: Status => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
@@ -90,7 +90,7 @@ object PickupExecuter
             from = m.to.asFROM,
             to = m.from.asTO,
             recipient_did = m.recipient_did,
-            attachments = messagesToReturn.map(m => (m.hashCode.toString, m.msg)).toMap,
+            attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
           )
         } yield SyncReplyOnly(deliveryRequest.toPlaintextMessage)
       case m: MessageDelivery =>
@@ -112,7 +112,7 @@ object PickupExecuter
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.markAsDelivered(
             didRequestingMessages.toDID,
-            m.message_id_list.map(e => e.toInt) // TODO have it safe 'toInt'
+            m.message_id_list
           )
         } yield NoReply
       case m: LiveModeChange => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO

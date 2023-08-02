@@ -1,4 +1,4 @@
-package fmgp.webapp
+package io.iohk.atala.mediator
 
 import org.scalajs.dom
 import com.raquo.laminar.api.L._
@@ -17,7 +17,7 @@ object MediatorInfo {
     goal = Some("RequestMediate"),
     accept = Some(Seq("didcomm/v2")),
   )
-  val qrCodeData = OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("https://did.fmgp.app/#/")
+  val qrCodeData = OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("#/")
 
   val divQRCode = div()
   {
@@ -31,8 +31,12 @@ object MediatorInfo {
     div(
       h1("Invite for the DID Comm Mediator:"),
       h3("Plaintext out of band invitation:"),
-      p(code(qrCodeData)),
+      p(a(href := qrCodeData, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
       pre(code(invitation.toPlaintextMessage.toJsonPretty)),
+      pre(
+        "To facilitate the integration with other systems you can get the plain text invitation and the out-of-band invitation on the following endpoints:",
+        " '/invitation' and '/invitationOOB'"
+      ),
       divQRCode,
       h3("Signed out of band invitation:"),
       code("TODO"),

@@ -12,33 +12,28 @@ services:
       - MONGO_INITDB_DATABASE=mediator
     volumes:
       - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
-    #   - ./:/opt/keyfile/
-    # healthcheck:
-    #   test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
-    #   interval: 10s
-    #   start_period: 30s
+
   atalaprism-mediator:
-    image: ghcr.io/input-output-hk/mediator:0.1.1-SNAPSHOT
+    image: ghcr.io/input-output-hk/atala-prism-mediator:${MEDIATOR_VERSION:-0.2.0-SNAPSHOT}
     ports:
       - 8080:8080
-    network_mode: host #hash on mac remove this the default is bridge we can use host.docker.internal
     environment:
-      # Creates the identity: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9rOHMtaW50LmF0YWxhcHJpc20uaW8vbWVkaWF0b3IiLCJyIjpbXSwiYSI6WyJkaWRjb21tL3YyIl19"
+      # Creates the identity:
       - KEY_AGREEMENT_D=Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c
       - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
       - KEY_AUTHENTICATION_D=INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug
       - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
-      - SERVICE_ENDPOINT=https://k8s-int.atalaprism.io/mediator
-      # Config storage
-      #- DB_URL=mongodb://admin:admin@localhost:27017
+#      - SERVICE_ENDPOINT=https://k8s-int.atalaprism.io/mediator
       - MONGODB_USER=admin
       - MONGODB_PASSWORD=admin
       - MONGODB_PROTOCOL=mongodb
-      - MONGODB_HOST=localhost
+      - MONGODB_HOST=mongo
       - MONGODB_PORT=27017
       - MONGODB_DB_NAME=mediator
     depends_on:
       - "mongo"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 
 # RUN

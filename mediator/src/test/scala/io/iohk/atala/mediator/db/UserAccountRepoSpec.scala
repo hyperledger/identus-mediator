@@ -30,18 +30,17 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         userAccount <- ZIO.service[UserAccountRepo]
         col <- userAccount.collection
         _ = col.indexesManager.create(index)
-        result <- userAccount.newDidAccount(DIDSubject(alice))
+        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
       } yield {
-        assertTrue(result.writeErrors == Nil)
-        assertTrue(result.n == 1)
+        assertTrue(result.isRight)
       }
     },
-    test("insert same Did should fail") {
+    test("insert same Did should NOT fail") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.newDidAccount(DIDSubject(alice)).exit
+        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
       } yield {
-        assert(result)(fails(isSubtype[StorageError](anything)))
+        assertTrue(result.isRight)
       }
     },
     test("Get Did Account") {
@@ -74,6 +73,14 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         assertTrue(alias == Seq(alice, bob))
       }
     },
+    test("insert/create a UserAccount for a DID that is used as a alias should fail") {
+      for {
+        userAccount <- ZIO.service[UserAccountRepo]
+        result <- userAccount.createOrFindDidAccount(DIDSubject(bob))
+      } yield {
+        assertTrue(result.isLeft)
+      }
+    },
     test("Add same alias to existing Did Account return right with nModified value 0") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
@@ -97,10 +104,11 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         assertTrue(result == Right(1))
         assertTrue(didAccount.isDefined)
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+
         assertTrue(alias == Seq(alice))
       }
     },
-    test("Remove alias to unknown or unregister alias Did  should return right with noModified value 0") {
+    test("Remove alias to unknown or unregister alias Did should return right with noModified value 0") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
@@ -131,7 +139,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
         assert(messageMetaData)(
           forall(
-            hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.hashCode()))
+            hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
               && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(DIDSubject(bob)))
           )
         )
@@ -141,7 +149,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         msg <- ZIO.fromEither(encryptedMessageAlice)
-        markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.hashCode()))
+        markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.sha1))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         assertTrue(markedDelivered == 1)

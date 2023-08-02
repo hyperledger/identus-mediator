@@ -1,4 +1,4 @@
-package fmgp.webapp
+package io.iohk.atala.mediator
 
 import scala.scalajs.js.annotation._
 
@@ -23,10 +23,7 @@ object App {
       div(
         AppUtils.drawer(linkPages, MyRouter.router.currentPageSignal),
         AppUtils.drawerScrim,
-        AppUtils.topBarHeader(MyRouter.router.currentPageSignal.map { case p: MediatorPage.type =>
-          "IOHK DID Comm Mediator"
-        // case p                    => p.title
-        }),
+        AppUtils.topBarHeader(MyRouter.router.currentPageSignal.map { case p: MediatorPage.type => "IOHK Mediator" }),
         mainTag(
           className("mdc-top-app-bar--fixed-adjust"),
           child <-- $selectedApp.signal

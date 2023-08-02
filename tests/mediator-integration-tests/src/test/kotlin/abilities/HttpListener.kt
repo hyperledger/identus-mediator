@@ -20,7 +20,7 @@ object HttpListener {
             post("/") {
                 val json = call.receiveText()
                 receivedResponse = json
-                call.respond(HttpStatusCode.OK, "Data received")
+                call.respond(HttpStatusCode.OK)
             }
         }
     }
@@ -35,7 +35,7 @@ object HttpListener {
     }
 
     fun endpoint(): String {
-        return "http://${Environments.RECIPIENT_LISTENER_HOST}:${Environments.RECIPIENT_LISTENER_PORT}"
+        return "http://host.docker.internal:${Environments.RECIPIENT_LISTENER_PORT}"
     }
 
     fun receivedResponse(): String? {

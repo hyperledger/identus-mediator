@@ -20,7 +20,12 @@ given BSONReader[DIDSubject] with {
 
 given BSONWriter[DID] with {
   import DID.*
-  def writeTry(obj: DID): Try[BSONValue] = Try(BSONString(obj.string))
+  def writeTry(obj: DID): Try[BSONValue] = {
+    println("_" * 100)
+    println(obj.did)
+    println("^" * 100)
+    Try(BSONString(obj.did))
+  }
 }
 
 given BSONReader[DID] with {

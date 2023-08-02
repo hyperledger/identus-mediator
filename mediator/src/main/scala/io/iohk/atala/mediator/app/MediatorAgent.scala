@@ -5,6 +5,7 @@ import fmgp.crypto.error.*
 import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
+import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
@@ -23,6 +24,7 @@ import zio.json.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import scala.io.Source
+
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO
@@ -44,13 +46,6 @@ case class MediatorAgent(
         PickupExecuter,
       )
     )
-
-  // private def _didSubjectAux = id
-  // private def _keyStoreAux = keyStore.keys.toSeq
-  // val indentityLayer = ZLayer.succeed(new Agent {
-  //   override def id: DID = _didSubjectAux
-  //   override def keys: Seq[PrivateKey] = _keyStoreAux
-  // })
 
   val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
     MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
@@ -116,7 +111,7 @@ case class MediatorAgent(
     Option[EncryptedMessage]
   ] =
     ZIO
-      .logAnnotate("msgHash", msg.hashCode.toString) {
+      .logAnnotate("msgHash", msg.sha1) {
         for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
@@ -219,6 +214,11 @@ object MediatorAgent {
 
   def didCommApp = {
     Http.collectZIO[Request] {
+      case req @ Method.GET -> !! / "headers" =>
+        val data = req.headersAsList.toSeq.map(e => (e.key.toString(), e.value.toString()))
+        ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
+      case req @ Method.GET -> !! / "health" => ZIO.succeed(Response.ok)
+
       case req @ Method.GET -> !! if req.headersAsList.exists { h =>
             h.key.toString.toLowerCase == "content-type" &&
             (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
@@ -235,6 +235,38 @@ object MediatorAgent {
           annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
           ret <- agent.websocketListenerApp(annotationMap)
         } yield (ret)
+      case Method.GET -> !! / "invitation" =>
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          invitation = OOBInvitation(
+            from = agent.id,
+            goal_code = Some("request-mediate"),
+            goal = Some("RequestMediate"),
+            accept = Some(Seq("didcomm/v2")),
+          )
+          _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
+          ret <- ZIO.succeed(Response.json(invitation.toPlaintextMessage.toJson))
+
+        } yield (ret)
+      case Method.GET -> !! / "invitationOOB" =>
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
+          invitation = OOBInvitation(
+            from = agent.id,
+            goal_code = Some("request-mediate"),
+            goal = Some("RequestMediate"),
+            accept = Some(Seq("didcomm/v2")),
+          )
+          _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
+          ret <- ZIO.succeed(
+            Response.text(
+              OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("")
+            )
+          )
+
+        } yield (ret)
       case req @ Method.POST -> !! if req.headersAsList.exists { h =>
             h.key.toString.toLowerCase == "content-type" &&
             (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
@@ -243,14 +275,30 @@ object MediatorAgent {
         for {
           agent <- ZIO.service[MediatorAgent]
           data <- req.body.asString
-          maybeSyncReplyMsg <- agent
+          ret <- agent
             .receiveMessage(data, None)
-            .mapError(fail => MediatorException(fail))
-          ret = maybeSyncReplyMsg match
-            case None        => Response.ok
-            case Some(value) => Response.json(value.toJson)
+            .map {
+              case None        => Response.ok
+              case Some(value) => Response.json(value.toJson)
+            }
+            .catchAll {
+              case MediatorDidError(error) =>
+                ZIO.logError(s"Error MediatorDidError: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case MediatorThrowable(error) =>
+                ZIO.logError(s"Error MediatorThrowable: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case StorageCollection(error) =>
+                ZIO.logError(s"Error StorageCollection: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case StorageThrowable(error) =>
+                ZIO.logError(s"Error StorageThrowable: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case MissingProtocolError(piuri) =>
+                ZIO.logError(s"MissingProtocolError ('$piuri')") *>
+                  ZIO.succeed(Response.status(Status.BadRequest)) // TODO
+            }
         } yield ret
-
       // TODO [return_route extension](https://github.com/decentralized-identity/didcomm-messaging/blob/main/extensions/return_route/main.md)
       case req @ Method.POST -> !! =>
         ZIO
@@ -261,8 +309,11 @@ object MediatorAgent {
               .setStatus(Status.BadRequest)
           )
       case req @ Method.GET -> !! => { // html.Html.fromDomElement()
-        val data = Source.fromResource(s"public/index.html").mkString("")
-        ZIO.log("index.html") *> ZIO.succeed(Response.html(data))
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          _ <- ZIO.log("index.html")
+          ret <- ZIO.succeed(IndexHtml.html(agent.id))
+        } yield ret
       }
     }: Http[
       Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
@@ -270,19 +321,23 @@ object MediatorAgent {
       Request,
       Response
     ]
-  } ++ Http.fromResource(s"public/webapp-fastopt-library.js").when {
-    case Method.GET -> !! / "public" / "webapp-fastopt-library.js" => true
-    case _                                                         => false
-  } ++ {
-    Http.fromResource(s"public/webapp-fastopt-bundle.js").when {
-      case Method.GET -> !! / "public" / path => true
-      // Response(
-      //   body = Body.fromStream(ZStream.fromIterator(Source.fromResource(s"public/$path").iter).map(_.toByte)),
-      //   headers = Headers(HeaderNames.contentType, HeaderValues.applicationJson),
-      // )
-      case _ => false
+  } ++ Http
+    .fromResource(s"public/webapp-fastopt-bundle.js.gz")
+    .map(e =>
+      e.setHeaders(
+        Headers(
+          e.headers.filter(_.key != "content-encoding") ++ Seq(
+            Header("content-type", "application/javascript"),
+            Header("content-encoding", "gzip"),
+          )
+        )
+      )
+    )
+    .when {
+      case Method.GET -> !! / "public" / "webapp-fastopt-bundle.js" => true
+      case _                                                        => false
     }
-  } @@
+    @@
     HttpAppMiddleware.cors(
       zio.http.middleware.Cors.CorsConfig(
         allowedOrigins = _ => true,

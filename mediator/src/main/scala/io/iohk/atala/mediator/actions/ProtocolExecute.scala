@@ -10,6 +10,7 @@ import fmgp.did.comm.protocol.trustping2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
+import io.iohk.atala.mediator.protocols.NullProtocolExecuter
 import zio.*
 import zio.json.*
 //TODO pick a better name // maybe "Protocol" only
@@ -38,14 +39,14 @@ case class ProtocolExecuterCollection[-R](executers: ProtocolExecuter[R]*) exten
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Option[EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecute.execute(plaintextMessage)
+      case None     => NullProtocolExecuter.execute(plaintextMessage)
       case Some(px) => px.execute(plaintextMessage)
 
   override def program[R1 <: R](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, MediatorError, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
-      case None     => NullProtocolExecute.program(plaintextMessage)
+      case None     => NullProtocolExecuter.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }
 
@@ -104,7 +105,7 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
                                 //     Some(url.drop(8).split(':').head.split('/').head)
                                 //   case _ => None
                               )
-                              .mapError(fail => MediatorDidError(fail))
+                              .catchAll { case DispatcherError(error) => ZIO.logWarning(s"Dispatch Error: $error") }
                         }
 
                     } yield (jobToRun)
@@ -132,53 +133,4 @@ trait ProtocolExecuterWithServices[-R <: ProtocolExecuter.Services] extends Prot
       plaintextMessage: PlaintextMessage,
       // context: Context
   ): ZIO[R1, MediatorError, Action]
-}
-
-object NullProtocolExecute extends ProtocolExecuter[Any] {
-
-  override def suportedPIURI = Seq()
-  override def program[R1 <: Any](plaintextMessage: PlaintextMessage) =
-    ZIO.fail(MissingProtocolError(plaintextMessage.`type`))
-}
-
-object BasicMessageExecuter extends ProtocolExecuter[Any] {
-
-  override def suportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)
-  override def program[R1 <: Any](plaintextMessage: PlaintextMessage) = for {
-    job <- BasicMessage.fromPlaintextMessage(plaintextMessage) match
-      case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
-      case Right(bm)   => Console.printLine(bm.toString).mapError(ex => MediatorThrowable(ex))
-  } yield NoReply
-}
-
-class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services] {
-
-  override def suportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
-
-  override def program[R1 <: Agent](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError, Action] = {
-    // the val is from the match to be definitely stable
-    val piuriTrustPing = TrustPing.piuri
-    val piuriTrustPingResponse = TrustPingResponse.piuri
-
-    plaintextMessage.`type` match
-      case `piuriTrustPing` =>
-        TrustPing.fromPlaintextMessage(plaintextMessage) match
-          case Left(error)                                    => ZIO.fail(MediatorDidError(FailToParse(error)))
-          case Right(ping: TrustPingWithOutRequestedResponse) => ZIO.logInfo(ping.toString()) *> ZIO.succeed(NoReply)
-          case Right(ping: TrustPingWithRequestedResponse) =>
-            for {
-              _ <- ZIO.logInfo(ping.toString())
-              agent <- ZIO.service[Agent]
-              ret = ping.makeRespond
-            } yield Reply(ret.toPlaintextMessage)
-      case `piuriTrustPingResponse` =>
-        for {
-          job <- TrustPingResponse.fromPlaintextMessage(plaintextMessage) match
-            case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))
-            case Right(ping) => ZIO.logInfo(ping.toString())
-        } yield NoReply
-  }
-
 }
