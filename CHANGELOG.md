@@ -1,3 +1,38 @@
+# [0.6.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.5.0...prism-mediator-v0.6.0) (2023-07-27)
+
+
+### Features
+
+* add helm-chart for mediator ([#64](https://github.com/input-output-hk/atala-prism-mediator/issues/64)) ([52e5d3b](https://github.com/input-output-hk/atala-prism-mediator/commit/52e5d3bf031895336279d6981016bada9ce32eaf)), closes [#61](https://github.com/input-output-hk/atala-prism-mediator/issues/61) [#63](https://github.com/input-output-hk/atala-prism-mediator/issues/63)
+* helm-chart appVersion bump and addtional fixes ([#67](https://github.com/input-output-hk/atala-prism-mediator/issues/67)) ([3ccbe3e](https://github.com/input-output-hk/atala-prism-mediator/commit/3ccbe3ed093c7f22dbd4b934e9d9ce8488cbd302))
+
+# [0.5.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.1...prism-mediator-v0.5.0) (2023-07-21)
+
+
+### Features
+
+* add endpoint to get the OOB mediate invitation ([#63](https://github.com/input-output-hk/atala-prism-mediator/issues/63)) ([c82282c](https://github.com/input-output-hk/atala-prism-mediator/commit/c82282ca8c7061cc1ec702af538ab77e2c9a1f3c))
+
+## [0.4.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.4.0...prism-mediator-v0.4.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* mediator ATL-4883 pickup status message to sync reply ([#59](https://github.com/input-output-hk/atala-prism-mediator/issues/59)) ([c0b6de0](https://github.com/input-output-hk/atala-prism-mediator/commit/c0b6de0f4fe4702641ff9e8a371b3aff3cd74e1f))
+
+# [0.4.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.1...prism-mediator-v0.4.0) (2023-07-13)
+
+
+### Bug Fixes
+
+* Id/hash of the message must be deterministic ([#53](https://github.com/input-output-hk/atala-prism-mediator/issues/53)) ([d122b99](https://github.com/input-output-hk/atala-prism-mediator/commit/d122b993d54b3a8e557374709b9d8628c38ee74e))
+
+
+### Features
+
+* Better error handling for connection refused ([#47](https://github.com/input-output-hk/atala-prism-mediator/issues/47)) ([429940e](https://github.com/input-output-hk/atala-prism-mediator/commit/429940e2ef6807017c4e4ef156432e843c5cdccc))
+* Not send response errors to the caller ([#50](https://github.com/input-output-hk/atala-prism-mediator/issues/50)) ([60ee3ef](https://github.com/input-output-hk/atala-prism-mediator/commit/60ee3ef8e4342fb5fa69501502abdd739c55e22a))
+
 ## [0.3.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.3.0...prism-mediator-v0.3.1) (2023-07-10)
 
 

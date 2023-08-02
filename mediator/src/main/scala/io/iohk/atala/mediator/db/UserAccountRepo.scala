@@ -29,20 +29,49 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .tapError(err => ZIO.logError(s"Couldn't get collection ${err.getMessage}"))
     .mapError(ex => StorageCollection(ex))
 
-  def newDidAccount(did: DIDSubject): IO[StorageError, WriteResult] = {
-    val value = DidAccount(
-      did = did,
-      alias = Seq(did),
-      messagesRef = Seq.empty
+  /** create or return account for a  DIDSubject */
+  def createOrFindDidAccount(did: DIDSubject): IO[StorageError, Either[String, DidAccount]] = {
+    def projection: Option[BSONDocument] = None
+    def selectorConditionToInsert = BSONDocument(
+      Seq(
+        "$or" -> BSONArray(
+          BSONDocument(Seq("did" -> BSONString(did.did))),
+          BSONDocument(Seq("alias" -> BSONString(did.did))) // TODO test
+        )
+      )
     )
+
     for {
       _ <- ZIO.logInfo("newDidAccount")
       coll <- collection
-      result <- ZIO
-        .fromFuture(implicit ec => coll.insert.one(value))
-        .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
+      findR <- ZIO // TODO this should be atomic
+        .fromFuture(implicit ec =>
+          coll
+            .find(selectorConditionToInsert, projection)
+            .cursor[DidAccount]()
+            .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
+            .map(_.headOption)
+        )
+        .tapError(err => ZIO.logError(s"Insert newDidAccount (check condition setp):  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
-
+      result <- findR match
+        case Some(data) if data.did != did => ZIO.left("Fail found document: " + data)
+        case Some(old)                     => ZIO.right(old)
+        case None =>
+          val value = DidAccount(
+            did = did,
+            alias = Seq(did),
+            messagesRef = Seq.empty
+          )
+          ZIO
+            .fromFuture(implicit ec => coll.insert.one(value))
+            .map(e =>
+              e.n match
+                case 1 => Right(value)
+                case _ => Left("Fail to inserte: " + e.toString())
+            )
+            .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
+            .mapError(ex => StorageThrowable(ex))
     } yield result
   }
 

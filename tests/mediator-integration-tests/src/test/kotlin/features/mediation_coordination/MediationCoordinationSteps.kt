@@ -12,7 +12,6 @@ import io.iohk.atala.prism.walletsdk.domain.models.DID
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import models.*
-import net.serenitybdd.core.Serenity
 
 class MediationCoordinationSteps {
 
@@ -81,9 +80,9 @@ class MediationCoordinationSteps {
     @Then("Mediator responds to {actor} with a correct keylist update add message")
     fun mediatorRespondsToHimWithACorrectKeylistUpdateAddMessage(recipient: Actor) {
         val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
-        val didcommBody = Json.decodeFromString<MediationKeylistResponse>(didcommMessage.body)
+        val didcommBody = Json.decodeFromString<MediationKeylistUpdateResponse>(didcommMessage.body)
         recipient.attemptsTo(
-            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_RESPONSE),
+            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_UPDATE_RESPONSE),
             Ensure.that(didcommBody.updated.size).isGreaterThan(0),
             Ensure.that(didcommBody.updated[0].result).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_RESULT_SUCCESS),
             Ensure.that(didcommBody.updated[0].action).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_ADD),
@@ -95,26 +94,31 @@ class MediationCoordinationSteps {
 
     @When("{actor} sends a keylist query message to the mediator")
     fun recipientSendsAKeylistQueryMessageToTheMediator(recipient: Actor) {
-        TODO("Not supported by the PRISM Mediator yet")
-//        val keylistUpdateMessage = Message(
-//            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
-//            from = EdgeAgent.peerDID,
-//            to = Environments.MEDIATOR_PEER_DID,
-//            body = MediationKeylistQueryRequest(
-//                paginate = Paginate(
-//                    limit = 2,
-//                    offset = 0
-//                )
-//            ).toJsonString()
-//        )
-//        recipient.attemptsTo(
-//            SendDidcommMessage(keylistUpdateMessage)
-//        )
+        val keyListQueryMessage = Message(
+            piuri = DidcommMessageTypes.MEDIATE_KEYLIST_QUERY,
+            from = recipient.recall<DID>("peerDid"),
+            to = Environments.MEDIATOR_PEER_DID,
+            body = MediationKeylistQueryRequest(
+                paginate = Paginate(
+                    limit = 2,
+                    offset = 0
+                )
+            ).toJsonString()
+        )
+        recipient.attemptsTo(
+            SendDidcommMessage(keyListQueryMessage)
+        )
     }
 
     @Then("Mediator responds to {actor} with keylist message containing the current list of keys")
     fun mediatorRespondsToRecipientWithKeylistMessageContainingTheCurrentListOfKeys(recipient: Actor) {
-        TODO("Not supported by the PRISM Mediator yet")
+        val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
+        val didcommBody = Json.decodeFromString<MediationKeylistResponse>(didcommMessage.body)
+        recipient.attemptsTo(
+            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST),
+            Ensure.that(didcommBody.keys.size).isGreaterThan(0),
+            Ensure.that(didcommBody.keys.last().recipient_did).isEqualTo(recipient.recall<DID>("peerDid").toString())
+        )
     }
 
     @When("{actor} sends a keylist update message to the mediator to remove the last alias")
@@ -160,9 +164,9 @@ class MediationCoordinationSteps {
     @Then("Mediator responds to {actor} with a correct keylist update remove message")
     fun mediatorRespondsToRecipientWithACorrectKeylistUpdateRemoveMessage(recipient: Actor) {
         val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
-        val didcommBody = Json.decodeFromString<MediationKeylistResponse>(didcommMessage.body)
+        val didcommBody = Json.decodeFromString<MediationKeylistUpdateResponse>(didcommMessage.body)
         recipient.attemptsTo(
-            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_RESPONSE),
+            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_UPDATE_RESPONSE),
             Ensure.that(didcommBody.updated.size).isGreaterThan(0),
             Ensure.that(didcommBody.updated[0].result).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_RESULT_SUCCESS),
             Ensure.that(didcommBody.updated[0].action).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_REMOVE),
@@ -194,9 +198,9 @@ class MediationCoordinationSteps {
     @Then("Mediator responds to {actor} with a message with no_change status")
     fun mediatorRespondsToRecipientWithAMessageWithNo_changeStatus(recipient: Actor) {
         val didcommMessage = EdgeAgent.unpackLastDidcommMessage()
-        val didcommBody = Json.decodeFromString<MediationKeylistResponse>(didcommMessage.body)
+        val didcommBody = Json.decodeFromString<MediationKeylistUpdateResponse>(didcommMessage.body)
         recipient.attemptsTo(
-            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_RESPONSE),
+            Ensure.that(didcommMessage.piuri).isEqualTo(DidcommMessageTypes.MEDIATE_KEYLIST_UPDATE_RESPONSE),
             Ensure.that(didcommBody.updated.size).isGreaterThan(0),
             Ensure.that(didcommBody.updated[0].result).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_RESULT_NO_CHANGE),
             Ensure.that(didcommBody.updated[0].action).isEqualTo(TestConstants.MEDIATOR_COORDINATION_ACTION_REMOVE),
