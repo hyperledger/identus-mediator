@@ -9,8 +9,11 @@ import fmgp.did.comm.protocol.mediatorcoordination2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.UserAccountRepo
+import io.iohk.atala.mediator.db.DidAccount
+
 import zio.*
 import zio.json.*
+
 object MediatorCoordinationExecuter
     extends ProtocolExecuterWithServices[
       ProtocolExecuter.Services & UserAccountRepo,
@@ -80,10 +83,13 @@ object MediatorCoordinationExecuter
         for {
           _ <- ZIO.logInfo("MediateRequest")
           repo <- ZIO.service[UserAccountRepo]
-          result <- repo.newDidAccount(m.from.asDIDURL.toDID)
-          reply = result.n match
-            case 1 => m.makeRespondMediateGrant.toPlaintextMessage
-            case _ => m.makeRespondMediateDeny.toPlaintextMessage
+          result: Either[String, DidAccount] <- repo.createOrFindDidAccount(m.from.asDIDURL.toDID)
+          reply <- result match
+            case Left(errorStr) =>
+              ZIO.log(s"MediateDeny: $errorStr") *> ZIO.succeed(m.makeRespondMediateDeny.toPlaintextMessage)
+            case Right(value) =>
+              ZIO.log(s"MediateGrant: $value") *>
+                ZIO.succeed(m.makeRespondMediateGrant.toPlaintextMessage)
         } yield SyncReplyOnly(reply)
       case m: KeylistUpdate =>
         for {
