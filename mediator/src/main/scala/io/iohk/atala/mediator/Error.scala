@@ -5,7 +5,7 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import zio.json.*
 
-trait MediatorError
+sealed trait MediatorError
 
 case class MediatorException(fail: MediatorError) extends Exception(fail.toString())
 
@@ -20,8 +20,9 @@ object MediatorThrowable {
 }
 
 // Storage
+case class StorageException(fail: StorageError) extends Exception(fail.toString())
 
-trait StorageError extends MediatorError {
+sealed trait StorageError { //  extends MediatorError {
   def error: String
 }
 
@@ -35,6 +36,7 @@ object StorageThrowable {
   def apply(throwable: Throwable) = new StorageThrowable(throwable.getClass.getName() + ":" + throwable.getMessage)
 }
 
+// ProtocolError
 sealed trait ProtocolError extends MediatorError {
   def piuri: PIURI
 }
