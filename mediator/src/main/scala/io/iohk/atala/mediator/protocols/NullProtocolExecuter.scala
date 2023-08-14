@@ -5,7 +5,7 @@ import io.iohk.atala.mediator.MissingProtocolError
 import io.iohk.atala.mediator.actions.ProtocolExecuter
 import zio.ZIO
 
-object NullProtocolExecuter extends ProtocolExecuter[Any] {
+object NullProtocolExecuter extends ProtocolExecuter[Any, MissingProtocolError] {
 
   override def suportedPIURI = Seq()
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) =

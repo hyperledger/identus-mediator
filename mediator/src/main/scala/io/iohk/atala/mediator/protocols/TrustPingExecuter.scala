@@ -13,7 +13,7 @@ import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
 import io.iohk.atala.mediator.actions.{Action, NoReply, ProtocolExecuter, ProtocolExecuterWithServices, Reply}
 import zio.ZIO
 
-class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services] {
+class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
 
   override def suportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
 
