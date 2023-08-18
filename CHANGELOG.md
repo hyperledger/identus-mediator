@@ -1,3 +1,17 @@
+# [0.7.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.6.0...prism-mediator-v0.7.0) (2023-08-18)
+
+
+### Bug Fixes
+
+* mediator test ([#71](https://github.com/input-output-hk/atala-prism-mediator/issues/71)) ([7572dcc](https://github.com/input-output-hk/atala-prism-mediator/commit/7572dcc5bbd8ec07ee452bfc044863e50324c909))
+* parsing error when return_route is none ([#77](https://github.com/input-output-hk/atala-prism-mediator/issues/77)) ([02dde1e](https://github.com/input-output-hk/atala-prism-mediator/commit/02dde1efc3b051b8c65e0d819c8737ebe769a66c))
+* UserAccountRepo.createOrFindDidAccount ([#69](https://github.com/input-output-hk/atala-prism-mediator/issues/69)) ([3526f0a](https://github.com/input-output-hk/atala-prism-mediator/commit/3526f0a358b9928d74d1600b5705d42e36c90791))
+
+
+### Features
+
+* Error handling and Send Problem Reports ([#65](https://github.com/input-output-hk/atala-prism-mediator/issues/65)) ([fe46055](https://github.com/input-output-hk/atala-prism-mediator/commit/fe460550e8f1906eeaf29eb8cec45f6170fe7cbd))
+
 # [0.6.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.5.0...prism-mediator-v0.6.0) (2023-07-27)
 
 
