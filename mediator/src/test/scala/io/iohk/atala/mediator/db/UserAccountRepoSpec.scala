@@ -62,14 +62,14 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
     test("Add alias to existing Did Account return right nModified value 1") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
+        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(bob))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
         assertTrue(result == Right((1))) &&
         assertTrue(didAccount.isDefined) &&
-        assertTrue(alias == Seq(alice, bob))
+        assertTrue(alias == Seq(bob))
       }
     },
     test("insert/create a UserAccount for a DID that is used as a alias should fail") {
@@ -80,17 +80,30 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         assertTrue(result.isLeft)
       }
     },
+    test("Add owner as alias to existing Did Account return right with nModified value 1") {
+      for {
+        userAccount <- ZIO.service[UserAccountRepo]
+        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(alice))
+        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+      } yield {
+        val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
+        assertTrue(result.isRight) &&
+        assertTrue(result == Right(1)) &&
+        assertTrue(didAccount.isDefined) &&
+        assertTrue(alias.sorted == Seq(alice, bob).sorted)
+      }
+    },
     test("Add same alias to existing Did Account return right with nModified value 0") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(alice))
+        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(alice))
         didAccount <- userAccount.getDidAccount(DIDSubject(alice))
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
         assertTrue(result == Right(0)) &&
         assertTrue(didAccount.isDefined) &&
-        assertTrue(alias == Seq(alice, bob))
+        assertTrue(alias.sorted == Seq(alice, bob).sorted)
       }
     },
     test("Remove alias to existing Did Account should return right with nModified value 1 ") {
