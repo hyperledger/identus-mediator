@@ -56,8 +56,9 @@ object ActionUtils {
                     jobToRun <- mURL match
                       case None => ZIO.logWarning(s"No url to send message")
                       case Some(url) => {
-                        ZIO.log(s"Send to url: $url") *>
-                          messageDispatcher
+                        for {
+                          _ <- ZIO.log(s"Send to url: $url")
+                          response <- messageDispatcher
                             .send(
                               msg,
                               url,
@@ -69,6 +70,8 @@ object ActionUtils {
                               //   case _ => None
                             )
                             .catchAll { case DispatcherError(error) => ZIO.logWarning(s"Dispatch Error: $error") }
+                          // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! _ <- storeDispatchedMessage(msg, to, url, reply)
+                        } yield ()
                       }
 
                   } yield (jobToRun)
