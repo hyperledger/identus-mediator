@@ -60,7 +60,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
         case None =>
           val value = DidAccount(
             did = did,
-            alias = Seq(did),
+            alias = Seq.empty,
             messagesRef = Seq.empty
           )
           ZIO
