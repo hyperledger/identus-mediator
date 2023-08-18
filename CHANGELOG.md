@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.7.0...prism-mediator-v0.8.0) (2023-08-18)
+
+
+### Features
+
+* reply asynchronous unless return_route all ([#86](https://github.com/input-output-hk/atala-prism-mediator/issues/86)) ([6249f37](https://github.com/input-output-hk/atala-prism-mediator/commit/6249f3701e2247614a5b42042cdbd8e0ab4541bb))
+
 # [0.7.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.6.0...prism-mediator-v0.7.0) (2023-08-18)
 
 
