@@ -1,3 +1,10 @@
+## [0.8.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.8.0...prism-mediator-v0.8.1) (2023-08-18)
+
+
+### Bug Fixes
+
+* reply condition check ReturnRoute ([#88](https://github.com/input-output-hk/atala-prism-mediator/issues/88)) ([68c86c8](https://github.com/input-output-hk/atala-prism-mediator/commit/68c86c871b8300e08cadbaf64284dc4d0e4abb3f))
+
 # [0.8.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.7.0...prism-mediator-v0.8.0) (2023-08-18)
 
 
