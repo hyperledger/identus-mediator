@@ -18,7 +18,7 @@ import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
 object ActionUtils {
 
   def packResponse(
-      plaintextMessage: Option[PlaintextMessage],
+      originalMessage: Option[PlaintextMessage],
       action: Action
   ): ZIO[Operations & Agent & Resolver & MessageDispatcher, MediatorError, Option[EncryptedMessage]] =
     action match {
@@ -79,15 +79,12 @@ object ActionUtils {
                 ) *> ZIO
                 .succeed(msg)
                 .when(
-                  {
-                    plaintextMessage.map(_.return_route).contains(ReturnRoute.all)
-                    && {
-                      plaintextMessage.flatMap(_.from.map(_.asTO)) match {
-                        case None          => false
-                        case Some(replyTo) => send2DIDs.contains(replyTo)
-                      }
+                  originalMessage
+                    .map { oMsg =>
+                      oMsg.return_route.contains(ReturnRoute.all) && // Should replies use the same transport channel?
+                      oMsg.from.map(_.asTO).exists(send2DIDs.contains) // Is the reply back to the original sender?
                     }
-                  } // || action.isInstanceOf[SyncReplyOnly]
+                    .getOrElse(false) // If originalMessage is None
                 )
         } yield maybeSyncReplyMsg
     }
