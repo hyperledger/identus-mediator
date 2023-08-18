@@ -87,7 +87,7 @@ object ActionUtils {
                         case Some(replyTo) => send2DIDs.contains(replyTo)
                       }
                     }
-                  } || action.isInstanceOf[SyncReplyOnly]
+                  } // || action.isInstanceOf[SyncReplyOnly]
                 )
         } yield maybeSyncReplyMsg
     }
