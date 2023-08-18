@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M6"
+  val scalaDID = "0.1.0-M8"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
@@ -26,7 +26,7 @@ lazy val V = new {
   val zioHttp = "0.0.5"
   val zioConfig = "4.0.0-RC16"
   val zioLogging = "2.1.14"
-  val zioSl4j = "2.1.13"
+  val zioSl4j = "2.1.14"
   val logback = "1.3.11"
   val logstash = "7.4"
   val jansi = "2.4.0"
