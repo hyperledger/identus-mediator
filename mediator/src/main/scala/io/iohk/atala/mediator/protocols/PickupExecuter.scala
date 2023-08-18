@@ -135,7 +135,7 @@ object PickupExecuter
           ZIO.succeed(
             Reply(
               MessagesReceived(
-                thid = m.id,
+                thid = Some(m.id),
                 from = m.to.asFROM,
                 to = m.from.asTO,
                 message_id_list = m.attachments.keys.toSeq,
