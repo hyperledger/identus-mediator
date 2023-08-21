@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.8.2...prism-mediator-v0.9.0) (2023-08-21)
+
+
+### Features
+
+* Store outbound messages ([#84](https://github.com/input-output-hk/atala-prism-mediator/issues/84)) ([3576656](https://github.com/input-output-hk/atala-prism-mediator/commit/3576656844834d0ecc6365b912dda6f383936d5f))
+
 ## [0.8.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.8.1...prism-mediator-v0.8.2) (2023-08-18)
 
 
