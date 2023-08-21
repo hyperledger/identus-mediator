@@ -36,9 +36,12 @@ case class MediatorAgent(
   // val resolverLayer: ULayer[DynamicResolver] =
   //   DynamicResolver.resolverLayer(didSocketManager)
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo
-  val protocolHandlerLayer
-      : URLayer[UserAccountRepo & MessageItemRepo, ProtocolExecuter[Services, MediatorError | StorageError]] =
+  type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo &
+    OutboxMessageRepo
+  val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo & OutboxMessageRepo, ProtocolExecuter[
+    Services,
+    MediatorError | StorageError
+  ]] =
     ZLayer.succeed(
       ProtocolExecuterCollection[Services, MediatorError | StorageError](
         BasicMessageExecuter,
@@ -88,7 +91,7 @@ case class MediatorAgent(
       data: String,
       mSocketID: Option[SocketID],
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
     Option[EncryptedMessage]
   ] =
@@ -109,7 +112,7 @@ case class MediatorAgent(
       msg: EncryptedMessage,
       mSocketID: Option[SocketID]
   ): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
+    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
     Option[EncryptedMessage]
   ] =
@@ -203,7 +206,7 @@ case class MediatorAgent(
   def createSocketApp(
       annotationMap: Seq[LogAnnotation]
   ): ZIO[
-    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & UserAccountRepo,
+    MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     Nothing,
     zio.http.Response
   ] = {
@@ -373,7 +376,7 @@ object MediatorAgent {
         } yield ret
       }
     }: Http[
-      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo,
+      Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
       Throwable,
       Request,
       Response

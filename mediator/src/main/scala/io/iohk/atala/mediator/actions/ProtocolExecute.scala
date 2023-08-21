@@ -30,7 +30,7 @@ trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
 }
 
 object ProtocolExecuter {
-  type Services = Resolver & Agent & Operations & MessageDispatcher
+  type Services = Resolver & Agent & Operations & MessageDispatcher & OutboxMessageRepo
   type Erros = MediatorError | StorageError
 }
 case class ProtocolExecuterCollection[-R <: Agent, +E](
