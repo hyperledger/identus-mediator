@@ -8,8 +8,8 @@ db.createUser({
 
 const database = 'mediator';
 const collectionDidAccount = 'user.account';
-const collectionMessages = 'messages'; // TODO rename to messages.inbox
-const collectionMessagesSend = 'outbox'; // TODO rename to messages.outbox
+const collectionMessages = 'messages';
+const collectionMessagesSend = 'messages.outbound';
 
 // The current database to use.
 use(database);
