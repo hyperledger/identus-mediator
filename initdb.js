@@ -13,9 +13,12 @@ const collectionMessagesSend = 'outbox'; // TODO rename to messages.outbox
 
 // The current database to use.
 use(database);
+
 // Create  collections.
 db.createCollection(collectionDidAccount);
 db.createCollection(collectionMessages);
+db.createCollection(collectionMessagesSend);
+
 //create index
 db.getCollection(collectionDidAccount).createIndex({ 'did': 1 }, { unique: true });
 // Only enforce uniqueness on non-empty arrays

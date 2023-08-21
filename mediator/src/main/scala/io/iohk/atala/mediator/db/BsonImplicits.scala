@@ -232,7 +232,7 @@ given BSONDocumentReader[AuthProtectedHeader] =
   Macros.reader[AuthProtectedHeader]
 
 given BSONDocumentWriter[ProtectedHeader] =
-  Macros.writer[ProtectedHeader]
+  Macros.writer[ProtectedHeader] // TODO FIX The encoder for ProtectedHeader MUST not have the field "className"
 given BSONDocumentReader[ProtectedHeader] =
   Macros.reader[ProtectedHeader]
 

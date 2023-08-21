@@ -4,6 +4,7 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import reactivemongo.api.bson.*
 import java.time.Instant
+import scala.util.Try
 
 type HASH = String
 // messages
@@ -54,16 +55,19 @@ object SentMessageItem {
   def apply(
       msg: EncryptedMessage,
       plaintext: PlaintextMessage,
-      recipient: TO,
-      distination: String,
-      result: String
+      recipient: Set[TO],
+      distination: Option[String],
+      sendMethod: MessageSendMethod,
+      result: Option[String]
   ): SentMessageItem = {
     new SentMessageItem(
       encrypt = msg,
       hash = msg.sha1,
       headers = msg.`protected`.obj,
       plaintext = plaintext,
-      transport = Seq(TransportInfo(recipient = recipient, distination = distination, result = Some(result)))
+      transport = Seq(
+        TransportInfo(recipient = recipient, distination = distination, sendMethod = sendMethod, result = result)
+      )
     )
   }
 
@@ -77,14 +81,29 @@ object SentMessageItem {
   }
 
   case class TransportInfo(
-      recipient: TO,
-      distination: String,
-      protocol: String = "HTTPS/POST",
+      recipient: Set[TO],
+      distination: Option[String],
+      sendMethod: MessageSendMethod,
       timestamp: BSONDateTime = BSONDateTime(Instant.now().toEpochMilli()), // Long,
       result: Option[String],
   )
   object SentMessageItem {
     given BSONDocumentWriter[TransportInfo] = Macros.writer[TransportInfo]
     given BSONDocumentReader[TransportInfo] = Macros.reader[TransportInfo]
+  }
+}
+
+enum MessageSendMethod {
+  case HTTPS_POST extends MessageSendMethod
+  case INLINE_REPLY extends MessageSendMethod
+}
+object MessageSendMethod {
+  given BSONWriter[MessageSendMethod] with {
+    def writeTry(obj: MessageSendMethod): Try[BSONValue] =
+      Try(BSONString(obj.toString))
+  }
+  given BSONReader[MessageSendMethod] with {
+    def readTry(bson: BSONValue): Try[MessageSendMethod] =
+      bson.asTry[String].flatMap(v => Try(MessageSendMethod.valueOf(v)))
   }
 }
