@@ -20,7 +20,11 @@ object ActionUtils {
   def packResponse(
       originalMessage: Option[PlaintextMessage],
       action: Action
-  ): ZIO[Operations & Agent & Resolver & MessageDispatcher, MediatorError, Option[EncryptedMessage]] =
+  ): ZIO[
+    Operations & Agent & Resolver & MessageDispatcher & OutboxMessageRepo,
+    MediatorError,
+    Option[EncryptedMessage]
+  ] =
     action match {
       case _: NoReply.type => ZIO.succeed(None)
       case action: AnyReply =>
@@ -31,6 +35,7 @@ object ActionUtils {
               case Some(value) => authEncrypt(reply)
               case None        => anonEncrypt(reply)
           }.mapError(fail => MediatorDidError(fail))
+          outboxRepo <- ZIO.service[OutboxMessageRepo]
           // TODO forward message
           maybeSyncReplyMsg <- reply.to.map(_.toSeq) match // TODO improve
             case None        => ZIO.logWarning("Have a reply but the field 'to' is missing") *> ZIO.none
@@ -41,6 +46,7 @@ object ActionUtils {
                   val job: ZIO[MessageDispatcher & (Resolver & Any), MediatorError, Matchable] = for {
                     messageDispatcher <- ZIO.service[MessageDispatcher]
                     resolver <- ZIO.service[Resolver]
+
                     doc <- resolver
                       .didDocument(to)
                       .mapError(fail => MediatorDidError(fail))
@@ -56,8 +62,9 @@ object ActionUtils {
                     jobToRun <- mURL match
                       case None => ZIO.logWarning(s"No url to send message")
                       case Some(url) => {
-                        ZIO.log(s"Send to url: $url") *>
-                          messageDispatcher
+                        for {
+                          _ <- ZIO.log(s"Send to url: $url")
+                          response <- messageDispatcher
                             .send(
                               msg,
                               url,
@@ -69,19 +76,58 @@ object ActionUtils {
                               //   case _ => None
                             )
                             .catchAll { case DispatcherError(error) => ZIO.logWarning(s"Dispatch Error: $error") }
+
+                          _ <- outboxRepo
+                            .insert(
+                              SentMessageItem(
+                                msg = msg,
+                                plaintext = reply,
+                                recipient = Set(to),
+                                distination = Some(url),
+                                sendMethod = MessageSendMethod.HTTPS_POST,
+                                result = response match
+                                  case str: String => Some(str)
+                                  case _: Unit     => None
+                                ,
+                              )
+                            ) // Maybe fork
+                            .catchAll { case error => ZIO.logError(s"Store Outbox Error: $error") }
+                        } yield ()
                       }
 
                   } yield (jobToRun)
                   action match
-                    case Reply(_)          => job
+                    case Reply(_) =>
+                      job
+                        .when( // this is +- the opposite condition as below
+                          originalMessage
+                            .map { oMsg => oMsg.return_route.isEmpty || oMsg.return_route.contains(ReturnRoute.none) }
+                            .getOrElse(true) // If originalMessage is None
+                        )
                     case SyncReplyOnly(_)  => ZIO.unit
                     case AsyncReplyOnly(_) => job
                 ) *> ZIO
                 .succeed(msg)
+                .tap(msg =>
+                  outboxRepo
+                    .insert(
+                      SentMessageItem(
+                        msg = msg,
+                        plaintext = reply,
+                        recipient = reply.to.getOrElse(Set.empty),
+                        distination = None,
+                        sendMethod = MessageSendMethod.INLINE_REPLY,
+                        result = None,
+                      )
+                    )
+                    .catchAll { case error => ZIO.logError(s"Store Outbox Error: $error") }
+                )
                 .when(
                   originalMessage
                     .map { oMsg =>
-                      oMsg.return_route.contains(ReturnRoute.all) && // Should replies use the same transport channel?
+                      { // Should replies use the same transport channel?
+                        oMsg.return_route.contains(ReturnRoute.all) || oMsg.return_route.contains(ReturnRoute.thread)
+                      } &&
                       oMsg.from.map(_.asTO).exists(send2DIDs.contains) // Is the reply back to the original sender?
                     }
                     .getOrElse(false) // If originalMessage is None

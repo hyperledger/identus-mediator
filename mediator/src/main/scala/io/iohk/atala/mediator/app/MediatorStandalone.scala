@@ -60,7 +60,8 @@ object MediatorStandalone extends ZIOAppDefault {
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
   val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo,
+    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo &
+      OutboxMessageRepo,
     Throwable
   ] = MediatorAgent.didCommApp
     ++ Http
@@ -117,7 +118,7 @@ object MediatorStandalone extends ZIOAppDefault {
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-          >>> MessageItemRepo.layer.and(UserAccountRepo.layer)
+          >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
