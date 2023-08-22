@@ -14,7 +14,6 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: "tests/mediator-integration-tests"
 
 jobs:
   run-integration-tests:
@@ -25,10 +24,16 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
       ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
       ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
-      REPORTS_DIR: "tests/mediator-integration-tests/target/site/serenity"
+      REPORTS_DIR: "didcomm-v2-mediator-test-suite/target/site/serenity"
     steps:
-      - name: Checkout
+      - name: Checkout mediator
         uses: actions/checkout@v3
+
+      - name: Checkout tests
+        uses: actions/checkout@v3
+        with:
+          repository: input-output-hk/didcomm-v2-mediator-test-suite
+          path: './didcomm-v2-mediator-test-suite'
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v13
@@ -58,10 +63,8 @@ jobs:
 
       - name: Build local version of Mediator Agent
         env:
-          MEDIATOR_PATH: "../.."
           NODE_OPTIONS: "--openssl-legacy-provider"
         run: |
-          cd "${MEDIATOR_PATH}" || exit 129
           sbt -mem 2048 -J-Xmx5120m docker:publishLocal
           MEDIATOR_VERSION=$(cut version.sbt -d '=' -f2 | tr -d '" ')
           echo "MEDIATOR_VERSION=${MEDIATOR_VERSION}"  >> $GITHUB_ENV
@@ -73,9 +76,10 @@ jobs:
           compose-flags: ""
           up-flags: "--wait"
           down-flags: "--volumes"
-      - name: Run e2e tests
-        continue-on-error: true
+
+      - name: Run tests
         run: |
+          cd ./didcomm-v2-mediator-test-suite
           ./gradlew test || true
           ./gradlew reports
 
