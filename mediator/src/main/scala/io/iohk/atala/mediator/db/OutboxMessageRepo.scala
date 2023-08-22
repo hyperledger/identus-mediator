@@ -19,7 +19,7 @@ object OutboxMessageRepo {
 }
 
 class OutboxMessageRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionContext) {
-  def collectionName: String = "outbox"
+  def collectionName: String = "messages.outbound"
 
   def collection: IO[StorageCollection, BSONCollection] = reactiveMongoApi.database
     .map(_.collection(collectionName))
