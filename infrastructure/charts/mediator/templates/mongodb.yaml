@@ -52,9 +52,11 @@ data:
     const database = 'mediator';
     const collectionDidAccount = 'user.account';
     const collectionMessages = 'messages';
+    const collectionMessagesSend = 'messages.outbound';
     use(database);
     db.createCollection(collectionDidAccount);
     db.createCollection(collectionMessages);
+    db.createCollection(collectionMessagesSend);
     //create index
     db.getCollection(collectionDidAccount).createIndex({ 'did': 1 }, { unique: true });
     // Only enforce uniqueness on non-empty arrays
