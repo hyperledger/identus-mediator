@@ -1,3 +1,10 @@
+## [0.9.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.0...prism-mediator-v0.9.1) (2023-08-22)
+
+
+### Bug Fixes
+
+* collectionName messages.outbound ([#92](https://github.com/input-output-hk/atala-prism-mediator/issues/92)) ([a1bd657](https://github.com/input-output-hk/atala-prism-mediator/commit/a1bd657df0cc12a30bcc910028a84104efb9f65a))
+
 # [0.9.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.8.2...prism-mediator-v0.9.0) (2023-08-21)
 
 
