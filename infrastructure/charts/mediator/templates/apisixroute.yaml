@@ -27,7 +27,7 @@ spec:
     - name: request-id
       enable: true
       config:
-        header_name: "X-Request-Id"
+        header_name: "X-Request-ID"
         include_in_response: true
     {{ template "cors" . }}
 
