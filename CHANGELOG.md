@@ -1,3 +1,12 @@
+## [0.9.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.1...prism-mediator-v0.9.2) (2023-08-30)
+
+
+### Bug Fixes
+
+* **mediator:** Enabled X-Request-Id ATL-5568 ([#104](https://github.com/input-output-hk/atala-prism-mediator/issues/104)) ([b0d4fee](https://github.com/input-output-hk/atala-prism-mediator/commit/b0d4feec19b3d4dc796e580789b163d2c3855d55))
+* mongodb init script updated infrastructure mongodb yaml ([#94](https://github.com/input-output-hk/atala-prism-mediator/issues/94)) ([d9cc42a](https://github.com/input-output-hk/atala-prism-mediator/commit/d9cc42a319d505e37b5a9cdbe47802283537adaf))
+* set default endpoint to localhost ([#102](https://github.com/input-output-hk/atala-prism-mediator/issues/102)) ([de8b702](https://github.com/input-output-hk/atala-prism-mediator/commit/de8b702e6fa70a6a8f5ee311c7a236f45d328c04))
+
 ## [0.9.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.0...prism-mediator-v0.9.1) (2023-08-22)
 
 
