@@ -25,6 +25,8 @@ jobs:
       ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
       ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
       REPORTS_DIR: "didcomm-v2-mediator-test-suite/target/site/serenity"
+      DIDCOMM_V2_TESTSUITE_VERSION: "v0.1.0"
+      MEDIATOR_DID: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdCIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
     steps:
       - name: Checkout mediator
         uses: actions/checkout@v3
@@ -34,6 +36,7 @@ jobs:
         with:
           repository: input-output-hk/didcomm-v2-mediator-test-suite
           path: './didcomm-v2-mediator-test-suite'
+          ref: ${{ env.DIDCOMM_V2_TESTSUITE_VERSION }}
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v13
@@ -102,7 +105,7 @@ jobs:
         id: analyze_test_results
         if: github.ref_name == 'main'
         run: |
-          JSON_RESULTS="target/site/serenity/serenity-summary.json"
+          JSON_RESULTS="didcomm-v2-mediator-test-suite/target/site/serenity/serenity-summary.json"
           CONCLUSION=failure
           TOTAL_TESTS=0
           FAILED_TESTS=0
@@ -142,4 +145,4 @@ jobs:
             Skipped (known bugs): ${{ steps.analyze_test_results.outputs.skipped }}
           SLACK_TITLE: "Mediator Integration tests: ${{ steps.analyze_test_results.outputs.conclusion }}"
           SLACK_USERNAME: circleci
-          SLACK_WEBHOOK: ${{ secrets.E2E_TESTS_SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

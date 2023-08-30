@@ -16,14 +16,14 @@ services:
   atalaprism-mediator:
     image: ghcr.io/input-output-hk/atala-prism-mediator:${MEDIATOR_VERSION:-0.2.0-SNAPSHOT}
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       # Creates the identity:
       - KEY_AGREEMENT_D=Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c
       - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
       - KEY_AUTHENTICATION_D=INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug
       - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
-#      - SERVICE_ENDPOINT=https://k8s-int.atalaprism.io/mediator
+      - SERVICE_ENDPOINT=http://localhost
       - MONGODB_USER=admin
       - MONGODB_PASSWORD=admin
       - MONGODB_PROTOCOL=mongodb
@@ -34,11 +34,3 @@ services:
       - "mongo"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-
-# RUN
-# docker-compose up -d
-# docker-compose ps
-# docker-compose up mongo
-# docker-compose exec mongo /bin/sh
-# docker exec -it mongo-1 bash
