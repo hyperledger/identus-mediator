@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M9"
+  val scalaDID = "0.1.0-M10"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
