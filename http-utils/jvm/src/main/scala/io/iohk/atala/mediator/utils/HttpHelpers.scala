@@ -23,7 +23,7 @@ extension [R, Err](app: HttpApp[R, Err])
             "fly-client-ip",
             "client-ip",
             composeAnnotate(
-              "request-id",
+              "X-Request-ID",
               "fly-request-id",
               composeAnnotate(
                 "user-agent",
