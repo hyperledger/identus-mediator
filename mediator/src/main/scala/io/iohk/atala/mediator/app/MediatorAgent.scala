@@ -30,12 +30,8 @@ import zio.http.Header.AccessControlAllowMethods
 case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO
-    // didSocketManager: Ref[DIDSocketManager], // FIXME SOCKET
 ) extends Agent {
   override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
-
-  // val resolverLayer: ULayer[DynamicResolver] =
-  //   DynamicResolver.resolverLayer(didSocketManager)
 
   type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo &
     OutboxMessageRepo
@@ -88,10 +84,7 @@ case class MediatorAgent(
     } yield (plaintextMessage)
   }
 
-  def receiveMessage(
-      data: String,
-      mSocketID: Option[SocketID],
-  ): ZIO[
+  def receiveMessage(data: String): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
     Option[EncryptedMessage]
@@ -106,13 +99,10 @@ case class MediatorAgent(
             "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
               "; DID: " + "Message's recipients DIDs: " + message.recipientsSubject.mkString(",")
           ) *> ZIO.succeed(message)
-      maybeSyncReplyMsg <- receiveMessage(msg, mSocketID)
+      maybeSyncReplyMsg <- receiveMessage(msg)
     } yield (maybeSyncReplyMsg)
 
-  def receiveMessage(
-      msg: EncryptedMessage,
-      mSocketID: Option[SocketID]
-  ): ZIO[
+  def receiveMessage(msg: EncryptedMessage): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
     Option[EncryptedMessage]
@@ -174,19 +164,6 @@ case class MediatorAgent(
                               )
                             )
                     }
-                  // FIXME SOCKET
-                  // _ <- didSocketManager.get.flatMap { m => // TODO HACK REMOVE !!!!!!!!!!!!!!!!!!!!!!!!
-                  //   ZIO.foreach(m.tapSockets)(_.socketOutHub.publish(TapMessage(msg, plaintextMessage).toJson))
-                  // }
-                  // _ <- mSocketID match
-                  //   case None => ZIO.unit
-                  //   case Some(socketID) =>
-                  //     plaintextMessage.from match
-                  //       case None => ZIO.unit
-                  //       case Some(from) =>
-                  //         didSocketManager.update {
-                  //           _.link(from.asFROMTO, socketID)
-                  //         }
                   // TODO Store context of the decrypt unwarping
                   // TODO SreceiveMessagetore context with MsgID and PIURI
                   ret <- {
@@ -205,77 +182,10 @@ case class MediatorAgent(
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
 
-  // FIXME SOCKET
-  // def createSocketApp(
-  //     annotationMap: Seq[LogAnnotation]
-  // ): ZIO[
-  //   MediatorAgent & Resolver & Operations & MessageDispatcher & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
-  //   Nothing,
-  //   zio.http.Response
-  // ] = {
-  //   val SOCKET_ID = "SocketID"
-  //   val appAux = SocketApp {
-  //     case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         DIDSocketManager.registerSocket(ch)
-  //       }
-  //     case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         DIDSocketManager
-  //           .newMessage(ch, text)
-  //           .flatMap { case (socketID, encryptedMessage) => receiveMessage(encryptedMessage, Some(socketID)) }
-  //           .mapError {
-  //             case ex: MediatorError => MediatorException(ex)
-  //             case ex: StorageError  => StorageException(ex)
-  //           }
-  //       }
-  //     case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         DIDSocketManager.unregisterSocket(ch)
-  //       }
-  //     case channelEvent =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, channelEvent.channel.id), annotationMap: _*) {
-  //         ZIO.logError(s"Unknown event type: ${channelEvent.event}")
-  //       }
-  //   }
-  //   appAux.toResponse.provideSomeEnvironment { (env) => env.add(env.get[MediatorAgent].didSocketManager) }
-  // }
-
-  // FIXME SOCKET
-  // def websocketListenerApp(
-  //     annotationMap: Seq[LogAnnotation]
-  // ): ZIO[MediatorAgent & Operations & MessageDispatcher, Nothing, zio.http.Response] = {
-  //   val SOCKET_ID = "SocketID"
-  //   SocketApp {
-  //     case ChannelEvent(ch, ChannelEvent.UserEventTriggered(ChannelEvent.UserEvent.HandshakeComplete)) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         // ch.writeAndFlush(WebSocketFrame.text("Greetings!")) *>
-  //         //   ch.writeAndFlush(WebSocketFrame.text(s"Tap into ${id.did}")) *>
-  //         DIDSocketManager.tapSocket(id, ch)
-  //       }
-  //     case ChannelEvent(ch, ChannelEvent.ChannelRead(WebSocketFrame.Text(text))) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         ZIO.logWarning(s"Ignored Message from '${ch.id}'")
-  //       }
-  //     case ChannelEvent(ch, ChannelEvent.ChannelUnregistered) =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, ch.id), annotationMap: _*) {
-  //         DIDSocketManager.unregisterSocket(ch)
-  //       }
-  //     case channelEvent =>
-  //       ZIO.logAnnotate(LogAnnotation(SOCKET_ID, channelEvent.channel.id), annotationMap: _*) {
-  //         ZIO.logError(s"Unknown event type: ${channelEvent.event}")
-  //       }
-  //   }.toResponse
-  //     .provideSomeEnvironment { (env) => env.add(env.get[MediatorAgent].didSocketManager) }
-  // }
 }
 
 object MediatorAgent {
 
-  // FIXME SOCKET
-  // def make(id: DID, keyStore: KeyStore): ZIO[Any, Nothing, MediatorAgent] = for {
-  //   sm <- DIDSocketManager.make
-  // } yield MediatorAgent(id, keyStore, sm)
   def make(id: DID, keyStore: KeyStore): ZIO[Any, Nothing, MediatorAgent] = ZIO.succeed(MediatorAgent(id, keyStore))
 
   def didCommApp = {
@@ -285,18 +195,6 @@ object MediatorAgent {
         val data = req.headers.toSeq.map(e => (e.headerName, e.renderedValue))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
       case req @ Method.GET -> Root / "health" => ZIO.succeed(Response.ok)
-
-      // FIXME SOCKET
-      // case req @ Method.GET -> Root if req.headersAsList.exists { h =>
-      //       h.key.toString.toLowerCase == "content-type" &&
-      //       (h.value.toString.startsWith(MediaTypes.SIGNED.typ) ||
-      //         h.value.toString.startsWith(MediaTypes.ENCRYPTED.typ))
-      //     } =>
-      //   for {
-      //     agent <- ZIO.service[MediatorAgent]
-      //     annotationMap <- ZIO.logAnnotations.map(_.map(e => LogAnnotation(e._1, e._2)).toSeq)
-      //     ret <- agent.createSocketApp(annotationMap)
-      //   } yield (ret)
 
       case Method.GET -> Root / "invitation" =>
         for {
@@ -344,7 +242,7 @@ object MediatorAgent {
           agent <- ZIO.service[MediatorAgent]
           data <- req.body.asString
           ret <- agent
-            .receiveMessage(data, None)
+            .receiveMessage(data)
             .map {
               case None        => Response.ok
               case Some(value) => Response.json(value.toJson)
