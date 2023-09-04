@@ -251,7 +251,82 @@ given BSONDocumentReader[EncryptedMessage] with {
     aux.readDocument(doc)
 }
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+given BSONWriter[Payload] with {
+  import Payload.*
+  def writeTry(obj: Payload): Try[BSONValue] = Try(BSONString(obj.base64url))
+}
+given BSONReader[Payload] with {
+  def readTry(bson: BSONValue): Try[Payload] = bson.asTry[String].map(v => Payload.fromBase64url(v))
+}
+
+given BSONWriter[SigningAlgorithm] with {
+  def writeTry(obj: SigningAlgorithm): Try[BSONValue] = Try(BSONString(obj.toString()))
+}
+given BSONReader[SigningAlgorithm] with {
+  def readTry(bson: BSONValue): Try[SigningAlgorithm] = bson.asTry[String].map(v => SigningAlgorithm.valueOf(v))
+}
+
+given BSONDocumentWriter[SignProtectedHeader] = Macros.writer[SignProtectedHeader]
+given BSONDocumentReader[SignProtectedHeader] = Macros.reader[SignProtectedHeader]
+
+given given_BSONWriter_Base64Obj_SignProtectedHeader: BSONWriter[Base64Obj[SignProtectedHeader]] with {
+  import Base64Obj.*
+  def writeTry(obj: Base64Obj[SignProtectedHeader]): Try[BSONValue] = {
+    val protectedHeader: String = (obj.obj, obj.original) match {
+      case (_, Some(op)) => op.urlBase64
+      case (p, None)     => obj.base64url
+    }
+    Try(BSONString(protectedHeader))
+  }
+}
+given given_BSONReader_Base64Obj_SignProtectedHeader: BSONReader[Base64Obj[SignProtectedHeader]] with {
+  def readTry(bson: BSONValue): Try[Base64Obj[SignProtectedHeader]] =
+    bson
+      .asTry[String]
+      .flatMap { v =>
+        s""""$v"""".fromJson[Base64Obj[SignProtectedHeader]] match // TODO with a new methods from ScalaDid
+          case Left(value)  => Failure(RuntimeException(value))
+          case Right(value) => Try(value)
+      }
+}
+
+given BSONWriter[SignatureJWM] with {
+  import SignatureJWM.*
+  def writeTry(obj: SignatureJWM): Try[BSONValue] = Try(BSONString(obj.value))
+}
+given BSONReader[SignatureJWM] with {
+  def readTry(bson: BSONValue): Try[SignatureJWM] = bson.asTry[String].map(v => SignatureJWM(v))
+}
+
+given BSONDocumentWriter[JWMHeader] = Macros.writer[JWMHeader]
+given BSONDocumentReader[JWMHeader] = Macros.reader[JWMHeader]
+
+given BSONDocumentWriter[JWMSignatureObj] = Macros.writer[JWMSignatureObj]
+given BSONDocumentReader[JWMSignatureObj] = Macros.reader[JWMSignatureObj]
+
+given BSONDocumentWriter[SignedMessage] = Macros.writer[SignedMessage]
+given BSONDocumentReader[SignedMessage] = Macros.reader[SignedMessage]
+
+given BSONDocumentWriter[SignedMessage | EncryptedMessage] with {
+  override def writeTry(obj: SignedMessage | EncryptedMessage): Try[BSONDocument] =
+    obj match {
+      case msg: EncryptedMessage => given_BSONDocumentWriter_EncryptedMessage.writeTry(msg)
+      case msg: SignedMessage    => given_BSONDocumentWriter_SignedMessage.writeTry(msg)
+    }
+}
+given BSONDocumentReader[SignedMessage | EncryptedMessage] with {
+  override def readDocument(doc: BSONDocument): Try[SignedMessage | EncryptedMessage] =
+    given_BSONDocumentReader_EncryptedMessage
+      .readDocument(doc)
+      .orElse(
+        given_BSONDocumentReader_SignedMessage
+          .readDocument(doc)
+      )
+}
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 given BSONWriter[MsgID] with {
   import MsgID.*
