@@ -229,14 +229,17 @@ object MediatorAgent {
 
         } yield (ret)
       case req @ Method.POST -> Root
-          if req
-            .header(Header.ContentType)
+          if req.headers
+            // .header(Header.ContentType) // TODO BUG? this does not work
+            .get("content-type")
             .exists { h =>
-              h.mediaType.mainType == "application" &&
-              (h.mediaType.subType == "didcomm-signed+json" || h.mediaType.subType == "didcomm-encrypted+json")
-              // FIXME
+              // TODO after fix BUG
+              // h.mediaType.mainType == "application" &&
+              // (h.mediaType.subType == "didcomm-signed+json" || h.mediaType.subType == "didcomm-encrypted+json")
+              // TODO after update lib
               // h.mediaType.mainType == ZMediaTypes.mainType &&
               // (h.mediaType.subType == MediaTypes.SIGNED.subType || h.mediaType.subType == MediaTypes.ENCRYPTED.subType)
+              h == MediaTypes.SIGNED.typ || h == MediaTypes.ENCRYPTED.typ
             } =>
         for {
           agent <- ZIO.service[MediatorAgent]
