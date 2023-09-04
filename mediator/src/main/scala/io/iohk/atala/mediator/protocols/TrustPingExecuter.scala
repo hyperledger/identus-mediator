@@ -15,7 +15,7 @@ import zio.ZIO
 
 class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
 
-  override def suportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
+  override def supportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
 
   override def program[R1 <: Agent](
       plaintextMessage: PlaintextMessage
