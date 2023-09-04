@@ -7,7 +7,7 @@ import fmgp.did.comm.protocol.reportproblem2.*
 
 object Problems {
   val config: Config = ConfigFactory.load()
-  lazy val email: Option[String] = Option(config.getString("mediator.problem.report.escalateTo"))
+  val email: Option[String] = Option(config.getString("mediator.problem.report.escalateTo"))
 
   def unsupportedProtocolType(
       to: Set[TO],
