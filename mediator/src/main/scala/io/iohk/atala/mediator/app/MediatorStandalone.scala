@@ -68,10 +68,6 @@ object MediatorStandalone extends ZIOAppDefault {
     Request,
     Response
   ] = MediatorAgent.didCommApp
-    ++ Http
-      .collectZIO[Request] { case Method.GET -> Root / "hello" =>
-        ZIO.succeed(Response.text("Hello World! DID Comm Mediator APP")).debug
-      }
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
@@ -98,6 +94,12 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("mediator")
       .load(Config.int("port"))
     _ <- ZIO.log(s"Starting server on port: $port")
+    escalateTo <- configs
+      .nested("report")
+      .nested("problem")
+      .nested("mediator")
+      .load(Config.string("escalateTo"))
+    _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
     client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server

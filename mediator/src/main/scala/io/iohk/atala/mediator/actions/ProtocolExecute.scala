@@ -18,7 +18,7 @@ import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
 
 trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
 
-  def suportedPIURI: Seq[PIURI]
+  def supportedPIURI: Seq[PIURI]
 
   /** @return can return a Sync Reply Msg */
   def execute[R1 <: R](
@@ -37,9 +37,9 @@ case class ProtocolExecuterCollection[-R <: Agent, +E](
     executers: ProtocolExecuter[R, E]*
 ) extends ProtocolExecuter[R, E] {
 
-  override def suportedPIURI: Seq[PIURI] = executers.flatMap(_.suportedPIURI)
+  override def supportedPIURI: Seq[PIURI] = executers.flatMap(_.supportedPIURI)
 
-  def selectExecutersFor(piuri: PIURI) = executers.find(_.suportedPIURI.contains(piuri))
+  def selectExecutersFor(piuri: PIURI) = executers.find(_.supportedPIURI.contains(piuri))
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
