@@ -68,10 +68,6 @@ object MediatorStandalone extends ZIOAppDefault {
     Request,
     Response
   ] = MediatorAgent.didCommApp
-    ++ Http
-      .collectZIO[Request] { case Method.GET -> Root / "hello" =>
-        ZIO.succeed(Response.text("Hello World! DID Comm Mediator APP")).debug
-      }
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
