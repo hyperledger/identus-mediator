@@ -98,6 +98,12 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("mediator")
       .load(Config.int("port"))
     _ <- ZIO.log(s"Starting server on port: $port")
+    escalateTo <- configs
+      .nested("report")
+      .nested("problem")
+      .nested("mediator")
+      .load(Config.string("escalateTo"))
+    _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
     client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
