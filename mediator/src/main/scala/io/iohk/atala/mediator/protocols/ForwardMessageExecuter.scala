@@ -18,7 +18,7 @@ object ForwardMessageExecuter
       ProtocolExecuter.Erros
     ] {
 
-  override def suportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
+  override def supportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
   override def program[R1 <: UserAccountRepo & MessageItemRepo & Agent](
       plaintextMessage: PlaintextMessage

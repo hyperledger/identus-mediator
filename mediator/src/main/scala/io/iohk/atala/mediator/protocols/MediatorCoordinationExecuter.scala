@@ -20,7 +20,7 @@ object MediatorCoordinationExecuter
       ProtocolExecuter.Erros
     ] {
 
-  override def suportedPIURI: Seq[PIURI] = Seq(
+  override def supportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
     MediateGrant.piuri,
     MediateDeny.piuri,

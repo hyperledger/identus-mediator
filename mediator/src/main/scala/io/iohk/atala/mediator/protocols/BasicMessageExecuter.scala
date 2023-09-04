@@ -9,7 +9,7 @@ import zio.{Console, ZIO}
 
 object BasicMessageExecuter extends ProtocolExecuter[Any, MediatorError] {
 
-  override def suportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)
+  override def supportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) = for {
     job <- BasicMessage.fromPlaintextMessage(plaintextMessage) match
       case Left(error) => ZIO.fail(MediatorDidError(FailToParse(error)))

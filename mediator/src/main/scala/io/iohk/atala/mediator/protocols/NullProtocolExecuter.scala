@@ -7,7 +7,7 @@ import zio.ZIO
 
 object NullProtocolExecuter extends ProtocolExecuter[Any, MissingProtocolError] {
 
-  override def suportedPIURI = Seq()
+  override def supportedPIURI = Seq()
   override def program[R1 <: Any](plaintextMessage: PlaintextMessage) =
     ZIO.fail(MissingProtocolError(plaintextMessage.`type`))
 }
