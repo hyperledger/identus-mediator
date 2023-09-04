@@ -93,7 +93,7 @@ case class MediatorAgent(
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
-    Option[EncryptedMessage]
+    Option[SignedMessage | EncryptedMessage]
   ] =
     for {
       msg <- data.fromJson[EncryptedMessage] match
@@ -114,7 +114,7 @@ case class MediatorAgent(
   ): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
-    Option[EncryptedMessage]
+    Option[SignedMessage | EncryptedMessage]
   ] =
     ZIO
       .logAnnotate("msgHash", msg.sha1) {
@@ -338,8 +338,9 @@ object MediatorAgent {
           ret <- agent
             .receiveMessage(data, None)
             .map {
-              case None        => Response.ok
-              case Some(value) => Response.json(value.toJson)
+              case None                          => Response.ok
+              case Some(value: SignedMessage)    => Response.json(value.toJson)
+              case Some(value: EncryptedMessage) => Response.json(value.toJson)
             }
             .catchAll {
               case MediatorDidError(error) =>

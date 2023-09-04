@@ -23,27 +23,37 @@ object ActionUtils {
   ): ZIO[
     Operations & Agent & Resolver & MessageDispatcher & OutboxMessageRepo,
     MediatorError,
-    Option[EncryptedMessage]
+    Option[SignedMessage | EncryptedMessage]
   ] =
     action match {
       case _: NoReply.type => ZIO.succeed(None)
       case action: AnyReply =>
         val reply = action.msg
         for {
-          msg <- {
-            reply.from match
-              case Some(value) => authEncrypt(reply)
-              case None        => anonEncrypt(reply)
-          }.mapError(fail => MediatorDidError(fail))
+
           outboxRepo <- ZIO.service[OutboxMessageRepo]
           // TODO forward message
-          maybeSyncReplyMsg <- reply.to.map(_.toSeq) match // TODO improve
-            case None        => ZIO.logWarning("Have a reply but the field 'to' is missing") *> ZIO.none
-            case Some(Seq()) => ZIO.logWarning("Have a reply but the field 'to' is empty") *> ZIO.none
+          maybeSyncReplyMsg: Option[SignedMessage | EncryptedMessage] <- reply.to.map(_.toSeq) match // TODO improve
+            case None =>
+              ZIO.logWarning("Have a reply but the field 'to' is missing") *>
+                sign(reply)
+                  .mapError(fail => MediatorDidError(fail))
+                  .map(Some(_))
+            case Some(Seq()) =>
+              ZIO.logWarning("Have a reply but the field 'to' is empty") *>
+                sign(reply)
+                  .mapError(fail => MediatorDidError(fail))
+                  .map(Some(_))
             case Some(send2DIDs) =>
-              ZIO
-                .foreach(send2DIDs)(to =>
-                  val job: ZIO[MessageDispatcher & (Resolver & Any), MediatorError, Matchable] = for {
+              for {
+                msg <- {
+                  reply.from match
+                    case Some(value) => authEncrypt(reply)
+                    case None        => anonEncrypt(reply)
+                }.mapError(fail => MediatorDidError(fail))
+
+                replyViaDIDCommMessagingProgramme = ZIO.foreach(send2DIDs) { to =>
+                  for {
                     messageDispatcher <- ZIO.service[MessageDispatcher]
                     resolver <- ZIO.service[Resolver]
 
@@ -94,19 +104,23 @@ object ActionUtils {
                             .catchAll { case error => ZIO.logError(s"Store Outbox Error: $error") }
                         } yield ()
                       }
-
-                  } yield (jobToRun)
-                  action match
-                    case Reply(_) =>
-                      job
-                        .when( // this is +- the opposite condition as below
-                          originalMessage
-                            .map { oMsg => oMsg.return_route.isEmpty || oMsg.return_route.contains(ReturnRoute.none) }
-                            .getOrElse(true) // If originalMessage is None
-                        )
-                    case SyncReplyOnly(_)  => ZIO.unit
-                    case AsyncReplyOnly(_) => job
-                ) *> ZIO
+                  } yield ()
+                }
+                returnTmp <- action match
+                  case Reply(_) =>
+                    if (
+                      originalMessage // this condition is +- the opposite condition as below
+                        .map { oMsg => oMsg.return_route.isEmpty || oMsg.return_route.contains(ReturnRoute.none) }
+                        .getOrElse(true) // If originalMessage is None
+                    ) (replyViaDIDCommMessagingProgramme *> ZIO.none)
+                    else ZIO.some(msg)
+                  case SyncReplyOnly(_)  => ZIO.some(msg)
+                  case AsyncReplyOnly(_) => replyViaDIDCommMessagingProgramme *> ZIO.none
+              } yield (returnTmp)
+          _ <- maybeSyncReplyMsg match {
+            case None => ZIO.unit
+            case Some(msg) =>
+              ZIO // Store send message INLINE_REPLY
                 .succeed(msg)
                 .tap(msg =>
                   outboxRepo
@@ -127,11 +141,18 @@ object ActionUtils {
                     .map { oMsg =>
                       { // Should replies use the same transport channel?
                         oMsg.return_route.contains(ReturnRoute.all) || oMsg.return_route.contains(ReturnRoute.thread)
-                      } &&
-                      oMsg.from.map(_.asTO).exists(send2DIDs.contains) // Is the reply back to the original sender?
+                      } && {
+                        msg match
+                          case sMsg: SignedMessage => true // TODO If the Message is only sign shoud we reply back?
+                          case eMsg: EncryptedMessage => // Is the reply back to the original sender/caller?
+                            val recipients = eMsg.recipientsSubject.toSeq.map(subject => TO(subject.did))
+                            oMsg.from.map(_.asTO).exists(recipients.contains)
+                      }
                     }
                     .getOrElse(false) // If originalMessage is None
                 )
+          }
+
         } yield maybeSyncReplyMsg
     }
 }

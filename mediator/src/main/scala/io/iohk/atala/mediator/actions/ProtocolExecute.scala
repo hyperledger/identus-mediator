@@ -23,7 +23,7 @@ trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
   /** @return can return a Sync Reply Msg */
   def execute[R1 <: R](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, E, Option[EncryptedMessage]] =
+  ): ZIO[R1, E, Option[SignedMessage | EncryptedMessage]] =
     program(plaintextMessage) *> ZIO.none
 
   def program[R1 <: R](plaintextMessage: PlaintextMessage): ZIO[R1, E, Action]
@@ -43,7 +43,7 @@ case class ProtocolExecuterCollection[-R <: Agent, +E](
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
-  ): ZIO[R1, E, Option[EncryptedMessage]] =
+  ): ZIO[R1, E, Option[SignedMessage | EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
       // case None     => NullProtocolExecuter.execute(plaintextMessage)
       case None     => MissingProtocolExecuter.execute(plaintextMessage)
@@ -66,7 +66,7 @@ trait ProtocolExecuterWithServices[
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
       // context: Context
-  ): ZIO[R1, E, Option[EncryptedMessage]] =
+  ): ZIO[R1, E, Option[SignedMessage | EncryptedMessage]] =
     program(plaintextMessage)
       .tap(v => ZIO.logDebug(v.toString)) // DEBUG
       .flatMap(action => ActionUtils.packResponse(Some(plaintextMessage), action))

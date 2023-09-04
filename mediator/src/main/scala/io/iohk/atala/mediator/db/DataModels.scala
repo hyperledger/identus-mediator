@@ -5,6 +5,7 @@ import fmgp.did.comm.*
 import reactivemongo.api.bson.*
 import java.time.Instant
 import scala.util.Try
+import zio.json._
 
 type HASH = String
 // messages
@@ -43,9 +44,9 @@ object DidAccount {
 // messages outbox
 case class SentMessageItem(
     _id: BSONObjectID = BSONObjectID.generate(),
-    encrypt: EncryptedMessage,
+    encrypt: SignedMessage | EncryptedMessage,
     hash: HASH,
-    headers: ProtectedHeader,
+    headers: ast.Json, // ProtectedHeader | SignProtectedHeader,
     plaintext: PlaintextMessage,
     transport: Seq[SentMessageItem.TransportInfo],
 )
@@ -53,22 +54,35 @@ case class SentMessageItem(
 object SentMessageItem {
 
   def apply(
-      msg: EncryptedMessage,
+      msg: SignedMessage | EncryptedMessage,
       plaintext: PlaintextMessage,
       recipient: Set[TO],
       distination: Option[String],
       sendMethod: MessageSendMethod,
       result: Option[String]
   ): SentMessageItem = {
-    new SentMessageItem(
-      encrypt = msg,
-      hash = msg.sha1,
-      headers = msg.`protected`.obj,
-      plaintext = plaintext,
-      transport = Seq(
-        TransportInfo(recipient = recipient, distination = distination, sendMethod = sendMethod, result = result)
-      )
-    )
+    msg match
+      case sMsg: SignedMessage =>
+        new SentMessageItem(
+          encrypt = msg,
+          hash = sMsg.sha1, // FIXME
+          headers = sMsg.signatures.headOption.flatMap(_.`protected`.obj.toJsonAST.toOption).getOrElse(ast.Json.Null),
+          plaintext = plaintext,
+          transport = Seq(
+            TransportInfo(recipient = recipient, distination = distination, sendMethod = sendMethod, result = result)
+          )
+        )
+      case eMsg: EncryptedMessage =>
+        new SentMessageItem(
+          encrypt = msg,
+          hash = eMsg.sha1,
+          headers = eMsg.`protected`.obj.toJsonAST.getOrElse(ast.Json.Null),
+          plaintext = plaintext,
+          transport = Seq(
+            TransportInfo(recipient = recipient, distination = distination, sendMethod = sendMethod, result = result)
+          )
+        )
+
   }
 
   given BSONDocumentWriter[SentMessageItem] = {
