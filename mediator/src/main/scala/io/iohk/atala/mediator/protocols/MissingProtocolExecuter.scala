@@ -10,7 +10,7 @@ import io.iohk.atala.mediator.actions.Reply
 
 object MissingProtocolExecuter extends ProtocolExecuter[Agent, Nothing] {
 
-  override def suportedPIURI = Seq()
+  override def supportedPIURI = Seq()
   override def program[R1 <: Agent](plaintextMessage: PlaintextMessage) =
     ZIO
       .service[Agent]

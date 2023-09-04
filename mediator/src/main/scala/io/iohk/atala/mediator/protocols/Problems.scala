@@ -1,11 +1,13 @@
 package io.iohk.atala.mediator.protocols
 
+import com.typesafe.config.{Config, ConfigFactory}
 import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.reportproblem2.*
 
 object Problems {
-  val email = Some("atala@iohk.io")
+  val config: Config = ConfigFactory.load()
+  lazy val email: Option[String] = Option(config.getString("mediator.problem.report.escalateTo"))
 
   def unsupportedProtocolType(
       to: Set[TO],
