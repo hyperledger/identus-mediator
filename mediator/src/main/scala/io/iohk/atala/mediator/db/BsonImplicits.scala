@@ -110,10 +110,13 @@ given BSONDocumentWriter[Recipient] =
 given BSONDocumentReader[Recipient] =
   Macros.reader[Recipient]
 
-given BSONDocumentWriter[VerificationMethodReferenced] =
-  Macros.writer[VerificationMethodReferenced]
-given BSONDocumentReader[VerificationMethodReferenced] =
-  Macros.reader[VerificationMethodReferenced]
+given BSONWriter[VerificationMethodReferenced] with {
+  def writeTry(obj: VerificationMethodReferenced): Try[BSONValue] = Try(BSONString(obj.value))
+}
+given BSONReader[VerificationMethodReferenced] with {
+  def readTry(bson: BSONValue): Try[VerificationMethodReferenced] =
+    bson.asTry[String].map(v => VerificationMethodReferenced(v))
+}
 
 given BSONDocumentWriter[RecipientHeader] =
   Macros.writer[RecipientHeader]
