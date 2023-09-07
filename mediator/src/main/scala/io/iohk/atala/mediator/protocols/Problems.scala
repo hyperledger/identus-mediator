@@ -99,6 +99,7 @@ object Problems {
       from: FROM,
       pthid: MsgID,
       piuri: PIURI,
+      didNotEnrolled: DIDSubject
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = to.toSet,
@@ -107,7 +108,7 @@ object Problems {
     ack = None,
     code = ProblemCode.ErroFail("req", "not_enroll"),
     comment = Some("The DID '{1}' is not enroled."),
-    args = Some(to.map(_.value).toSeq),
+    args = Some(Seq(didNotEnrolled.did)),
     escalate_to = email,
   )
 
