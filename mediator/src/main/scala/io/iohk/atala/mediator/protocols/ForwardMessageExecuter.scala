@@ -52,6 +52,7 @@ object ForwardMessageExecuter
                       from = agent.id,
                       pthid = plaintextMessage.id,
                       piuri = plaintextMessage.`type`,
+                      didNotEnrolled = m.next,
                     )
                   case None =>
                     Problems.notEnroledError(
@@ -59,6 +60,7 @@ object ForwardMessageExecuter
                       from = agent.id,
                       pthid = plaintextMessage.id,
                       piuri = plaintextMessage.`type`,
+                      didNotEnrolled = m.next,
                     )
                 }
               } yield Reply(problem.toPlaintextMessage)
