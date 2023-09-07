@@ -59,6 +59,7 @@ object PickupExecuter
                   to = Some(m.from.asTO),
                   pthid = m.id, // TODO CHECK pthid
                   piuri = m.piuri,
+                  didNotEnrolled = didRequestingMessages.asFROM.toDIDSubject,
                 )
                 .toPlaintextMessage
             case Some(didAccount) =>
@@ -106,6 +107,7 @@ object PickupExecuter
                     to = Some(m.from.asTO),
                     pthid = m.id, // TODO CHECK pthid
                     piuri = m.piuri,
+                    didNotEnrolled = didRequestingMessages.asFROM.toDIDSubject,
                   )
                   .toPlaintextMessage
               )
