@@ -1,6 +1,7 @@
 package io.iohk.atala.mediator.db
 
 import fmgp.did.*
+import fmgp.did.comm.EncryptedMessage
 import io.iohk.atala.mediator.{StorageCollection, StorageError, StorageThrowable}
 import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
@@ -25,12 +26,13 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  def insert(value: MessageItem): IO[StorageError, WriteResult] = {
+  def insert(msg: EncryptedMessage): IO[StorageError, WriteResult] = {
     for {
       _ <- ZIO.logInfo("insert")
+      xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))
       coll <- collection
       result <- ZIO
-        .fromFuture(implicit ec => coll.insert.one(value))
+        .fromFuture(implicit ec => coll.insert.one(MessageItem(msg, xRequestId)))
         .tapError(err => ZIO.logError(s"insert :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result

@@ -121,7 +121,7 @@ case class MediatorAgent(
                   protocolHandler <- ZIO.service[ProtocolExecuter[Services, MediatorError | StorageError]]
                   plaintextMessage <- decrypt(msg)
                   maybeActionStorageError <- messageItemRepo
-                    .insert(MessageItem(msg)) // store all message
+                    .insert(msg) // store all message
                     .map(_ /*WriteResult*/ => None
                     // TODO messages already on the database -> so this might be a replay attack
                     )
