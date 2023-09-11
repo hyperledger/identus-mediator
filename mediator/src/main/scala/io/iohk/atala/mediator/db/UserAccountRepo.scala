@@ -52,10 +52,10 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
             .map(_.headOption)
         )
-        .tapError(err => ZIO.logError(s"Insert newDidAccount (check condition setp):  ${err.getMessage}"))
+        .tapError(err => ZIO.logError(s"Insert newDidAccount (check condition step):  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
       result <- findR match
-        case Some(data) if data.did != did => ZIO.left("Fail found document: " + data)
+        case Some(data) if data.did != did => ZIO.left(s"Fail found document: $data")
         case Some(old)                     => ZIO.right(old)
         case None =>
           val value = DidAccount(
@@ -68,7 +68,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
             .map(e =>
               e.n match
                 case 1 => Right(value)
-                case _ => Left("Fail to inserte: " + e.toString())
+                case _ => Left(s"Fail to insert: ${e.toString}")
             )
             .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
             .mapError(ex => StorageThrowable(ex))
@@ -143,7 +143,10 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
   /** @return
     *   number of documents updated in DB
     */
-  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, StorageError, Int] = {
+  def addToInboxes(
+      recipients: Set[DIDSubject],
+      msg: EncryptedMessage
+  ): ZIO[Any, StorageError, Int] = {
     def selector =
       BSONDocument(
         "alias" -> BSONDocument("$in" -> recipients.map(_.did)),
@@ -160,22 +163,23 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
           )
       )
 
-    def update: BSONDocument = BSONDocument(
+    def update(xRequestId: Option[XRequestID]): BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.sha1, recipient))
+            recipients.map(recipient => MessageMetaData(msg.sha1, recipient, xRequestId))
         )
       )
     )
 
     for {
       _ <- ZIO.logInfo("addToInboxes")
+      xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
           coll.update
-            .one(selector, update) // Just one
+            .one(selector, update(xRequestId)) // Just one
         )
         .tapError(err => ZIO.logError(s"addToInboxes :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
