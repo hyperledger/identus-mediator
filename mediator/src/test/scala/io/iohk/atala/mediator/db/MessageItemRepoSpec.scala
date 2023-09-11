@@ -14,14 +14,18 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
 
   override def spec = suite("MessageItemSpec")(
     test("insert message") {
-      for {
-        messageItem <- ZIO.service[MessageItemRepo]
-        msg <- ZIO.fromEither(encryptedMessageAlice)
-        result <- messageItem.insert(MessageItem(msg))
-      } yield {
-        assertTrue(result.writeErrors == Nil) &&
-        assertTrue(result.n == 1)
+      ZIO.logAnnotate(XRequestId.value, "b373423c-c78f-4cbc-a3fe-89cbc1351835") {
+        for {
+          messageItem <- ZIO.service[MessageItemRepo]
+
+          msg <- ZIO.fromEither(encryptedMessageAlice)
+          result <- messageItem.insert(msg)
+        } yield {
+          assertTrue(result.writeErrors == Nil) &&
+          assertTrue(result.n == 1)
+        }
       }
+
     },
     test("findById  message") {
       for {
@@ -29,19 +33,30 @@ object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
         msg <- ZIO.fromEither(encryptedMessageAlice)
         result <- messageItem.findById(msg.sha1)
       } yield {
-        assertTrue(result.contains(MessageItem(msg)))
+        val outcome = result.forall { messageItem =>
+          messageItem.msg == msg &&
+          messageItem._id == msg.sha1 &&
+          messageItem.xRequestId.contains("b373423c-c78f-4cbc-a3fe-89cbc1351835")
+        }
+        assertTrue(outcome)
       }
     },
     test("findByIds messages") {
-      for {
-        messageItem <- ZIO.service[MessageItemRepo]
-        msg <- ZIO.fromEither(encryptedMessageAlice)
-        msg2 <- ZIO.fromEither(encryptedMessageBob)
-        msg2Added <- messageItem.insert(MessageItem(msg2))
-        result <- messageItem.findByIds(Seq(msg.sha1, msg2.sha1))
-      } yield {
-        assertTrue(result.contains(MessageItem(msg))) &&
-        assertTrue(result.contains(MessageItem(msg2)))
+      ZIO.logAnnotate(XRequestId.value, "b373423c-c78f-4cbc-a3fe-89cbc1351835") {
+        for {
+          messageItem <- ZIO.service[MessageItemRepo]
+          msg <- ZIO.fromEither(encryptedMessageAlice)
+          msg2 <- ZIO.fromEither(encryptedMessageBob)
+          msg2Added <- messageItem.insert(msg2)
+          result <- messageItem.findByIds(Seq(msg.sha1, msg2.sha1))
+        } yield {
+          val outcome = result.forall { messageItem =>
+            Seq(msg, msg2).contains(messageItem.msg) &&
+            Seq(msg.sha1, msg2.sha1).contains(messageItem._id) &&
+            messageItem.xRequestId.contains("b373423c-c78f-4cbc-a3fe-89cbc1351835")
+          }
+          assertTrue(outcome)
+        }
       }
     }
   ).provideLayerShared(

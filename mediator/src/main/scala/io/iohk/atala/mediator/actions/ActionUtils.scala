@@ -32,6 +32,7 @@ object ActionUtils {
         for {
 
           outboxRepo <- ZIO.service[OutboxMessageRepo]
+          xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))
           // TODO forward message
           maybeSyncReplyMsg: Option[SignedMessage | EncryptedMessage] <- reply.to.map(_.toSeq) match // TODO improve
             case None =>
@@ -99,6 +100,7 @@ object ActionUtils {
                                   case str: String => Some(str)
                                   case _: Unit     => None
                                 ,
+                                xRequestId = xRequestId
                               )
                             ) // Maybe fork
                             .catchAll { case error => ZIO.logError(s"Store Outbox Error: $error") }
@@ -132,6 +134,7 @@ object ActionUtils {
                         distination = None,
                         sendMethod = MessageSendMethod.INLINE_REPLY,
                         result = None,
+                        xRequestId = xRequestId,
                       )
                     )
                     .catchAll { case error => ZIO.logError(s"Store Outbox Error: $error") }
