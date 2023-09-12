@@ -142,6 +142,6 @@ You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram
 
 # mediator-tests
 https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
-[TODO] Add the report link
+https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 
 - [LICENSE](LICENSE) - Apache License, Version 2.0
