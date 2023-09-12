@@ -69,7 +69,6 @@ The mediator is especially useful when the edge entities are not always online, 
 - [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
 
-
 # Pre-reqs
 
 To build and run this mediator locally you will need a few things:
@@ -143,5 +142,6 @@ You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram
 
 # mediator-tests
 https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
+[TODO] Add the report link
 
 - [LICENSE](LICENSE) - Apache License, Version 2.0
