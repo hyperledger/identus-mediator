@@ -17,6 +17,7 @@ graph LR
 # Table of contents:
 - [Mediator Purpose](#Description)
 - [Protocols Supported](#Protocols)
+  - [Mediator Protocol State and Flow](Coordinate-Mediation-Protocol.md)
 - [Pre-reqs](#pre-reqs)
 - [Getting started](#getting-started)
   - [Docker only](#docker-only)
@@ -24,8 +25,10 @@ graph LR
     - [Mediator identity](#identity)
     - [Mediator storage](#mediator-storage)
       - [Mediator-Storage-In-cloud](#mongodb-in-cloud) 
-
-  
+- [Mediator Deployment](#deploy)
+- [Mediator Test suite](#mediator-tests)
+- [Mediator Error Handling](Mediator-Error_Handling.md#error-handling)  
+- [Mediator protocols state flow with problem reporting](Mediator-Error_Handling.md#problem-reports-in-mediator-flow)
 
 ## Description
 
@@ -63,6 +66,7 @@ The mediator is especially useful when the edge entities are not always online, 
 - [TODO] `MediatorCoordination 3.0` - https://didcomm.org/mediator-coordination/3.0
 - [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0 [ with exclusion of When the delivery request  (https://didcomm.org/messagepickup/3.0/delivery-request)  is made, but there are no messages currently available to be sent,  No status message is sent immediately, Instead you can check the the status of message using the status request https://didcomm.org/messagepickup/3.0/status-request]
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+- [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
 
 
@@ -136,5 +140,8 @@ You will need to create the table and indexes before starting the backend servic
 ### Deploy
 
 You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram to run the mediator backend service.
+
+# mediator-tests
+https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
 
 - [LICENSE](LICENSE) - Apache License, Version 2.0
