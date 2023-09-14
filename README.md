@@ -98,7 +98,8 @@ The backend service is also a web service that has a single-page application tha
 
 ### Run localy
 
-Everything can be run with a single command with Docker compose `docker-compose.yml`
+Everything can be run with a single command with Docker compose `docker-compose up`.
+For a specific version you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
 
 First build to docker image with `NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal`.
 The latest stable image version can also be downloaded from the IOHK repositories.
