@@ -133,8 +133,12 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
     for {
       userAccount <- ZIO.service[UserAccountRepo]
       col <- userAccount.collection
-      _ = col.indexesManager.create(index)
-      _ = col.delete.one(BSONDocument())
+      _ <- ZIO.fromFuture { implicit ec =>
+        col.indexesManager.create(index)
+      }
+      _ <- ZIO.fromFuture { implicit ec =>
+        col.delete.one(BSONDocument())
+      }
     } yield {}
   }
 
