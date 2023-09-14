@@ -9,20 +9,9 @@ import zio.ExecutionStrategy.Sequential
 import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
-
+import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import scala.concurrent.ExecutionContext.Implicits.global
-object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
-  val port = 27778
-  val hostIp = "localhost"
-
-  val connectionString = s"mongodb://$hostIp:$port/messages"
-  // Define the index
-  val index = Index(
-    key = Seq("alias" -> IndexType.Ascending),
-    name = Some("alias_did"),
-    unique = true,
-    background = true
-  )
+object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
 
   override def spec = suite("UserAccountRepoSpec")(
     test("insert new Did Account") {
@@ -133,28 +122,32 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
       }
     },
     test("addMessage to inbox for given Account") {
-      for {
-        userAccount <- ZIO.service[UserAccountRepo]
-        messageItem <- ZIO.service[MessageItemRepo]
-        result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
-        msg <- ZIO.fromEither(encryptedMessageAlice)
-        msgAdded <- messageItem.insert(MessageItem(msg))
-        addedToInbox <- userAccount.addToInboxes(Set(DIDSubject(bob)), msg)
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
-      } yield {
-        val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
+      val xRequestId = "b373423c-c78f-4cbc-a3fe-89cbc1351835"
+      ZIO.logAnnotate(XRequestId.value, xRequestId) {
+        for {
+          userAccount <- ZIO.service[UserAccountRepo]
+          messageItem <- ZIO.service[MessageItemRepo]
+          result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
+          msg <- ZIO.fromEither(encryptedMessageAlice)
+          msgAdded <- messageItem.insert(msg)
+          addedToInbox <- userAccount.addToInboxes(Set(DIDSubject(bob)), msg)
+          didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        } yield {
+          val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
 
-        assertTrue(result.isRight) &&
-        assertTrue(result == Right(1)) &&
-        assertTrue(msgAdded.writeErrors == Nil) &&
-        assertTrue(msgAdded.n == 1) &&
-        assertTrue(addedToInbox == 1) &&
-        assert(messageMetaData)(
-          forall(
-            hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
-              && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(DIDSubject(bob)))
+          assertTrue(result.isRight) &&
+          assertTrue(result == Right(1)) &&
+          assertTrue(msgAdded.writeErrors == Nil) &&
+          assertTrue(msgAdded.n == 1) &&
+          assertTrue(addedToInbox == 1) &&
+          assert(messageMetaData)(
+            forall(
+              hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
+                && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(DIDSubject(bob)))
+                && hasField("xRequestId", (m: MessageMetaData) => m.xRequestId, equalTo(Some(xRequestId)))
+            )
           )
-        )
+        }
       }
     },
     test("mark message as delivered given did") {
