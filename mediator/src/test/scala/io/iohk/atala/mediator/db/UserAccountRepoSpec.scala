@@ -9,20 +9,9 @@ import zio.ExecutionStrategy.Sequential
 import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
-
+import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import scala.concurrent.ExecutionContext.Implicits.global
-object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
-  val port = 27778
-  val hostIp = "localhost"
-
-  val connectionString = s"mongodb://$hostIp:$port/messages"
-  // Define the index
-  val index = Index(
-    key = Seq("alias" -> IndexType.Ascending),
-    name = Some("alias_did"),
-    unique = true,
-    background = true
-  )
+object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
 
   override def spec = suite("UserAccountRepoSpec")(
     test("insert new Did Account") {
@@ -133,7 +122,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with AccountStubSetup {
       }
     },
     test("addMessage to inbox for given Account") {
-      val xRequestId =  "b373423c-c78f-4cbc-a3fe-89cbc1351835"
+      val xRequestId = "b373423c-c78f-4cbc-a3fe-89cbc1351835"
       ZIO.logAnnotate(XRequestId.value, xRequestId) {
         for {
           userAccount <- ZIO.service[UserAccountRepo]
