@@ -16,6 +16,7 @@ graph LR
 
 **More documentation:**
 - [LICENSE](LICENSE) - Apache License, Version 2.0
+- [Mediation Flows](Mediation-Flows.md) - Examples of mediation flows
 
 ## Description
 
