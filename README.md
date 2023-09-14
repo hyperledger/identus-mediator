@@ -105,7 +105,7 @@ To build to docker image locally run  NODE_OPTIONS=--openssl-legacy-provider sbt
 ```
 shell> cd atala-prism-mediator
 shell> NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal
-shell> docker compose up
+shell> MEDIATOR_VERSION=$(sbt "print mediator/version" --error) docker-compose up
 ```
 
 ### Configure the Mediator
