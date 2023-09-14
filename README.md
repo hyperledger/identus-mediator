@@ -71,14 +71,14 @@ The mediator is especially useful when the edge entities are not always online, 
 
 # Pre-reqs
 
-To build and run this mediator locally you will need a few things:
+To build and run this mediator, locally you will need a few things:
 - Install [Docker](https://docs.docker.com/get-docker/)
 - Install [SBT](https://www.scala-sbt.org/download.html)
 
 # Getting started
-This DIDComm Mediator is composed of two elements, a backend service, and a database.
-The backend service is a JVM application and the database used is MongoDB.
-The backend service is also a web service that has a single-page application that will give the final user an invitation page.
+This DIDComm Mediator comprises two elements: a backend service and a database.
+The backend service is a JVM application, and the database used is MongoDB.
+The backend service is also a web service with a single-page application that will give the final user an invitation page
 
 - Clone the repository
 ```
@@ -88,7 +88,7 @@ git clone git@github.com:input-output-hk/atala-prism-mediator.git
 shell> cd atala-prism-mediator
 shell> docker-compose up mongo 
 ```
-In the another shell from the project root directory `atala-prism-mediator`
+In another shell from the project root directory `atala-prism-mediator`
 ```
 shell> sbt
 sbt> mediator/reStart
@@ -99,9 +99,9 @@ You can open the `http://localhost:8080/` URL in a web browser, and it will show
 
 ## How to run mediator as docker image
 # Docker only
-Everything can be run with a single command with Docker compose docker-compose.yml
-The latest stable image version can also be downloaded from the IOHK repositories.
-To build to docker image locally run  NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
+It is possible to run everything with a single command with Docker compose docker-compose.yml
+The latest stable image version is available in the IOHK repositories.
+To build a docker image locally, run NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
 ```
 shell> cd atala-prism-mediator
 shell> NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal
