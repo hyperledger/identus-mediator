@@ -51,7 +51,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.11.0")
 
 // Deploy demo
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.1")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.2")
 addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.2")
 
 // Release
