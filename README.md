@@ -17,6 +17,20 @@ graph LR
 **More documentation:**
 - [LICENSE](LICENSE) - Apache License, Version 2.0
 - [Mediation Flows](Mediation-Flows.md) - Examples of mediation flows
+- [Mediator Purpose](#Description)
+- [Protocols Supported](#Protocols)
+  - [Mediator Protocol State and Flow](Coordinate-Mediation-Protocol.md)
+- [Pre-reqs](#pre-reqs)
+- [Getting started](#getting-started)
+  - [Docker only](#docker-only)
+- [Configuring the mediator](#configure-the-mediator)
+    - [Mediator identity](#identity)
+    - [Mediator storage](#mediator-storage)
+      - [Mediator-Storage-In-cloud](#mongodb-in-cloud) 
+- [Mediator Deployment](#deploy)
+- [Mediator Test suite](#mediator-tests)
+- [Mediator Error Handling](Mediator-Error_Handling.md#error-handling)  
+- [Mediator protocols state flow with problem reporting](Mediator-Error_Handling.md#problem-reports-in-mediator-flow)
 
 ## Description
 
@@ -54,21 +68,47 @@ The mediator is especially useful when the edge entities are not always online, 
 - [TODO] `MediatorCoordination 3.0` - https://didcomm.org/mediator-coordination/3.0
 - [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0 [ with exclusion of When the delivery request  (https://didcomm.org/messagepickup/3.0/delivery-request)  is made, but there are no messages currently available to be sent,  No status message is sent immediately, Instead you can check the the status of message using the status request https://didcomm.org/messagepickup/3.0/status-request]
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
+- [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
-## How to run
 
-### server
+# Pre-reqs
 
-**Start the server**:
- - shell> `docker-compose up mongo`
- - sbt> `mediator/reStart`
-### webapp
+To build and run this mediator, locally you will need a few things:
+- Install [Docker](https://docs.docker.com/get-docker/)
+- Install [SBT](https://www.scala-sbt.org/download.html)
 
-The webapp/webpage is atm just to show the QRcode with out of band invitation for the Mediator.
+# Getting started
+This DIDComm Mediator comprises two elements: a backend service and a database.
+The backend service is a JVM application, and the database used is MongoDB.
+The backend service is also a web service with a single-page application that will give the final user an invitation page
 
-**Compile** - sbt> `webapp / Compile / fastOptJS / webpack`
+- Clone the repository
+```
+git clone git@github.com:input-output-hk/atala-prism-mediator.git
+```
+```
+shell> cd atala-prism-mediator
+shell> docker-compose up mongo 
+```
+In another shell from the project root directory `atala-prism-mediator`
+```
+shell> sbt
+sbt> mediator/reStart
+```
+By default mediator will start on port 8080
 
-**Open the webpage for develop** - open> `file:///.../webapp/index-fastopt.html`
+You can open the `http://localhost:8080/` URL in a web browser, and it will show a QR code that serves as an out-of-band invitation for the Mediator.
+
+## How to run mediator as docker image
+# Docker only
+It is possible to run everything with a single command with Docker compose docker-compose.yml
+The latest stable image version is available in the IOHK repositories.
+To build a docker image locally, run NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
+```
+shell> cd atala-prism-mediator
+shell> NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal
+shell> MEDIATOR_VERSION=$(sbt "print mediator/version" --error) docker-compose up
+```
 
 ### Configure the Mediator
 
@@ -76,6 +116,7 @@ The default configuration is set up [application.conf](/mediator/src/main/resour
 So in order to configure the mediator for your needs.
 You can either change the default configuration or you can set up environment variables that overrides the defaults:
 
+# identity
 To set up the mediator identity:
 - `KEY_AGREEMENT_D` - is the key agreement private key (MUST be a X25519 OKP key type).
 - `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
@@ -83,32 +124,26 @@ To set up the mediator identity:
 - `KEY_AUTHENTICATION_X` - is the key authentication public key (MUST be an Ed25519 OKP key type).
 - `SERVICE_ENDPOINT` - is the endpoint of the mediator. Where the mediator will be listening to incoming DID Comm messages.
 
+# mediator-storage
 To set up the mediator storage (MongoDB):
 - `MONGODB_PROTOCOL` - is the protocol type used by mongo.
 - `MONGODB_HOST` - is the endpoint where the MongoDB will be listening.
 - `MONGODB_PORT` - is the endpoint's port where the MongoDB will be listening.
-- `MONGODB_USER` - is the user name used by the Mediator service to connect to the database.
+- `MONGODB_USER` - is the username used by the Mediator service to connect to the database.
 - `MONGODB_PASSWORD` - is the password used by the Mediator service to connect to the database.
 - `MONGODB_DB_NAME` - is the name of the database used by the Mediator.
 
-## Run
+### MongoDB In cloud
 
-This DIDComm Mediator is composed of two elements, a backend service, and a database.
-The backend service is a JVM application and the database used is MongoDB.
-The backend service is also a web service that has a single-page application that will give the final user an invitation page.
-
-### Run localy
-
-Everything can be run with a single command with Docker compose `docker-compose.yml`
-
-First build to docker image with `NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal`.
-The latest stable image version can also be downloaded from the IOHK repositories.
-
-### MongoBD
-
-Docker compose would do that for you but if you are running separately or on the cloud like MongoDB Atlas.
+Using the mongodb from cloud like MongoDB Atlas.
 You will need to create the table and indexes before starting the backend service. See the file `initdb.js`.
 
 ### Deploy
 
 You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram to run the mediator backend service.
+
+# mediator-tests
+https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
+https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
+
+- [LICENSE](LICENSE) - Apache License, Version 2.0

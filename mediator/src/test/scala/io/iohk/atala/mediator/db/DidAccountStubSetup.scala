@@ -1,9 +1,11 @@
 package io.iohk.atala.mediator.db
-import fmgp.did.comm.EncryptedMessage
+import fmgp.did.comm.{EncryptedMessage, PlaintextMessage}
+import fmgp.did.method.peer.{DIDPeer2, DIDPeerServiceEncoded}
+//import io.iohk.atala.mediator.db.AgentStub.{keyAgreement, keyAuthentication}
 import zio.json.*
-trait AccountStubSetup {
+trait DidAccountStubSetup {
   val alice =
-    "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9hbGljZS5kaWQuZm1ncC5hcHAvIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+    "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
   val bob =
     "did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9ib2IuZGlkLmZtZ3AuYXBwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
 
@@ -31,4 +33,5 @@ trait AccountStubSetup {
                                                                 |	"tag": "iR0meUd8R3X5dleMywNHq5NaGJ4g0h2tok414SJ7UGI",
                                                                 |	"iv": "T-I0b4fIktFXVhAIFoSmQg"
                                                                 |}""".stripMargin.fromJson[EncryptedMessage]
+
 }

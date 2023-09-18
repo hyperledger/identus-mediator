@@ -6,9 +6,19 @@ import de.flapdoodle.embed.process.io.ProcessOutput
 import de.flapdoodle.reverse.TransitionWalker
 import de.flapdoodle.reverse.transitions.Start
 import zio.{Task, ZIO, ZLayer}
-
+import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.api.bson.BSONDocument
 object EmbeddedMongoDBInstance {
-
+  val port = 27777
+  val hostIp = "localhost"
+  val connectionString = s"mongodb://$hostIp:$port/messages"
+  val index = Index(
+    key = Seq("alias" -> IndexType.Ascending),
+    name = Some("alias_did"),
+    unique = true,
+    background = true,
+    partialFilter = Some(BSONDocument("alias.0" -> BSONDocument("$exists" -> true)))
+  )
   def layer(
       port: Int = 27077,
       hostIp: String = "localhost"
