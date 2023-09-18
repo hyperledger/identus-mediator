@@ -6,11 +6,9 @@ import zio.ExecutionStrategy.Sequential
 import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
+import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 
-object MessageItemRepoSpec extends ZIOSpecDefault with AccountStubSetup {
-  val port = 27777
-  val hostIp = "localhost"
-  val connectionString = s"mongodb://$hostIp:$port/messages"
+object MessageItemRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
 
   override def spec = suite("MessageItemSpec")(
     test("insert message") {
