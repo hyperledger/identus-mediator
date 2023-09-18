@@ -191,11 +191,15 @@ object MediatorAgent {
   def didCommApp = {
     Http.collectZIO[Request] {
       case req @ Method.GET -> Root / "headers" =>
-        println(req.headers.size)
         val data = req.headers.toSeq.map(e => (e.headerName, e.renderedValue))
         ZIO.succeed(Response.text("HEADERS:\n" + data.mkString("\n") + "\nRemoteAddress:" + req.remoteAddress)).debug
       case req @ Method.GET -> Root / "health" => ZIO.succeed(Response.ok)
-
+      case Method.GET -> Root / "version"      => ZIO.succeed(Response.text(MediatorBuildInfo.version))
+      case Method.GET -> Root / "did" =>
+        for {
+          agent <- ZIO.service[MediatorAgent]
+          ret <- ZIO.succeed(Response.text(agent.id.string))
+        } yield (ret)
       case Method.GET -> Root / "invitation" =>
         for {
           agent <- ZIO.service[MediatorAgent]
@@ -208,7 +212,6 @@ object MediatorAgent {
           )
           _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
           ret <- ZIO.succeed(Response.json(invitation.toPlaintextMessage.toJson))
-
         } yield (ret)
       case Method.GET -> Root / "invitationOOB" =>
         for {
