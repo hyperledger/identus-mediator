@@ -30,16 +30,25 @@ object MediatorInfo {
   def apply(): HtmlElement = // rootElement
     div(
       h1("Invite for the DID Comm Mediator:"),
+      div(
+        h3("Mediator identity (DID):"),
+        code(invitation.from.value),
+      ),
       h3("Plaintext out of band invitation:"),
       p(a(href := qrCodeData, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
       pre(code(invitation.toPlaintextMessage.toJsonPretty)),
-      pre(
+      p(
         "To facilitate the integration with other systems you can get the plain text invitation and the out-of-band invitation on the following endpoints:",
-        " '/invitation' and '/invitationOOB'"
+        " '/invitation' and '/invitationOOB'.",
+        "You can also get the DID of the mediator in '/did' or the build version (of the backend) in '/version'."
       ),
       divQRCode,
       h3("Signed out of band invitation:"),
       code("TODO"),
+      footerTag(
+        textAlign.center,
+        p("Mediator Version: ", code("'" + MediatorBuildInfo.version + "'"))
+      ),
     )
 
 }
