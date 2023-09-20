@@ -237,6 +237,7 @@ lazy val mediator = project
     Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
+    dockerUpdateLatest := true,
   )
   .settings(Test / parallelExecution := false)
   .settings(

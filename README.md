@@ -131,6 +131,17 @@ To set up the mediator storage (MongoDB):
 - `MONGODB_PASSWORD` - is the password used by the Mediator service to connect to the database.
 - `MONGODB_DB_NAME` - is the name of the database used by the Mediator.
 
+## Run
+
+This DIDComm Mediator is composed of two elements, a backend service, and a database.
+The backend service is a JVM application and the database used is MongoDB.
+The backend service is also a web service that has a single-page application that will give the final user an invitation page.
+
+### Run localy
+
+Everything can be run with a single command with Docker compose `docker-compose up`.
+For a specific version you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
+
 ### MongoDB In cloud
 
 Using the mongodb from cloud like MongoDB Atlas.
