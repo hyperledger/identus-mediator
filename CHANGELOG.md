@@ -1,3 +1,21 @@
+# [0.10.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.2...prism-mediator-v0.10.0) (2023-09-21)
+
+
+### Bug Fixes
+
+* Added DidSubject to report problem when not enrolled ([#111](https://github.com/input-output-hk/atala-prism-mediator/issues/111)) ([40c5d06](https://github.com/input-output-hk/atala-prism-mediator/commit/40c5d066840d2e0ae119fccee10d03bb10d7a5e9))
+* Annotate Headers & Update zio-http to version 3.0.0-RC2 ([#106](https://github.com/input-output-hk/atala-prism-mediator/issues/106)) ([aa19f0a](https://github.com/input-output-hk/atala-prism-mediator/commit/aa19f0a1b9a547a562139b7c91373c1d84ddfa39))
+* Encoder for VerificationMethodReferenced as String ([#110](https://github.com/input-output-hk/atala-prism-mediator/issues/110)) ([761d422](https://github.com/input-output-hk/atala-prism-mediator/commit/761d4227b8eef486fa12510814bb4c075f0b9c87))
+* sign ProblemReport when TO is unspecified ([#105](https://github.com/input-output-hk/atala-prism-mediator/issues/105)) ([586dd9f](https://github.com/input-output-hk/atala-prism-mediator/commit/586dd9f1cce1763fd4cf5f1db93cf53f94740816))
+* Update local docker-compose configuration by adding the SERVICE_ENDPOINT port ([#128](https://github.com/input-output-hk/atala-prism-mediator/issues/128)) ([2adc6aa](https://github.com/input-output-hk/atala-prism-mediator/commit/2adc6aac26593e0f868dfee2e81afae7c4337b32))
+
+
+### Features
+
+* add MediatorBuildInfo & /did and /version endpoints ([#120](https://github.com/input-output-hk/atala-prism-mediator/issues/120)) ([4445e1f](https://github.com/input-output-hk/atala-prism-mediator/commit/4445e1f3db5011264e2831cf12d1ed183406447d))
+* add tag latest to the mediator docker image ([#118](https://github.com/input-output-hk/atala-prism-mediator/issues/118)) ([020f2cd](https://github.com/input-output-hk/atala-prism-mediator/commit/020f2cdff5e8e32ac8f880b7a87f0e0239c5ce34))
+* Added test for executor and problem reports  ([#117](https://github.com/input-output-hk/atala-prism-mediator/issues/117)) ([ce05d5a](https://github.com/input-output-hk/atala-prism-mediator/commit/ce05d5a0894ae0cee1eaba89bd5834182800e9ef))
+
 ## [0.9.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.1...prism-mediator-v0.9.2) (2023-08-30)
 
 
