@@ -1,6 +1,6 @@
-|            Live Demo           |     Discord    |     Atala PRISM Website      |
-| ------------------------------ | -------------- | -----------------------------|
-|[![Atala-Symbol]][Link-LiveDemo]|![Badge-Discord]|[![Atala-Favicon]][Link-Atala]|
+|            Live Demo           |             Discord            |     Atala PRISM Website      |
+| ------------------------------ | ------------------------------ | -----------------------------|
+|[![Atala-Symbol]][Link-LiveDemo]|[![Badge-Discord]][Link-Discord]|[![Atala-Favicon]][Link-Atala]|
 
 |      CI       | Project Stage  |   Commits since latest release   |
 | ------------- | -------------- | -------------------------------- |
@@ -20,6 +20,12 @@ graph LR
 
  - **CI** automate builds and tests all push to the main branch also as all PRs created.
  - **Scala Steward** automates the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
+
+---
+
+**#atala-mediator on Discord:**
+
+For fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala discord and ask your questions, or just chat with other Atala developers and pioneers!
 
 
 # Table of contents:
@@ -77,13 +83,13 @@ The mediator is especially useful when the edge entities are not always online, 
 - [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
 
-# Pre-reqs
+### Pre-reqs
 
 To build and run this mediator, locally you will need a few things:
 - Install [Docker](https://docs.docker.com/get-docker/)
 - Install [SBT](https://www.scala-sbt.org/download.html)
 
-# Getting started
+## Getting started
 This DIDComm Mediator comprises two elements: a backend service and a database.
 The backend service is a JVM application, and the database used is MongoDB.
 The backend service is also a web service with a single-page application that will give the final user an invitation page
@@ -106,7 +112,7 @@ By default mediator will start on port 8080
 You can open the `http://localhost:8080/` URL in a web browser, and it will show a QR code that serves as an out-of-band invitation for the Mediator.
 
 ## How to run mediator as docker image
-# Docker only
+### Docker only
 It is possible to run everything with a single command with Docker compose docker-compose.yml
 The latest stable image version is available in the IOHK repositories.
 To build a docker image locally, run NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
@@ -122,7 +128,7 @@ The default configuration is set up [application.conf](/mediator/src/main/resour
 So in order to configure the mediator for your needs.
 You can either change the default configuration or you can set up environment variables that overrides the defaults:
 
-# identity
+#### identity
 To set up the mediator identity:
 - `KEY_AGREEMENT_D` - is the key agreement private key (MUST be a X25519 OKP key type).
 - `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
@@ -130,7 +136,7 @@ To set up the mediator identity:
 - `KEY_AUTHENTICATION_X` - is the key authentication public key (MUST be an Ed25519 OKP key type).
 - `SERVICE_ENDPOINT` - is the endpoint of the mediator. Where the mediator will be listening to incoming DID Comm messages.
 
-# mediator-storage
+#### mediator-storage
 To set up the mediator storage (MongoDB):
 - `MONGODB_PROTOCOL` - is the protocol type used by mongo.
 - `MONGODB_HOST` - is the endpoint where the MongoDB will be listening.
@@ -155,19 +161,23 @@ For a specific version you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERS
 Using the mongodb from cloud like MongoDB Atlas.
 You will need to create the table and indexes before starting the backend service. See the file `initdb.js`.
 
-### Deploy
+## Deploy
 
 You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram to run the mediator backend service.
 
-# mediator-tests
+## mediator-tests
 https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
 https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 
-- [LICENSE](LICENSE) - Apache License, Version 2.0
+
+---
+[LICENSE](LICENSE) - Apache License, Version 2.0
 
 
 [Link-LiveDemo]:https://beta-mediator.atalaprism.io/
 [Link-Atala]:https://atalaprism.io/
+[Link-Discord]:https://discord.gg/UpxKYK2s
+[Link-Discord-Mediator]:https://discord.gg/S7FZEwqe
 
 [Badge-Stage]: https://img.shields.io/badge/0.9.2-Production%20Ready-brightgreen.svg
 [Badge-Discord]: https://img.shields.io/discord/1146426895114702858?logo=discord "chat on discord"
