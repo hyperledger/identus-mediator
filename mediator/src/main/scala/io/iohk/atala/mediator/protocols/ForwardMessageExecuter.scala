@@ -38,7 +38,7 @@ object ForwardMessageExecuter
           msg <-
             if (numbreOfUpdated > 0) { // Or maybe we can add all the time
               for {
-                _ <- repoMessageItem.insert(MessageItem(m.msg))
+                _ <- repoMessageItem.insert(m.msg)
                 _ <- ZIO.logInfo("Add next msg (of the ForwardMessage) to the Message Repo")
               } yield NoReply
             } else {
@@ -52,6 +52,7 @@ object ForwardMessageExecuter
                       from = agent.id,
                       pthid = plaintextMessage.id,
                       piuri = plaintextMessage.`type`,
+                      didNotEnrolled = m.next,
                     )
                   case None =>
                     Problems.notEnroledError(
@@ -59,6 +60,7 @@ object ForwardMessageExecuter
                       from = agent.id,
                       pthid = plaintextMessage.id,
                       piuri = plaintextMessage.`type`,
+                      didNotEnrolled = m.next,
                     )
                 }
               } yield Reply(problem.toPlaintextMessage)
