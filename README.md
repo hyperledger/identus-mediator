@@ -25,7 +25,7 @@ graph LR
 
 **#atala-mediator on Discord:**
 
-For fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala discord and ask your questions, or just chat with other Atala developers and pioneers!
+For the fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
 
 
 # Table of contents:
