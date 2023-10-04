@@ -10,8 +10,10 @@ import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
+import io.iohk.atala.mediator.protocols.MessageSetup
+
 import scala.concurrent.ExecutionContext.Implicits.global
-object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
+object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
   override def spec = suite("UserAccountRepoSpec")(
     test("insert new Did Account") {
