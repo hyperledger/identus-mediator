@@ -103,13 +103,13 @@ This table defines the expected the behavior of the mediator in different scenar
 
 ### Considerations
 
-In the Atala PRISM Mediator when a problem happens we try to:
-- logs the error
-- send a problem report according to the table above
-- store the problem report and error info on the BD. 
-
-All three points SHOULD be traceable to the initial call (by a call ID) and by the MsgID (hash SHA251 of the encrypted message).
-This will facilitate L3 support and debugging. (For [ATL-4147](https://input-output.atlassian.net/browse/ATL-4147))
+In the Atala PRISM Mediator, when an issue arises, we undertake the following steps:
+* Log the error.
+* Dispatch a problem report as outlined in the aforementioned table.
+* Record the problem report and error information in the database.
+Every one of these steps should be traceable back to the initial call via a XRequestID,
+and by the MsgID (which is the SHA-251 hash of the encrypted message).
+This procedure will enhance Level 3 support and debugging capabilities. (For [ATL-4147](https://input-output.atlassian.net/browse/ATL-4147))
 
 [TODO optional] Would be nice to propose a list/table of new tokens to the protocol specs:
   - `e.p.me.res.storage`
