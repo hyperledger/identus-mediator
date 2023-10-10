@@ -1,7 +1,7 @@
 # Error Handling
 
 
-On each step of all our protocols processing, when something wrong is happening, we try to:
+When processing any step of any protocol, if something is wrong, the mediator tries to:
 - Update the record to a documented error state
 - Log the error in the service logs
 - Send the problem report message when appropriate
@@ -10,7 +10,7 @@ https://identity.foundation/didcomm-messaging/spec/#problem-reports
 
 ## Custom behavior table
 
-This table defines the expected the behavior of the mediator in different scenarios not covered by the specifications.
+This table defines the expected behavior of the mediator in different scenarios not covered by the specifications.
 
 | Mediators   | Atala Mediator | Roadmap Atala Mediator | RootsId | Blocktrust |
 |-------------|----------------|------------------------|---------|------------|
@@ -31,7 +31,7 @@ This table defines the expected the behavior of the mediator in different scenar
 
 ### Scenarios Description
 
-#### Genetal Scenarios:
+#### General Scenarios:
 
 - **G1** - Received the exact same message (encrypted with the same ephemeral keys) (possible replay attack)
   - S1A - (default) executes the protocol as normal
@@ -39,12 +39,12 @@ This table defines the expected the behavior of the mediator in different scenar
   - S1C - Send a problem report "e.p.cryto.dejavu" ??? or "e.p.crypto.replay"
   - S1D - Reply with the exact same message (encrypted with the same ephemeral keys)
 
-- **G2** - Receive a message for a unsupported protocol
+- **G2** - Receive a message for an unsupported protocol
   https://input-output.atlassian.net/browse/ATL-5840
   - G2A - ignore (no effect/output) 
   - G2B - Send a problem report "e.p.msg.unsupported"
 
-- **G3** - Receive a message for a unsupported version of the protocol.
+- **G3** - Receive a message for an unsupported  unsupported version of the protocol.
   - G2B - Fallback to G2
   - G3B - Send `e.p.msg.unsupported` and say what version(s) its supported
 
@@ -52,7 +52,7 @@ This table defines the expected the behavior of the mediator in different scenar
   - G4A - ignore (no effect/output) 
   - G4B - Send a problem report "e.p.error"
 
-- **G5** - If the message is tampered (got crypto errors).
+- **G5** - If the message is tampered (or it throws any crypto errors).
   - G5A - ignore (no effect/output) 
   - G5B - (sync!) Send a problem report "e.p.crypto"
 
@@ -66,8 +66,8 @@ This table defines the expected the behavior of the mediator in different scenar
 
 - **G8** - When a parsing error from the decrypted message.
   - G8A - ignore (no effect/output)
-  - G8B - (sync!) Send a `e.p.msg` If the plaintext message is malformed 
-  - G8C - Send a `e.p.msg.<PIURI>` If the plaintext message is malformed or if parsing into a specific protocol's data model fails.
+  - G8B - (sync!) Send an `e.p.msg` If the plaintext message is malformed 
+  - G8C - Send an `e.p.msg.<PIURI>` If the plaintext message is malformed or if parsing into a specific protocol's data model fails.
 
 
 - Receive a problem report (1w):
@@ -96,7 +96,7 @@ This table defines the expected the behavior of the mediator in different scenar
 
 - **M5** - LiveModeChange https://didcomm.org/messagepickup/3.0/live-delivery-change
   - Follow the protocol -> Upon receiving the `live_delivery_change` message with `live_delivery` set to `true``:
-    - M5A - If the connection support live delivery respond with a [`status`](https://didcomm.org/messagepickup/3.0/status) message.
+    - M5A - If the connection supports live delivery respond with a [`status`](https://didcomm.org/messagepickup/3.0/status) message.
     - M5B - If the connection is incapable of live delivery send a problem report `e.m.live-mode-not-supported`
 
 
