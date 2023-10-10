@@ -129,19 +129,6 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
       .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
   }
 
-  def setupAndClean = {
-    for {
-      userAccount <- ZIO.service[UserAccountRepo]
-      col <- userAccount.collection
-      _ <- ZIO.fromFuture { implicit ec =>
-        col.indexesManager.create(index)
-      }
-      _ <- ZIO.fromFuture { implicit ec =>
-        col.delete.one(BSONDocument())
-      }
-    } yield {}
-  }
-
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)
     >>> AsyncDriverResource.layer
     >>> ReactiveMongoApi.layer(connectionString)
