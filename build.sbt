@@ -13,7 +13,7 @@ lazy val V = new {
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
-  val munit = "1.0.0-M8" // "0.7.29"
+  val munit = "1.0.0-M10" // "0.7.29"
 
 //   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
 //   val scalajsDom = "2.4.0"
@@ -21,7 +21,7 @@ lazy val V = new {
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
   val zio = "2.0.15"
-  val zioJson = "0.4.2"
+  val zioJson = "0.6.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC2"
   val zioConfig = "4.0.0-RC16"
@@ -40,7 +40,7 @@ lazy val V = new {
   // For WEBAPP
   val laminar = "16.0.0"
   val waypoint = "7.0.0"
-  val upickle = "3.1.0"
+  val upickle = "3.1.3"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
@@ -169,13 +169,13 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoPackage := "io.iohk.atala.mediator",
-    // buildInfoObject := "BuildInfo",
+    buildInfoObject := "MediatorBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
       version,
       scalaVersion,
       sbtVersion,
-      BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
+      // BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
     ),
   )
 
@@ -194,6 +194,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
 
 lazy val mediator = project
   .in(file("mediator"))
+  .configure(buildInfoConfigure)
   .settings(publish / skip := true)
   .settings(
     // FIX TODO (maybe the next version of the library will hide this compilation error)
@@ -236,6 +237,7 @@ lazy val mediator = project
     Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
+    dockerUpdateLatest := true,
   )
   .settings(Test / parallelExecution := false)
   .settings(

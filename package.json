@@ -1,6 +1,6 @@
 {
     "name": "atala-prism-mediator",
-    "version": "0.9.2",
+    "version": "0.10.0",
     "engines": {
         "node": ">=16.13.0"
     },
@@ -41,7 +41,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -mem 2048 -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
+                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
                 }
             ],
             [

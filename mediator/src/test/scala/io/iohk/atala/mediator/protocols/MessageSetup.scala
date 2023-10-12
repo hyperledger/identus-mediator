@@ -1,8 +1,32 @@
 package io.iohk.atala.mediator.protocols
 
 import fmgp.did.comm.{EncryptedMessage, PlaintextMessage}
+import io.iohk.atala.mediator.db.UserAccountRepo
+import reactivemongo.api.bson.BSONDocument
+import zio.ZIO
 import zio.json.*
+import reactivemongo.api.indexes.{Index, IndexType}
 trait MessageSetup {
+
+  val index = Index(
+    key = Seq("alias" -> IndexType.Ascending),
+    name = Some("alias_did"),
+    unique = true,
+    background = true,
+    partialFilter = Some(BSONDocument("alias.0" -> BSONDocument("$exists" -> true)))
+  )
+  def setupAndClean = {
+    for {
+      userAccount <- ZIO.service[UserAccountRepo]
+      col <- userAccount.collection
+      _ <- ZIO.fromFuture { implicit ec =>
+        col.indexesManager.create(index)
+      }
+      _ <- ZIO.fromFuture { implicit ec =>
+        col.delete.one(BSONDocument())
+      }
+    } yield {}
+  }
 
   val mediatorDid =
     "did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9ib2IuZGlkLmZtZ3AuYXBwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
