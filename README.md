@@ -28,7 +28,9 @@ graph LR
 For the fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
 
 
-# Table of contents:
+**More documentation:**
+- [LICENSE](LICENSE) - Apache License, Version 2.0
+- [Mediation Flows](Mediation-Flows.md) - Examples of mediation flows
 - [Mediator Purpose](#Description)
 - [Protocols Supported](#Protocols)
   - [Mediator Protocol State and Flow](Coordinate-Mediation-Protocol.md)
