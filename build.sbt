@@ -169,13 +169,13 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoPackage := "io.iohk.atala.mediator",
-    // buildInfoObject := "BuildInfo",
+    buildInfoObject := "MediatorBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
       version,
       scalaVersion,
       sbtVersion,
-      BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
+      // BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
     ),
   )
 
@@ -194,6 +194,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
 
 lazy val mediator = project
   .in(file("mediator"))
+  .configure(buildInfoConfigure)
   .settings(publish / skip := true)
   .settings(
     // FIX TODO (maybe the next version of the library will hide this compilation error)
@@ -236,6 +237,7 @@ lazy val mediator = project
     Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
+    dockerUpdateLatest := true,
   )
   .settings(Test / parallelExecution := false)
   .settings(
