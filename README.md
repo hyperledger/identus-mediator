@@ -1,4 +1,12 @@
-# Atala Prism Mediator (DIDCOMM v2)
+|            Live Demo           |             Discord            |     Atala PRISM Website      |
+| ------------------------------ | ------------------------------ | -----------------------------|
+|[![Atala-Symbol]][Link-LiveDemo]|[![Badge-Discord]][Link-Discord]|[![Atala-Favicon]][Link-Atala]|
+
+|      CI       | Project Stage  |   Commits since latest release   |
+| ------------- | -------------- | -------------------------------- |
+|![CI][Badge-CI]| ![Badge-Stage] |![Badge-CommitsSinceLatestRelease]|
+
+# Atala Mediator
 
 A DID Comm v2 mediator  
 A service that receives messages for many agents at a single endpoint and stores them with privacy.
@@ -12,6 +20,12 @@ graph LR
 
  - **CI** automate builds and tests all push to the main branch also as all PRs created.
  - **Scala Steward** automates the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
+
+---
+
+**#atala-mediator on Discord:**
+
+For the fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
 
 
 **More documentation:**
@@ -71,13 +85,13 @@ The mediator is especially useful when the edge entities are not always online, 
 - [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
 
-# Pre-reqs
+### Pre-reqs
 
 To build and run this mediator, locally you will need a few things:
 - Install [Docker](https://docs.docker.com/get-docker/)
 - Install [SBT](https://www.scala-sbt.org/download.html)
 
-# Getting started
+## Getting started
 This DIDComm Mediator comprises two elements: a backend service and a database.
 The backend service is a JVM application, and the database used is MongoDB.
 The backend service is also a web service with a single-page application that will give the final user an invitation page
@@ -100,7 +114,7 @@ By default mediator will start on port 8080
 You can open the `http://localhost:8080/` URL in a web browser, and it will show a QR code that serves as an out-of-band invitation for the Mediator.
 
 ## How to run mediator as docker image
-# Docker only
+### Docker only
 It is possible to run everything with a single command with Docker compose docker-compose.yml
 The latest stable image version is available in the IOHK repositories.
 To build a docker image locally, run NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
@@ -116,7 +130,7 @@ The default configuration is set up [application.conf](/mediator/src/main/resour
 So in order to configure the mediator for your needs.
 You can either change the default configuration or you can set up environment variables that overrides the defaults:
 
-# identity
+#### identity
 To set up the mediator identity:
 - `KEY_AGREEMENT_D` - is the key agreement private key (MUST be a X25519 OKP key type).
 - `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
@@ -124,7 +138,7 @@ To set up the mediator identity:
 - `KEY_AUTHENTICATION_X` - is the key authentication public key (MUST be an Ed25519 OKP key type).
 - `SERVICE_ENDPOINT` - is the endpoint of the mediator. Where the mediator will be listening to incoming DID Comm messages.
 
-# mediator-storage
+#### mediator-storage
 To set up the mediator storage (MongoDB):
 - `MONGODB_PROTOCOL` - is the protocol type used by mongo.
 - `MONGODB_HOST` - is the endpoint where the MongoDB will be listening.
@@ -133,17 +147,46 @@ To set up the mediator storage (MongoDB):
 - `MONGODB_PASSWORD` - is the password used by the Mediator service to connect to the database.
 - `MONGODB_DB_NAME` - is the name of the database used by the Mediator.
 
+## Run
+
+This DIDComm Mediator is composed of two elements, a backend service, and a database.
+The backend service is a JVM application and the database used is MongoDB.
+The backend service is also a web service that has a single-page application that will give the final user an invitation page.
+
+### Run localy
+
+Everything can be run with a single command with Docker compose `docker-compose up`.
+For a specific version you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
+
 ### MongoDB In cloud
 
 Using the mongodb from cloud like MongoDB Atlas.
 You will need to create the table and indexes before starting the backend service. See the file `initdb.js`.
 
-### Deploy
+## Deploy
 
 You can easily deploy the image everywhere. We recommend a minimum of 250 mb ram to run the mediator backend service.
 
-# mediator-tests
+## mediator-tests
 https://github.com/input-output-hk/didcomm-v2-mediator-test-suite
 https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 
-- [LICENSE](LICENSE) - Apache License, Version 2.0
+
+---
+[LICENSE](LICENSE) - Apache License, Version 2.0
+
+
+[Link-LiveDemo]:https://beta-mediator.atalaprism.io/
+[Link-Atala]:https://atalaprism.io/
+[Link-Discord]:https://discord.gg/UpxKYK2s
+[Link-Discord-Mediator]:https://discord.gg/S7FZEwqe
+
+[Badge-Stage]: https://img.shields.io/badge/0.9.2-Production%20Ready-brightgreen.svg
+[Badge-Discord]: https://img.shields.io/discord/1146426895114702858?logo=discord "chat on discord"
+[Badge-CI]: https://github.com/input-output-hk/atala-prism-mediator/workflows/CI/badge.svg
+[Badge-CommitsSinceLatestRelease]: https://img.shields.io/github/commits-since/input-output-hk/atala-prism-mediator/prism-mediator-v0.9.2/main?logo=github
+
+
+[Atala-Symbol]:https://img.shields.io/badge/Mediator-Instance-blue.svg?logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMTguMjEgMzI1LjE4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzU1NTlmMjtmaWxsLXJ1bGU6ZXZlbm9kZDt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzEtMiI+PGc+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTU5LjkxLDIxLjU4TDc0LjIzLDE2OC45MmMtMy4wOSw1LjMxLTEwLjc3LDUuMy0xMy44NC0uMDJsLTUuNS05LjU0Yy0xLjQzLTIuNDgtMS40My01LjU0LC4wMS04LjAyTDE0MC42LDMuOThjMy4wOS01LjMyLDEwLjc5LTUuMywxMy44NSwuMDRsNS40OSw5LjU2YzEuNDIsMi40OCwxLjQyLDUuNTMtLjAyLDhaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNjAuMywxOTIuODhsLTM0LjM1LDU5LjA3Yy0xLjQ0LDIuNDctNC4wOSwzLjk5LTYuOTUsMy45OGwtMTEuMDItLjA0Yy02LjE1LS4wMi05Ljk4LTYuNy02Ljg4LTEyLjAybDM0LjM1LTU5LjA3YzEuNDQtMi40Nyw0LjA5LTMuOTksNi45NS0zLjk4bDExLjAyLC4wNGM2LjE1LC4wMiw5Ljk4LDYuNyw2Ljg4LDEyLjAyWiIvPjxwYXRoIGlkPSJGaWxsLTIiIGNsYXNzPSJjbHMtMSIgZD0iTTY2Ljk2LDI1Ni4xbDExLjAyLC4wNGMyLjg2LC4wMSw1LjUxLTEuNTEsNi45NC0zLjk4TDE4OS4yOCw3Mi43MmMxLjQ0LTIuNDcsMS40NS01LjUyLC4wMi04bC01LjQ5LTkuNTZjLTMuMDYtNS4zNC0xMC43Ni01LjM2LTEzLjg1LS4wNEw2MC4wNywyNDQuMDhjLTMuMDksNS4zMiwuNzMsMTEuOTksNi44OCwxMi4wMloiLz48cGF0aCBpZD0iRmlsbC0zIiBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjUuOTMsMjU2LjMzbDExLjAyLC4wNGMyLjg2LC4wMSw1LjUxLTEuNTEsNi45NS0zLjk4TDIxOC42NCwxMjMuODZjMS40NC0yLjQ3LDEuNDUtNS41MiwuMDItOGwtNS40OS05LjU2Yy0zLjA2LTUuMzQtMTAuNzYtNS4zNi0xMy44NS0uMDRMMTE5LjA0LDI0NC4zMWMtMy4wOSw1LjMyLC43MywxMS45OSw2Ljg4LDEyLjAyWiIvPjxwYXRoIGlkPSJGaWxsLTQiIGNsYXNzPSJjbHMtMSIgZD0iTTE3My4zOCwyNjAuNTJsNS41MSw5LjUyYzMuMDgsNS4zMiwxMC43NSw1LjMyLDEzLjg0LC4wMWw2NS4zOS0xMTIuNDVjMy4wOS01LjMyLS43My0xMS45OS02Ljg4LTEyLjAybC0xMS4wMi0uMDRjLTIuODYtLjAxLTUuNTEsMS41MS02Ljk1LDMuOThsLTU5Ljg4LDEwMi45N2MtMS40NCwyLjQ4LTEuNDUsNS41NCwwLDguMDNaIi8+PHBhdGggaWQ9IkZpbGwtNSIgY2xhc3M9ImNscy0xIiBkPSJNMjIyLjEsMzIxLjJsMTkuNS0zMy41NGMxLjQ0LTIuNDcsMS40NS01LjUyLC4wMi04bC01LjQ5LTkuNTZjLTMuMDYtNS4zNC0xMC43Ni01LjM2LTEzLjg1LS4wNGwtMTkuNTIsMzMuNThjLTEuNDQsMi40OC0xLjQ1LDUuNTQsMCw4LjAzbDUuNTEsOS41MmMzLjA4LDUuMzIsMTAuNzUsNS4zMiwxMy44NCwuMDFaIi8+PHBhdGggaWQ9IkZpbGwtNiIgY2xhc3M9ImNscy0xIiBkPSJNMzEwLjI2LDE0NS43N2wtMTEtLjA4Yy0yLjg3LS4wMi01LjUzLDEuNS02Ljk3LDMuOThsLTU2LjA5LDk2LjQ2Yy0zLjA5LDUuMzIsLjczLDEyLDYuODgsMTIuMDJsMTEuMDIsLjA0YzIuODYsLjAxLDUuNTEtMS41MSw2Ljk0LTMuOThsNTYuMDctOTYuNDJjMy4wOS01LjMxLS43MS0xMS45Ny02Ljg2LTEyLjAyWiIvPjwvZz48L2c+PC9zdmc+
+
+[Atala-Favicon]:https://img.shields.io/badge/AtalaPrism-website-blue.svg?logo=data:image/svg%2bxml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNDIzLjkzIDQyMy45MyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50KTt9LmNscy0ye2ZpbGw6I2ZmZjtmaWxsLXJ1bGU6ZXZlbm9kZDt9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmVhci1ncmFkaWVudCIgeDE9IjYxLjIxIiB5MT0iNjMxLjY2IiB4Mj0iMzY4LjEyIiB5Mj0iLTIyMi43NiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzlmOWZmMCIvPjxzdG9wIG9mZnNldD0iLjc5IiBzdG9wLWNvbG9yPSIjNTU1OWYyIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PGcgaWQ9IkxheWVyXzEtMiI+PGc+PHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iNDIzLjkzIiBoZWlnaHQ9IjQyMy45MyIgcng9Ijg2LjA2IiByeT0iODYuMDYiLz48Zz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yMTIuNzcsNzAuOTVMMTI3LjA5LDIxOC4zYy0zLjA5LDUuMzEtMTAuNzcsNS4zLTEzLjg0LS4wMmwtNS41LTkuNTRjLTEuNDMtMi40OC0xLjQzLTUuNTQsLjAxLTguMDJMMTkzLjQ1LDUzLjM1YzMuMDktNS4zMiwxMC43OS01LjMsMTMuODUsLjA0bDUuNDksOS41NmMxLjQyLDIuNDgsMS40Miw1LjUzLS4wMiw4WiIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTExMy4xNSwyNDIuMjZsLTM0LjM1LDU5LjA3Yy0xLjQ0LDIuNDctNC4wOSwzLjk5LTYuOTUsMy45OGwtMTEuMDItLjA0Yy02LjE1LS4wMi05Ljk4LTYuNy02Ljg4LTEyLjAybDM0LjM1LTU5LjA3YzEuNDQtMi40Nyw0LjA5LTMuOTksNi45NS0zLjk4bDExLjAyLC4wNGM2LjE1LC4wMiw5Ljk4LDYuNyw2Ljg4LDEyLjAyWiIvPjxwYXRoIGlkPSJGaWxsLTIiIGNsYXNzPSJjbHMtMiIgZD0iTTExOS44MSwzMDUuNDhsMTEuMDIsLjA0YzIuODYsLjAxLDUuNTEtMS41MSw2Ljk0LTMuOThMMjQyLjE0LDEyMi4wOWMxLjQ0LTIuNDcsMS40NS01LjUyLC4wMi04bC01LjQ5LTkuNTZjLTMuMDYtNS4zNC0xMC43Ni01LjM2LTEzLjg1LS4wNGwtMTA5Ljg5LDE4OC45N2MtMy4wOSw1LjMyLC43MywxMS45OSw2Ljg4LDEyLjAyWiIvPjxwYXRoIGlkPSJGaWxsLTMiIGNsYXNzPSJjbHMtMiIgZD0iTTE3OC43OSwzMDUuNzFsMTEuMDIsLjA0YzIuODYsLjAxLDUuNTEtMS41MSw2Ljk1LTMuOThsNzQuNzUtMTI4LjU0YzEuNDQtMi40NywxLjQ1LTUuNTIsLjAyLThsLTUuNDktOS41NmMtMy4wNi01LjM0LTEwLjc2LTUuMzYtMTMuODUtLjA0bC04MC4yOCwxMzguMDZjLTMuMDksNS4zMiwuNzMsMTEuOTksNi44OCwxMi4wMloiLz48cGF0aCBpZD0iRmlsbC00IiBjbGFzcz0iY2xzLTIiIGQ9Ik0yMjYuMjQsMzA5LjlsNS41MSw5LjUyYzMuMDgsNS4zMiwxMC43NSw1LjMyLDEzLjg0LC4wMWw2NS4zOS0xMTIuNDVjMy4wOS01LjMyLS43My0xMS45OS02Ljg4LTEyLjAybC0xMS4wMi0uMDRjLTIuODYtLjAxLTUuNTEsMS41MS02Ljk1LDMuOThsLTU5Ljg4LDEwMi45N2MtMS40NCwyLjQ4LTEuNDUsNS41NCwwLDguMDNaIi8+PGcgaWQ9IkZpbGwtNSI+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMjc0Ljk1LDM3MC41OGwxOS41LTMzLjU0YzEuNDQtMi40NywxLjQ1LTUuNTIsLjAyLThsLTUuNDktOS41NmMtMy4wNi01LjM0LTEwLjc2LTUuMzYtMTMuODUtLjA0bC0xOS41MiwzMy41OGMtMS40NCwyLjQ4LTEuNDUsNS41NCwwLDguMDNsNS41MSw5LjUyYzMuMDgsNS4zMiwxMC43NSw1LjMyLDEzLjg0LC4wMVoiLz48L2c+PHBhdGggaWQ9IkZpbGwtNiIgY2xhc3M9ImNscy0yIiBkPSJNMzYzLjEyLDE5NS4xNWwtMTEtLjA4Yy0yLjg3LS4wMi01LjUzLDEuNS02Ljk3LDMuOThsLTU2LjA5LDk2LjQ2Yy0zLjA5LDUuMzIsLjczLDEyLDYuODgsMTIuMDJsMTEuMDIsLjA0YzIuODYsLjAxLDUuNTEtMS41MSw2Ljk0LTMuOThsNTYuMDctOTYuNDJjMy4wOS01LjMxLS43MS0xMS45Ny02Ljg2LTEyLjAyWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==
