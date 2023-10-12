@@ -17,7 +17,10 @@ object MediatorInfo {
     goal = Some("RequestMediate"),
     accept = Some(Seq("didcomm/v2")),
   )
-  val qrCodeData = OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("#/")
+  val host = dom.window.location.host
+  val scheme = dom.window.location.protocol
+  val fullPath = s"${scheme}//${host}"
+  val qrCodeData = OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI(s"$fullPath")
 
   val divQRCode = div()
   {
@@ -35,7 +38,7 @@ object MediatorInfo {
         code(invitation.from.value),
       ),
       h3("Plaintext out of band invitation:"),
-      p(a(href := qrCodeData, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
+      p(a(href := fullPath, target := "_blank", code(qrCodeData))), // FIXME make it a link to the mobile app
       pre(code(invitation.toPlaintextMessage.toJsonPretty)),
       p(
         "To facilitate the integration with other systems you can get the plain text invitation and the out-of-band invitation on the following endpoints:",

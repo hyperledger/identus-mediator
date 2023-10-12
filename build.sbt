@@ -13,7 +13,7 @@ lazy val V = new {
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
-  val munit = "1.0.0-M8" // "0.7.29"
+  val munit = "1.0.0-M10" // "0.7.29"
 
 //   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
 //   val scalajsDom = "2.4.0"
@@ -21,7 +21,7 @@ lazy val V = new {
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
   val zio = "2.0.15"
-  val zioJson = "0.4.2"
+  val zioJson = "0.6.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC2"
   val zioConfig = "4.0.0-RC16"
@@ -40,7 +40,7 @@ lazy val V = new {
   // For WEBAPP
   val laminar = "16.0.0"
   val waypoint = "7.0.0"
-  val upickle = "3.1.0"
+  val upickle = "3.1.3"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
