@@ -40,7 +40,7 @@ lazy val V = new {
   // For WEBAPP
   val laminar = "16.0.0"
   val waypoint = "7.0.0"
-  val upickle = "3.1.0"
+  val upickle = "3.1.3"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
