@@ -66,14 +66,7 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
     .provideSomeLayer(AgentStub.agentLayer)
     .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
 
-  def setupAndClean = {
-    for {
-      userAccount <- ZIO.service[UserAccountRepo]
-      col <- userAccount.collection
-      _ = col.indexesManager.create(index)
-      _ = col.delete.one(BSONDocument())
-    } yield {}
-  }
+
 
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)
     >>> AsyncDriverResource.layer
