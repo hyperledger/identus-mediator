@@ -38,6 +38,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
+      - name: Setup yq - portable yaml processor
+        uses: mikefarah/yq@v4.34.2
       - name: Setup Scala.JS
         uses: japgolly/setup-scalajs@v1
       - name: Cache sbt

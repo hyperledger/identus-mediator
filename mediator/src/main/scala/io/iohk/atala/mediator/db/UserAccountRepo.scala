@@ -29,20 +29,49 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .tapError(err => ZIO.logError(s"Couldn't get collection ${err.getMessage}"))
     .mapError(ex => StorageCollection(ex))
 
-  def newDidAccount(did: DIDSubject): IO[StorageError, WriteResult] = {
-    val value = DidAccount(
-      did = did,
-      alias = Seq(did),
-      messagesRef = Seq.empty
+  /** create or return account for a  DIDSubject */
+  def createOrFindDidAccount(did: DIDSubject): IO[StorageError, Either[String, DidAccount]] = {
+    def projection: Option[BSONDocument] = None
+    def selectorConditionToInsert = BSONDocument(
+      Seq(
+        "$or" -> BSONArray(
+          BSONDocument(Seq("did" -> BSONString(did.did))),
+          BSONDocument(Seq("alias" -> BSONString(did.did))) // TODO test
+        )
+      )
     )
+
     for {
       _ <- ZIO.logInfo("newDidAccount")
       coll <- collection
-      result <- ZIO
-        .fromFuture(implicit ec => coll.insert.one(value))
-        .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
+      findR <- ZIO // TODO this should be atomic
+        .fromFuture(implicit ec =>
+          coll
+            .find(selectorConditionToInsert, projection)
+            .cursor[DidAccount]()
+            .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
+            .map(_.headOption)
+        )
+        .tapError(err => ZIO.logError(s"Insert newDidAccount (check condition step):  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
-
+      result <- findR match
+        case Some(data) if data.did != did => ZIO.left(s"Fail found document: $data")
+        case Some(old)                     => ZIO.right(old)
+        case None =>
+          val value = DidAccount(
+            did = did,
+            alias = Seq.empty,
+            messagesRef = Seq.empty
+          )
+          ZIO
+            .fromFuture(implicit ec => coll.insert.one(value))
+            .map(e =>
+              e.n match
+                case 1 => Right(value)
+                case _ => Left(s"Fail to insert: ${e.toString}")
+            )
+            .tapError(err => ZIO.logError(s"Insert newDidAccount :  ${err.getMessage}"))
+            .mapError(ex => StorageThrowable(ex))
     } yield result
   }
 
@@ -114,7 +143,10 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
   /** @return
     *   number of documents updated in DB
     */
-  def addToInboxes(recipients: Set[DIDSubject], msg: EncryptedMessage): ZIO[Any, StorageError, Int] = {
+  def addToInboxes(
+      recipients: Set[DIDSubject],
+      msg: EncryptedMessage
+  ): ZIO[Any, StorageError, Int] = {
     def selector =
       BSONDocument(
         "alias" -> BSONDocument("$in" -> recipients.map(_.did)),
@@ -124,29 +156,30 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
               BSONDocument(
                 "$elemMatch" ->
                   BSONDocument(
-                    "hash" -> msg.hashCode,
+                    "hash" -> msg.sha1,
                     "recipient" -> BSONDocument("$in" -> recipients.map(_.did))
                   )
               )
           )
       )
 
-    def update: BSONDocument = BSONDocument(
+    def update(xRequestId: Option[XRequestID]): BSONDocument = BSONDocument(
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.hashCode, recipient))
+            recipients.map(recipient => MessageMetaData(msg.sha1, recipient, xRequestId))
         )
       )
     )
 
     for {
       _ <- ZIO.logInfo("addToInboxes")
+      xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))
       coll <- collection
       result <- ZIO
         .fromFuture(implicit ec =>
           coll.update
-            .one(selector, update) // Just one
+            .one(selector, update(xRequestId)) // Just one
         )
         .tapError(err => ZIO.logError(s"addToInboxes :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))

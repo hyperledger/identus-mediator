@@ -18,8 +18,6 @@ import zio.config.typesafe.*
 import zio.http.*
 import zio.http.Http.{Empty, Static}
 import zio.http.ZClient.ClientLive
-import zio.http.model.*
-import zio.http.socket.*
 import zio.json.*
 import zio.logging.LogFormat.*
 import zio.logging.backend.SLF4J
@@ -38,13 +36,14 @@ case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, k
 case class DataBaseConfig(
     protocol: String,
     host: String,
-    port: String,
+    port: Option[String],
     userName: String,
     password: String,
     dbName: String
 ) {
-  val connectionString = s"$protocol://$userName:$password@$host:$port/$dbName"
-  val displayConnectionString = s"$protocol://$userName:******@$host:$port/$dbName"
+  private def maybePort = port.filter(_.nonEmpty).map(":" + _).getOrElse("")
+  val connectionString = s"$protocol://$userName:$password@$host$maybePort/$dbName"
+  val displayConnectionString = s"$protocol://$userName:******@$host$maybePort/$dbName"
   override def toString: String = s"""DataBaseConfig($protocol, $host, $port, $userName, "******", $dbName)"""
 }
 
@@ -58,14 +57,17 @@ object MediatorStandalone extends ZIOAppDefault {
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
-  val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-    Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo,
-    Throwable
+  // val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
+  //   Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo &
+  //     OutboxMessageRepo,
+  //   Throwable
+  // ]
+  val app: Http[
+    Operations & Resolver & UserAccountRepo & OutboxMessageRepo & MessageDispatcher & MediatorAgent & MessageItemRepo,
+    (HttpAppMiddleware[Nothing, Any, Nothing, Any] | HttpAppMiddleware[Nothing, Any, Nothing, Any])#OutErr[Throwable],
+    Request,
+    Response
   ] = MediatorAgent.didCommApp
-    ++ Http
-      .collectZIO[Request] { case Method.GET -> !! / "hello" =>
-        ZIO.succeed(Response.text("Hello World! DID Comm Mediator APP")).debug
-      }
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
@@ -92,22 +94,24 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("mediator")
       .load(Config.int("port"))
     _ <- ZIO.log(s"Starting server on port: $port")
-    server = {
-      val config = ServerConfig(address = new java.net.InetSocketAddress(port))
-      ServerConfig.live(config)(using Trace.empty) >>> Server.live
-    }
+    escalateTo <- configs
+      .nested("report")
+      .nested("problem")
+      .nested("mediator")
+      .load(Config.string("escalateTo"))
+    _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
     client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve(
-        app.annotateLogs
+        (app @@ (MiddlewareUtils.annotateHeaders ++ MiddlewareUtils.serverTime))
           .tapUnhandledZIO(ZIO.logError("Unhandled Endpoint"))
           .tapErrorCauseZIO(cause => ZIO.logErrorCause(cause)) // THIS is to log all the erros
           .mapError(err =>
             Response(
               status = Status.BadRequest,
               headers = Headers.empty,
-              body = Body.fromString(err.getMessage()),
+              body = Body.fromString(err.toString()), // Body.fromString(err.getMessage()),
             )
           )
       )
@@ -116,12 +120,12 @@ object MediatorStandalone extends ZIOAppDefault {
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-          >>> MessageItemRepo.layer.and(UserAccountRepo.layer)
+          >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
       .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
-      .provide(server)
+      .provide(Server.defaultWithPort(port))
       .debug
       .fork
     _ <- ZIO.log(s"Mediator Started")

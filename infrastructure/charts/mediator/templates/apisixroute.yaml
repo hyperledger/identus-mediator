@@ -1,0 +1,62 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: mediator-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{ template "labels.common" . }}
+spec:
+  http:
+  - name: mediator-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /*
+    backends:
+       - serviceName: mediator-service
+         servicePort: 8080
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/(.*)","/$1"]
+    - name: request-id
+      enable: true
+      config:
+        header_name: "X-Request-ID"
+        include_in_response: true
+    {{ template "cors" . }}
+
+---
+
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: mediator-docs-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{ template "labels.common" . }}
+spec:
+  http:
+  - name: mediator-docs-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /docs/mediator/api/*
+    backends:
+       - serviceName: mediator-service
+         servicePort: 8080
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/docs/mediator/api/(.*)","/api/$1"]
+    {{ template "cors" . }}
+{{- end -}}

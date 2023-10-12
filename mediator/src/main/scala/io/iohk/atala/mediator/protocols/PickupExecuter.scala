@@ -12,9 +12,12 @@ import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
 object PickupExecuter
-    extends ProtocolExecuterWithServices[ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo] {
+    extends ProtocolExecuterWithServices[
+      ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo,
+      ProtocolExecuter.Erros
+    ] {
 
-  override def suportedPIURI: Seq[PIURI] = Seq(
+  override def supportedPIURI: Seq[PIURI] = Seq(
     StatusRequest.piuri,
     Status.piuri,
     DeliveryRequest.piuri,
@@ -25,7 +28,7 @@ object PickupExecuter
 
   override def program[R1 <: UserAccountRepo & MessageItemRepo](
       plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError, Action] = {
+  ): ZIO[R1, StorageError, Action] = {
     // the val is from the match to be definitely stable
     val piuriStatusRequest = StatusRequest.piuri
     val piuriStatus = Status.piuri
@@ -48,23 +51,46 @@ object PickupExecuter
           repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
-          msgHash = mDidAccount match
-            case None             => ??? // TODO FIXME
-            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
-          status = Status(
-            thid = m.id,
-            from = m.to.asFROM,
-            to = m.from.asTO,
-            recipient_did = m.recipient_did,
-            message_count = msgHash.size,
-            longest_waited_seconds = None, // TODO
-            newest_received_time = None, // TODO
-            oldest_received_time = None, // TODO
-            total_bytes = None, // TODO
-            live_delivery = None, // TODO
+          ret = mDidAccount match
+            case None =>
+              Problems
+                .notEnroledError(
+                  from = m.to.asFROM,
+                  to = Some(m.from.asTO),
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                  didNotEnrolled = didRequestingMessages.asFROM.toDIDSubject,
+                )
+                .toPlaintextMessage
+            case Some(didAccount) =>
+              val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
+              Status(
+                thid = m.id,
+                from = m.to.asFROM,
+                to = m.from.asTO,
+                recipient_did = m.recipient_did,
+                message_count = msgHash.size,
+                longest_waited_seconds = None, // TODO
+                newest_received_time = None, // TODO
+                oldest_received_time = None, // TODO
+                total_bytes = None, // TODO
+                live_delivery = None, // TODO
+              ).toPlaintextMessage
+        } yield SyncReplyOnly(ret)
+      case m: Status =>
+        ZIO.logInfo("Status") *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .unsupportedProtocolRole(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id, // TODO CHECK pthid
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
           )
-        } yield Reply(status.toPlaintextMessage)
-      case m: Status => ZIO.logInfo("Status") *> ZIO.succeed(NoReply)
       case m: DeliveryRequest =>
         for {
           _ <- ZIO.logInfo("DeliveryRequest")
@@ -72,33 +98,46 @@ object PickupExecuter
           repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
-          msgHash = mDidAccount match
-            case None             => ???
-            case Some(didAccount) => didAccount.messagesRef.filter(_.state == false).map(_.hash)
-          allMessagesFor <- repoMessageItem.findByIds(msgHash)
-          messagesToReturn =
-            if (m.recipient_did.isEmpty) allMessagesFor
-            else {
-              allMessagesFor.filterNot(
-                _.msg.recipientsSubject
-                  .map(_.did)
-                  .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+          ret <- mDidAccount match
+            case None =>
+              ZIO.succeed(
+                Problems
+                  .notEnroledError(
+                    from = m.to.asFROM,
+                    to = Some(m.from.asTO),
+                    pthid = m.id, // TODO CHECK pthid
+                    piuri = m.piuri,
+                    didNotEnrolled = didRequestingMessages.asFROM.toDIDSubject,
+                  )
+                  .toPlaintextMessage
               )
-            }
-          deliveryRequest = MessageDelivery(
-            thid = m.id,
-            from = m.to.asFROM,
-            to = m.from.asTO,
-            recipient_did = m.recipient_did,
-            attachments = messagesToReturn.map(m => (m.hashCode.toString, m.msg)).toMap,
-          )
-        } yield SyncReplyOnly(deliveryRequest.toPlaintextMessage)
+            case Some(didAccount) =>
+              val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
+              for {
+                allMessagesFor <- repoMessageItem.findByIds(msgHash)
+                messagesToReturn =
+                  if (m.recipient_did.isEmpty) allMessagesFor
+                  else {
+                    allMessagesFor.filterNot(
+                      _.msg.recipientsSubject
+                        .map(_.did)
+                        .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                    )
+                  }
+              } yield MessageDelivery(
+                thid = m.id,
+                from = m.to.asFROM,
+                to = m.from.asTO,
+                recipient_did = m.recipient_did,
+                attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
+              ).toPlaintextMessage
+        } yield SyncReplyOnly(ret)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
           ZIO.succeed(
             Reply(
               MessagesReceived(
-                thid = m.id,
+                thid = Some(m.id),
                 from = m.to.asFROM,
                 to = m.from.asTO,
                 message_id_list = m.attachments.keys.toSeq,
@@ -112,11 +151,23 @@ object PickupExecuter
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.markAsDelivered(
             didRequestingMessages.toDID,
-            m.message_id_list.map(e => e.toInt) // TODO have it safe 'toInt'
+            m.message_id_list
           )
         } yield NoReply
-      case m: LiveModeChange => ZIO.logWarning("LiveModeChange not implemented") *> ZIO.succeed(NoReply) // TODO
-
+      case m: LiveModeChange =>
+        ZIO.logInfo("LiveModeChange Not Supported") *>
+          ZIO.succeed(
+            SyncReplyOnly(
+              Problems
+                .liveModeNotSupported(
+                  from = m.to.asFROM,
+                  to = m.from.asTO,
+                  pthid = m.id,
+                  piuri = m.piuri,
+                )
+                .toPlaintextMessage
+            )
+          )
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply)
       case Right(program) => program

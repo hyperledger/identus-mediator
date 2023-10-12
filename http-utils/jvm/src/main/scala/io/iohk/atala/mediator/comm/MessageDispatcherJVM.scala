@@ -6,9 +6,10 @@ import fmgp.did.comm.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.utils.MyHeaders
 import zio.*
-import zio.http.*
-import zio.http.model.*
+import zio.http.{MediaType => ZMediaType, *}
 import zio.json.*
+
+import scala.util.chaining._
 
 object MessageDispatcherJVM {
   val layer: ZLayer[Client, Throwable, MessageDispatcher] =
@@ -25,25 +26,30 @@ class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
       /*context*/
       destination: String,
       xForwardedHost: Option[String],
-  ): ZIO[Any, DidFail, String] = {
-    val contentTypeHeader = Headers.contentType(msg.`protected`.obj.typ.getOrElse(MediaTypes.ENCRYPTED).typ)
-    val xForwardedHostHeader = Headers(xForwardedHost.map(x => Header(MyHeaders.xForwardedHost, x)))
+  ): ZIO[Any, DispatcherError, String] = {
+    val contentTypeHeader = msg.`protected`.obj.typ
+      .getOrElse(MediaTypes.ENCRYPTED)
+      // .pipe(e => Header.ContentType(ZMediaType(e.mainType, e.subType))) FIXME
+      .pipe(e => Header.ContentType(ZMediaType.application.any.copy(subType = "didcomm-encrypted+json")))
+    val xForwardedHostHeader = xForwardedHost.map(x => Header.Custom(customName = MyHeaders.xForwardedHost, x))
+
+    //   xForwardedHost.map(x => Header.(MyHeaders.xForwardedHost, x))
     for {
       res <- Client
         .request(
           url = destination,
           method = Method.POST,
-          headers = contentTypeHeader ++ xForwardedHostHeader,
+          headers = Headers(Seq(Some(contentTypeHeader), xForwardedHostHeader).flatten),
           content = Body.fromCharSequence(msg.toJson),
         )
         .tapError(ex => ZIO.logWarning(s"Fail when calling '$destination': ${ex.toString}"))
-        .mapError(ex => SomeThrowable(ex))
+        .mapError(ex => DispatcherError(ex))
       data <- res.body.asString
         .tapError(ex => ZIO.logError(s"Fail parce http response body: ${ex.toString}"))
-        .mapError(ex => SomeThrowable(ex))
+        .mapError(ex => DispatcherError(ex))
       _ <- res.status.isError match
-        case true  => ZIO.logError(data)
+        case true  => ZIO.logWarning(data)
         case false => ZIO.logInfo(data)
     } yield (data)
-  }.provideEnvironment(ZEnvironment(client)) // .host()
+  }.provideEnvironment(ZEnvironment(client))
 }

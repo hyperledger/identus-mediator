@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M4"
+  val scalaDID = "0.1.0-M10"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
@@ -20,27 +20,27 @@ lazy val V = new {
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
-  val zio = "2.0.13"
+  val zio = "2.0.15"
   val zioJson = "0.4.2"
   // val zioMunitTest = "0.1.1"
-  val zioHttp = "0.0.5"
+  val zioHttp = "3.0.0-RC2"
   val zioConfig = "4.0.0-RC16"
-  val zioLogging = "2.1.13"
-  val zioSl4j = "2.1.13"
-  val logback = "1.3.8"
+  val zioLogging = "2.1.14"
+  val zioSl4j = "2.1.14"
+  val logback = "1.3.11"
   val logstash = "7.4"
   val jansi = "2.4.0"
   val mongo = "1.1.0-RC10"
-  val embedMongo = "4.7.0"
+  val embedMongo = "4.7.2"
   val munitZio = "0.1.1"
   val zioTest = "2.0.15"
   val zioTestSbt = "2.0.15"
   val zioTestMagnolia = "2.0.15"
 
   // For WEBAPP
-  val laminar = "15.0.1"
-  val waypoint = "6.0.0"
-  val upickle = "3.1.0"
+  val laminar = "16.0.0"
+  val waypoint = "7.0.0"
+  val upickle = "3.1.3"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
@@ -98,6 +98,9 @@ lazy val NPM = new {
   val qrcode = Seq("qrcode-generator" -> "1.4.4")
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
+
+  val sha1 = Seq("js-sha1" -> "0.6.0", "@types/js-sha1" -> "0.6.0")
+  val sha256 = Seq("js-sha256" -> "0.9.0")
 }
 
 inThisBuild(
@@ -166,13 +169,13 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoPackage := "io.iohk.atala.mediator",
-    // buildInfoObject := "BuildInfo",
+    buildInfoObject := "MediatorBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
       version,
       scalaVersion,
       sbtVersion,
-      BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
+      // BuildInfoKey.action("buildTime") { System.currentTimeMillis }, // re-computed each time at compile
     ),
   )
 
@@ -183,12 +186,15 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
   .settings(
     libraryDependencies += D.scalaDID.value,
   )
+  .jsConfigure(scalaJSBundlerConfigure)
+  .jsSettings(Compile / npmDependencies ++= NPM.sha1 ++ NPM.sha256)
   .jvmSettings(
     libraryDependencies += D.zioHttp.value,
   )
 
 lazy val mediator = project
   .in(file("mediator"))
+  .configure(buildInfoConfigure)
   .settings(publish / skip := true)
   .settings(
     // FIX TODO (maybe the next version of the library will hide this compilation error)
@@ -228,8 +234,10 @@ lazy val mediator = project
     Docker / maintainer := "atala-coredid@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),
+    Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
+    dockerUpdateLatest := true,
   )
   .settings(Test / parallelExecution := false)
   .settings(
@@ -239,7 +247,7 @@ lazy val mediator = project
       * all tasks for production, including Scala.js fullOptJS task and source maps scalaJSDev task runs all tasks for
       * development, including Scala.js fastOptJS task and source maps.
       */
-    Assets / pipelineStages := Seq(scalaJSPipeline),
+    Assets / pipelineStages := Seq(scalaJSPipeline, gzip),
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
@@ -264,13 +272,13 @@ lazy val webapp = project
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
     libraryDependencies ++= Seq(D.scalaDID.value, D.scalaDID_peer.value),
-    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign
+    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign ++ NPM.sha1 ++ NPM.sha256,
   )
   .settings(
     stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("fmgp.webapp.App", "main")
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("io.iohk.atala.mediator.App", "main")
     },
   )
 
