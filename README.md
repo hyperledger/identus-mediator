@@ -1,10 +1,10 @@
-|            Live Demo           |             Discord            |     Atala PRISM Website      |
-| ------------------------------ | ------------------------------ | -----------------------------|
-|[![Atala-Symbol]][Link-LiveDemo]|[![Badge-Discord]][Link-Discord]|[![Atala-Favicon]][Link-Atala]|
+| Live Demo                        | Discord                          | Atala PRISM Website            |
+|----------------------------------|----------------------------------|--------------------------------|
+| [![Atala-Symbol]][Link-LiveDemo] | [![Badge-Discord]][Link-Discord] | [![Atala-Favicon]][Link-Atala] |
 
-|      CI       | Project Stage  |   Commits since latest release   |
-| ------------- | -------------- | -------------------------------- |
-|![CI][Badge-CI]| ![Badge-Stage] |![Badge-CommitsSinceLatestRelease]|
+| CI              | Project Stage  | Commits since latest release       |
+|-----------------|----------------|------------------------------------|
+| ![CI][Badge-CI] | ![Badge-Stage] | ![Badge-CommitsSinceLatestRelease] |
 
 # Atala Mediator
 
@@ -178,8 +178,8 @@ https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 
 [Link-LiveDemo]:https://beta-mediator.atalaprism.io/
 [Link-Atala]:https://atalaprism.io/
-[Link-Discord]:https://discord.gg/UpxKYK2s
-[Link-Discord-Mediator]:https://discord.gg/S7FZEwqe
+[Link-Discord]:https://discord.gg/htdY5uwKTg
+[Link-Discord-Mediator]:https://discord.gg/vUchrCCMXt
 
 [Badge-Stage]: https://img.shields.io/badge/0.9.2-Production%20Ready-brightgreen.svg
 [Badge-Discord]: https://img.shields.io/discord/1146426895114702858?logo=discord "chat on discord"
