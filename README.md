@@ -80,7 +80,7 @@ The mediator is especially useful when the edge entities are not always online, 
 - [DONE] `MediatorCoordination 2.0` - https://didcomm.org/mediator-coordination/2.0
  - See [link for the protocol specs](/Coordinate-Mediation-Protocol.md)
 - [TODO] `MediatorCoordination 3.0` - https://didcomm.org/mediator-coordination/3.0
-- [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0 [ with exclusion of When the delivery request  (https://didcomm.org/messagepickup/3.0/delivery-request)  is made, but there are no messages currently available to be sent,  No status message is sent immediately, Instead you can check the the status of message using the status request https://didcomm.org/messagepickup/3.0/status-request]
+- [DONE] `Pickup 3` - https://didcomm.org/pickup/3.0
 - [DONE] `TrustPing 2.0` - https://didcomm.org/trust-ping/2.0/
 - [DONE] `Report Problem 2.0` https://didcomm.org/report-problem/2.0/
 
