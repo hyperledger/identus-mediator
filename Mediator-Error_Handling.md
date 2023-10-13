@@ -12,22 +12,22 @@ https://identity.foundation/didcomm-messaging/spec/#problem-reports
 
 This table defines the expected behavior of the mediator in different scenarios not covered by the specifications.
 
-| Mediators   | Atala Mediator | Roadmap Atala Mediator | RootsId | Blocktrust |
-|-------------|----------------|------------------------|---------|------------|
-| Scenario G1 | G1C            | -                      | ?       | ?          |
-| Scenario G2 | G2A            | [TODO ATL-5840] G2B    | ?       | ?          |
-| Scenario G3 | G3A            | [TODO (next)] G3B      | ?       | ?          |
-| Scenario G4 | G4B            | -                      | ?       | ?          |
-| Scenario G5 | Fallback G4B   | [TODO] G5B             | ?       | ?          |
-| Scenario G6 | Fallback G4B   | [WIP] G6B              | ?       | ?          |
-| Scenario G7 | Fallback G4B   | [TODO] G7B             | ?       | ?          |
-| Scenario G8 | G8C            | -                      | ?       | ?          |
-|             |                |                        |         |            |
-| Scenario M1 | M1B            | -                      | ?       | ?          |
-| Scenario M2 | M2B            | -                      | ?       | ?          |
-| Scenario M3 | Fallback G4    | M3B                    | ?       | ?          |
-| Scenario M4 | M4B            | -                      | ?       | ?          |
-| Scenario M5 | M5A            | [TODO] M5B             | ?       | ?          |
+| Mediators   | Atala Mediator | Roadmap Atala Mediator | │ | RootsId | Blocktrust |
+|-------------|----------------|------------------------|---|---------|------------|
+| Scenario G1 | G1C            | -                      | │ | ?       | ?          |
+| Scenario G2 | G2B [ATL-5840] | -                      | │ |         | ?          |
+| Scenario G3 | Fallback G2B   | [TODO] G3B             | │ |         | ?          |
+| Scenario G4 | G4B            | -                      | │ |         | ?          |
+| Scenario G5 | Fallback G4B   | [TODO] G5B             | │ |         | ?          |
+| Scenario G6 | Fallback G4B   | [WIP] G6B              | │ |         | ?          |
+| Scenario G7 | Fallback G4B   | [TODO] G7B             | │ |         | ?          |
+| Scenario G8 | G8C            | -                      | │ |         | ?          |
+|             |                |                        |   |         |            |
+| Scenario M1 | M1B            | -                      | │ |         | ?          |
+| Scenario M2 | M2B            | -                      | │ |         | ?          |
+| Scenario M3 | Fallback G4    | M3B                    | │ |         | ?          |
+| Scenario M4 | M4B            | -                      | │ |         | ?          |
+| Scenario M5 | M5A            | [TODO] M5B             | │ |         | ?          |
 
 ### Scenarios Description
 

@@ -7,8 +7,10 @@ import fmgp.did.comm.PlaintextMessage
 import io.iohk.atala.mediator.MissingProtocolError
 import io.iohk.atala.mediator.actions.ProtocolExecuter
 import io.iohk.atala.mediator.actions.Reply
+import io.iohk.atala.mediator.actions.ProtocolExecuterWithServices
+import io.iohk.atala.mediator.MediatorError
 
-object MissingProtocolExecuter extends ProtocolExecuter[Agent, Nothing] {
+case class MissingProtocolExecuter() extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
 
   override def supportedPIURI = Seq()
   override def program[R1 <: Agent](plaintextMessage: PlaintextMessage) =

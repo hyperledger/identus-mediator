@@ -46,7 +46,7 @@ case class MediatorAgent(
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
         PickupExecuter,
-      )
+      )(fallback = MissingProtocolExecuter())
     )
 
   val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
