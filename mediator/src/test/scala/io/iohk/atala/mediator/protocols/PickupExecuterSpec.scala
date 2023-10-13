@@ -113,6 +113,27 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           assertTrue(plainText.`type` == MessageDelivery.piuri) && assertTrue(plainText.attachments.nonEmpty)
         }
       } @@ TestAspect.before(setupAndClean),
+      test("Delivery Request message for Pickup returns a Status Message when there are no messages available") {
+        val pickupExecuter = PickupExecuter
+        for {
+          mediatorAgent <- ZIO.service[MediatorAgent]
+          userAccount <- ZIO.service[UserAccountRepo]
+          _ <- userAccount.createOrFindDidAccount(DIDSubject(aliceAgent.id.did))
+          _ <- userAccount.addAlias(
+            owner = DIDSubject(aliceAgent.id.did),
+            newAlias = DIDSubject(aliceAgent.id.did)
+          )
+          msg <- ZIO.fromEither(
+            plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
+          )
+          result <- pickupExecuter.execute(msg)
+          message <- ZIO.fromOption(result)
+          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+        } yield {
+          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
+          assertTrue(plainText.`type` == Status.piuri)
+        }
+      } @@ TestAspect.before(setupAndClean),
       test("Messages Received  message should clear the messages from the queue") {
         val executer = PickupExecuter
         val forwardMessageExecuter = ForwardMessageExecuter
