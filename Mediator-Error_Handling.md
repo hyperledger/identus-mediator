@@ -42,17 +42,17 @@ This table defines the expected behavior of the mediator in different scenarios 
 - **G2** - Receive a message for an unsupported protocol
   https://input-output.atlassian.net/browse/ATL-5840
   - G2A - ignore (no effect/output) 
-  - G2B - Send a problem report "e.p.msg.unsupported"
+  - G2B - Send a problem report `e.p.msg.unsupported`
 
-- **G3** - Receive a message for an unsupported  unsupported version of the protocol.
+- **G3** - Receive a message for an unsupported version of the protocol.
   - G2B - Fallback to G2
-  - G3B - Send `e.p.msg.unsupported` and say what version(s) its supported
+  - G3B - Send a problem report `e.p.msg.unsupported` and say what version(s) its supported
 
 - **G4** - When an internal error or any unexpected error happens.
   - G4A - ignore (no effect/output) 
   - G4B - Send a problem report "e.p.error"
 
-- **G5** - If the message is tampered (or it throws any crypto errors).
+- **G5** - If the message is tampered or got any crypto errors when decoding.
   - G5A - ignore (no effect/output) 
   - G5B - (sync!) Send a problem report "e.p.crypto"
 
@@ -66,13 +66,8 @@ This table defines the expected behavior of the mediator in different scenarios 
 
 - **G8** - When a parsing error from the decrypted message.
   - G8A - ignore (no effect/output)
-  - G8B - (sync!) Send an `e.p.msg` If the plaintext message is malformed 
-  - G8C - Send an `e.p.msg.<PIURI>` If the plaintext message is malformed or if parsing into a specific protocol's data model fails.
-
-
-- Receive a problem report (1w):
-- in case of Warnings Reply `w.p` -> log warnings and escalate to an error `e.p` on the reply
-- in case of Error `e.p` -> log error
+  - G8B - (sync!) Send a problem report `e.p.msg` if the plaintext message is malformed 
+  - G8C - Send a problem report `e.p.msg.<PIURI>` if the plaintext message is malformed or if parsing into a specific protocol's data model fails.
 
 #### Mediator especific Scenarios:
 
@@ -98,8 +93,6 @@ This table defines the expected behavior of the mediator in different scenarios 
   - Follow the protocol -> Upon receiving the `live_delivery_change` message with `live_delivery` set to `true``:
     - M5A - If the connection supports live delivery respond with a [`status`](https://didcomm.org/messagepickup/3.0/status) message.
     - M5B - If the connection is incapable of live delivery send a problem report `e.m.live-mode-not-supported`
-
-
 
 ### Considerations
 
