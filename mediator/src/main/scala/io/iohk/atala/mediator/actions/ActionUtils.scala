@@ -10,7 +10,6 @@ import fmgp.did.comm.protocol.trustping2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
-import io.iohk.atala.mediator.protocols.NullProtocolExecuter
 import zio.*
 import zio.json.*
 import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
