@@ -1,3 +1,15 @@
+## [0.10.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.0...prism-mediator-v0.10.1) (2023-10-13)
+
+
+### Bug Fixes
+
+* allowed memory to increase gradually in CI ([#37](https://github.com/input-output-hk/atala-prism-mediator/issues/37)) ([a73abbd](https://github.com/input-output-hk/atala-prism-mediator/commit/a73abbdaf248eb474489e858c8b22913c1ec42e1))
+* Discord links to never expires ([#141](https://github.com/input-output-hk/atala-prism-mediator/issues/141)) ([e7f7a74](https://github.com/input-output-hk/atala-prism-mediator/commit/e7f7a74237d5a79ab3fe39ff4f82712e1ed49163))
+* **infra:** add sync-wave to certificate template ([#134](https://github.com/input-output-hk/atala-prism-mediator/issues/134)) ([82f902f](https://github.com/input-output-hk/atala-prism-mediator/commit/82f902f625246f0c1d0e06db096022e024c879c0))
+* MissingProtocolExecuter ([#140](https://github.com/input-output-hk/atala-prism-mediator/issues/140)) ([c7a0f90](https://github.com/input-output-hk/atala-prism-mediator/commit/c7a0f90a094a5b075df9569a38f8f36681a25b2c))
+* OutOfBand qrcode with base url ([#133](https://github.com/input-output-hk/atala-prism-mediator/issues/133)) ([56d34f9](https://github.com/input-output-hk/atala-prism-mediator/commit/56d34f9ebfee74b71a644b35761861fe49515861))
+* send status message on delivery request If no messages are avail… ([#139](https://github.com/input-output-hk/atala-prism-mediator/issues/139)) ([c788335](https://github.com/input-output-hk/atala-prism-mediator/commit/c7883350f7e5b8070330010f8f299d4c0f32e7ee))
+
 # [0.10.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.9.2...prism-mediator-v0.10.0) (2023-09-21)
 
 
