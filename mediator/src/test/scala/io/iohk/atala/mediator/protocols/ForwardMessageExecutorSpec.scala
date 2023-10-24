@@ -66,8 +66,6 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
     .provideSomeLayer(AgentStub.agentLayer)
     .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
 
-
-
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)
     >>> AsyncDriverResource.layer
     >>> ReactiveMongoApi.layer(connectionString)
