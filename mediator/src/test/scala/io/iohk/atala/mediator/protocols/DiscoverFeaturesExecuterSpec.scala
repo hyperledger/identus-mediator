@@ -1,6 +1,8 @@
 package io.iohk.atala.mediator.protocols
 
+import fmgp.did.DIDSubject
 import fmgp.did.comm.protocol.reportproblem2.{ProblemCode, ProblemReport}
+import fmgp.did.comm.protocol.discoverfeatures2._
 import fmgp.did.comm.{EncryptedMessage, Operations, PlaintextMessage, SignedMessage, layerDefault}
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.util.Base64
@@ -14,21 +16,27 @@ import zio.http.Client
 import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
-import fmgp.did.DIDSubject
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import io.iohk.atala.mediator.protocols.MediatorCoordinationExecuterSpec.setupAndClean
 import reactivemongo.api.bson.BSONDocument
-object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
-  override def spec = suite("ForwardMessageExecutorSpec")(
-    test("Forward message for notEnrolled DID receives problem report ") {
-      val executer = ForwardMessageExecuter
+object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
+
+  val plaintextDiscoverFeaturesQueryMessage = FeatureQuery(
+    to = Set(alice.asTO),
+    from = mediatorDid.asFROM,
+    queries = ???,
+  ).toPlaintextMessage.toFeatureQuery // Just to test the encode and parse
+
+  override def spec = suite("DiscoverFeaturesExecuterSpec")(
+    test("DiscoverFeatures Query message") {
+      val executer = DiscoverFeaturesExecuter
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         result <- userAccount.createOrFindDidAccount(alice)
-        msg <- ZIO.fromEither(plaintextForwardNotEnrolledDidMessage)
+        msg <- ZIO.fromEither(plaintextDiscoverFeaturesQueryMessage)
         result <- executer.execute(msg)
         message <- ZIO.fromOption(result)
       } yield {
@@ -48,17 +56,18 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
         )
       }
     } @@ TestAspect.before(setupAndClean),
-    test("Forward message for enrolled DID receives NoReply") {
-      val executer = ForwardMessageExecuter
-      for {
-        userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.createOrFindDidAccount(alice)
-        result <- userAccount.addAlias(owner = alice, newAlias = alice)
-        msg <- ZIO.fromEither(plaintextForwardEnrolledDidMessage)
-        result <- executer.execute(msg)
-      } yield assertTrue(result.isEmpty)
 
-    } @@ TestAspect.before(setupAndClean)
+    // test("Forward message for enrolled DID receives NoReply") {
+    //   val executer = ForwardMessageExecuter
+    //   for {
+    //     userAccount <- ZIO.service[UserAccountRepo]
+    //     result <- userAccount.createOrFindDidAccount(alice)
+    //     result <- userAccount.addAlias(owner = alice, newAlias = alice)
+    //     msg <- ZIO.fromEither(plaintextForwardEnrolledDidMessage)
+    //     result <- executer.execute(msg)
+    //   } yield assertTrue(result.isEmpty)
+    // } @@ TestAspect.before(setupAndClean)
+
   ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(Operations.layerDefault)
     .provideSomeLayer(Scope.default >>> Client.default >>> MessageDispatcherJVM.layer)

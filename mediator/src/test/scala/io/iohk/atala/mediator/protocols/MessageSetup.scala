@@ -28,8 +28,10 @@ trait MessageSetup {
     } yield {}
   }
 
-  val mediatorDid =
+  val mediatorDid = DIDSubject(
     "did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9ib2IuZGlkLmZtZ3AuYXBwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
+  )
+
   val plaintextForwardNotEnrolledDidMessage: Either[String, PlaintextMessage] =
     """{
      |  "id" : "c8f9712a-fdad-45d0-81d9-c610daaa9285",
