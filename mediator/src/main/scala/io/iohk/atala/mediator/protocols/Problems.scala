@@ -94,6 +94,23 @@ object Problems {
     escalate_to = email,
   )
 
+  def dejavuError(
+      to: Set[TO],
+      from: FROM,
+      pthid: MsgID,
+      piuri: PIURI,
+  ) = ProblemReport(
+    // id: MsgID = MsgID(),
+    to = to,
+    from = from,
+    pthid = pthid,
+    ack = None,
+    code = ProblemCode.ErroFail("crypto", "message", "dejavu"),
+    comment = None,
+    args = None,
+    escalate_to = email,
+  )
+
   def notEnroledError(
       to: Option[TO],
       from: FROM,

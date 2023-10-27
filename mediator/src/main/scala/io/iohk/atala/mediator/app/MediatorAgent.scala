@@ -102,7 +102,7 @@ case class MediatorAgent(
       maybeSyncReplyMsg <- receiveMessage(msg)
     } yield (maybeSyncReplyMsg)
 
-  def receiveMessage(msg: EncryptedMessage): ZIO[
+  private def receiveMessage(msg: EncryptedMessage): ZIO[
     Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
     MediatorError | StorageError,
     Option[SignedMessage | EncryptedMessage]
@@ -122,9 +122,7 @@ case class MediatorAgent(
                   plaintextMessage <- decrypt(msg)
                   maybeActionStorageError <- messageItemRepo
                     .insert(msg) // store all message
-                    .map(_ /*WriteResult*/ => None
-                    // TODO messages already on the database -> so this might be a replay attack
-                    )
+                    .map(_ /*WriteResult*/ => None)
                     .catchSome {
                       case StorageCollection(error) =>
                         // This deals with connection errors to the database.
@@ -163,6 +161,24 @@ case class MediatorAgent(
                                 )
                               )
                             )
+                      case DuplicateMessage(error) =>
+                        ZIO.logWarning(s"Error DuplicateMessageError: $error") *>
+                          ZIO
+                            .service[Agent]
+                            .map(agent =>
+                              Some(
+                                Reply(
+                                  Problems
+                                    .dejavuError(
+                                      to = plaintextMessage.from.map(_.asTO).toSet,
+                                      from = agent.id,
+                                      pthid = plaintextMessage.id,
+                                      piuri = plaintextMessage.`type`,
+                                    )
+                                    .toPlaintextMessage
+                                )
+                              )
+                            )
                     }
                   // TODO Store context of the decrypt unwarping
                   // TODO SreceiveMessagetore context with MsgID and PIURI
@@ -173,10 +189,11 @@ case class MediatorAgent(
                   }.tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
                 } yield ret
               }.catchAll {
-                case ex: MediatorError     => ZIO.fail(ex)
-                case pr: ProblemReport     => ActionUtils.packResponse(None, Reply(pr.toPlaintextMessage))
-                case ex: StorageCollection => ZIO.fail(ex)
-                case ex: StorageThrowable  => ZIO.fail(ex)
+                case ex: MediatorError         => ZIO.fail(ex)
+                case pr: ProblemReport         => ActionUtils.packResponse(None, Reply(pr.toPlaintextMessage))
+                case ex: StorageCollection     => ZIO.fail(ex)
+                case ex: StorageThrowable      => ZIO.fail(ex)
+                case ex: DuplicateMessage => ZIO.fail(ex)
               }
         } yield maybeSyncReplyMsg
       }
@@ -266,6 +283,9 @@ object MediatorAgent {
                   ZIO.succeed(Response.status(Status.BadRequest))
               case StorageThrowable(error) =>
                 ZIO.logError(s"Error StorageThrowable: $error") *>
+                  ZIO.succeed(Response.status(Status.BadRequest))
+              case DuplicateMessage(error) =>
+                ZIO.logError(s"Error DuplicateKeyError: $error") *>
                   ZIO.succeed(Response.status(Status.BadRequest))
               case MissingProtocolError(piuri) =>
                 ZIO.logError(s"MissingProtocolError ('$piuri')") *>
