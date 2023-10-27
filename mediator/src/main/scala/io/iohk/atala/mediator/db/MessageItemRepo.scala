@@ -2,12 +2,13 @@ package io.iohk.atala.mediator.db
 
 import fmgp.did.*
 import fmgp.did.comm.EncryptedMessage
-import io.iohk.atala.mediator.{StorageCollection, StorageError, StorageThrowable}
+import io.iohk.atala.mediator.{DuplicateMessage, StorageCollection, StorageError, StorageThrowable}
 import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.{Cursor, CursorProducer}
 import zio.*
+import reactivemongo.core.errors.DatabaseException
 
 import scala.concurrent.ExecutionContext
 object MessageItemRepo {
@@ -34,7 +35,10 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
       result <- ZIO
         .fromFuture(implicit ec => coll.insert.one(MessageItem(msg, xRequestId)))
         .tapError(err => ZIO.logError(s"insert :  ${err.getMessage}"))
-        .mapError(ex => StorageThrowable(ex))
+        .mapError {
+          case ex: DatabaseException if (ex.code.contains(DuplicateMessage.code)) => DuplicateMessage(ex)
+          case ex                                                                 => StorageThrowable(ex)
+        }
     } yield result
   }
 
