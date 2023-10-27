@@ -36,6 +36,12 @@ object StorageThrowable {
   def apply(throwable: Throwable) = new StorageThrowable(throwable.getClass.getName() + ":" + throwable.getMessage)
 }
 
+final case class DuplicateMessage(val error: String) extends StorageError
+object DuplicateMessage {
+  val code =  11000
+  def apply(throwable: Throwable) = new DuplicateMessage(throwable.getClass.getName() + ":" + throwable.getMessage)
+}
+
 // ProtocolError
 sealed trait ProtocolError extends MediatorError {
   def piuri: PIURI
