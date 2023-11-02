@@ -203,15 +203,6 @@ case class MediatorAgent(
                               .toPlaintextMessage
                           )
                         )
-//                        ZIO.fail(
-//                        Problems
-//                          .malformedError(
-//                            to = plaintextMessage.from.map(_.asTO).toSet,
-//                            from = agent.id,
-//                            pthid = plaintextMessage.id,
-//                            piuri = plaintextMessage.`type`,
-//                          )
-//                      )
                     }
                 } yield ret
               }.catchAll {
