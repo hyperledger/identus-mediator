@@ -26,6 +26,7 @@ import scala.io.Source
 import zio.http.internal.middlewares.Cors.CorsConfig
 import zio.http.Header.AccessControlAllowOrigin
 import zio.http.Header.AccessControlAllowMethods
+import zio.http.Header.HeaderType
 
 case class MediatorAgent(
     override val id: DID,
@@ -250,9 +251,19 @@ object MediatorAgent {
           ret <- agent
             .receiveMessage(data)
             .map {
-              case None                          => Response.ok
-              case Some(value: SignedMessage)    => Response.json(value.toJson)
-              case Some(value: EncryptedMessage) => Response.json(value.toJson)
+              case None => Response(status = Status.Accepted)
+              case Some(value: SignedMessage) =>
+                Response(
+                  status = Status.Accepted,
+                  headers = Headers(Header.ContentType(MediaType.apply("application", "didcomm-signed+json"))),
+                  body = Body.fromCharSequence(value.toJson)
+                )
+              case Some(value: EncryptedMessage) =>
+                Response(
+                  status = Status.Accepted,
+                  headers = Headers(Header.ContentType(MediaType.apply("application", "didcomm-encrypted+json"))),
+                  body = Body.fromCharSequence(value.toJson)
+                )
             }
             .catchAll {
               case MediatorDidError(error) =>
