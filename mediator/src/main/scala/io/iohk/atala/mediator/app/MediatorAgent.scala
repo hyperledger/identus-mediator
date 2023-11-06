@@ -182,18 +182,35 @@ case class MediatorAgent(
                     }
                   // TODO Store context of the decrypt unwarping
                   // TODO SreceiveMessagetore context with MsgID and PIURI
+                  agent <- ZIO.service[Agent]
                   ret <- {
                     maybeActionStorageError match
                       case Some(reply) => ActionUtils.packResponse(Some(plaintextMessage), reply)
                       case None        => protocolHandler.execute(plaintextMessage)
                   }.tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+                    .catchSome { case MediatorDidError(error) =>
+                      ZIO.logError(s"Error MediatorDidError: $error") *>
+                        ActionUtils.packResponse(
+                          Some(plaintextMessage),
+                          Reply(
+                            Problems
+                              .malformedError(
+                                to = plaintextMessage.from.map(_.asTO).toSet,
+                                from = agent.id,
+                                pthid = plaintextMessage.id,
+                                piuri = plaintextMessage.`type`,
+                              )
+                              .toPlaintextMessage
+                          )
+                        )
+                    }
                 } yield ret
               }.catchAll {
-                case ex: MediatorError         => ZIO.fail(ex)
-                case pr: ProblemReport         => ActionUtils.packResponse(None, Reply(pr.toPlaintextMessage))
-                case ex: StorageCollection     => ZIO.fail(ex)
-                case ex: StorageThrowable      => ZIO.fail(ex)
-                case ex: DuplicateMessage => ZIO.fail(ex)
+                case ex: MediatorError     => ZIO.fail(ex)
+                case pr: ProblemReport     => ActionUtils.packResponse(None, Reply(pr.toPlaintextMessage))
+                case ex: StorageCollection => ZIO.fail(ex)
+                case ex: StorageThrowable  => ZIO.fail(ex)
+                case ex: DuplicateMessage  => ZIO.fail(ex)
               }
         } yield maybeSyncReplyMsg
       }
