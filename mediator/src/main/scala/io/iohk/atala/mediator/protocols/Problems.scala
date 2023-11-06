@@ -129,4 +129,21 @@ object Problems {
     escalate_to = email,
   )
 
+  def malformedError(
+      to: Set[TO],
+      from: FROM,
+      pthid: MsgID,
+      piuri: PIURI,
+  ) = ProblemReport(
+    // id: MsgID = MsgID(),
+    to = to,
+    from = from,
+    pthid = pthid,
+    ack = None,
+    code = ProblemCode.ErroFail("msg", piuri.value),
+    comment = None,
+    args = None,
+    escalate_to = email,
+  )
+
 }
