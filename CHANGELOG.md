@@ -1,3 +1,10 @@
+## [0.10.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.1...prism-mediator-v0.10.2) (2023-11-06)
+
+
+### Bug Fixes
+
+* Send problemReport for duplicate message ([#157](https://github.com/input-output-hk/atala-prism-mediator/issues/157)) ([df522cf](https://github.com/input-output-hk/atala-prism-mediator/commit/df522cf57e550827dbfa3bff665c00b63051018e))
+
 ## [0.10.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.0...prism-mediator-v0.10.1) (2023-10-13)
 
 
