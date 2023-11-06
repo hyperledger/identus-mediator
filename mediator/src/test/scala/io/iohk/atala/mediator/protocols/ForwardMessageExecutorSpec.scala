@@ -18,7 +18,6 @@ import fmgp.did.DIDSubject
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
-import io.iohk.atala.mediator.protocols.MediatorCoordinationExecuterSpec.setupAndClean
 import reactivemongo.api.bson.BSONDocument
 object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 

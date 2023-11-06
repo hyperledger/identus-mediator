@@ -5,7 +5,9 @@ import io.iohk.atala.mediator.db.UserAccountRepo
 import reactivemongo.api.bson.BSONDocument
 import zio.ZIO
 import zio.json.*
+import fmgp.did.comm
 import reactivemongo.api.indexes.{Index, IndexType}
+import fmgp.did.DIDSubject
 trait MessageSetup {
 
   val index = Index(
@@ -136,6 +138,24 @@ trait MessageSetup {
       |  "return_route" : "all",
       |  "typ" : "application/didcomm-plain+json"
       |}""".stripMargin.fromJson[PlaintextMessage]
+
+  val plaintextDiscoverFeatureRequestMessage = (didFrom: String, mediatorDid: String) =>
+    s"""{
+      |  "id" : "17f9f122-f762-4ba8-9011-39b9e7efb177",
+      |  "type" : "https://didcomm.org/discover-features/2.0/queries",
+      |  "to" : [
+      |     "$mediatorDid"
+      |  ],
+      |  "from" : "$didFrom",
+      |  "body" : {
+      |        "queries": [
+      |            { "feature-type": "goal-code", "match": ".*routing.*" }
+      |        ]
+      |    },
+      |  "return_route" : "all",
+      |  "typ" : "application/didcomm-plain+json"
+      |}""".stripMargin
+      .fromJson[PlaintextMessage]
 
   val plaintextKeyListUpdateRequestMessage = (didFrom: String, mediatorDid: String, recipientDid: String) => s"""{
       |  "id" : "cf64e501-d524-4fd9-8314-4dc4bc652983",

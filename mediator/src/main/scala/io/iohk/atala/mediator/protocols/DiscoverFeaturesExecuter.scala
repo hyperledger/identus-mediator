@@ -8,7 +8,7 @@ import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
 import io.iohk.atala.mediator.actions.{Action, NoReply, ProtocolExecuter, ProtocolExecuterWithServices, Reply}
 import zio.ZIO
 
-class DiscoverFeaturesExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
+object DiscoverFeaturesExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(FeatureQuery.piuri, FeatureDisclose.piuri)
 
