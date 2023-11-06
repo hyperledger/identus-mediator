@@ -29,7 +29,7 @@ import io.iohk.atala.mediator.db.AgentStub.{bobAgent, bobAgentLayer}
 object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
   override def spec = suite("DiscoverFeaturesExecuterSpec")(
-    test("DiscoverFeatures Query message") {
+    test("DiscoverFeatures Query message should return the disclose message containing the matched protocols") {
       val executer = DiscoverFeaturesExecuter
       for {
         agent <- ZIO.service[MediatorAgent]
@@ -41,10 +41,13 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
       } yield {
         val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
         assertTrue(plainText.`type` == FeatureDisclose.piuri) &&
-        assertTrue(featureDisclose.disclosures.nonEmpty)
+        assertTrue(featureDisclose.disclosures.nonEmpty) &&
+        assertTrue(featureDisclose.disclosures.head.id.contains("routing"))
       }
     } @@ TestAspect.before(setupAndClean),
-    test("DiscoverFeatures Query message with no match") {
+    test(
+      "DiscoverFeatures Query message doesn't match regex pattern, it should yield a disclose message with an empty body"
+    ) {
       val executer = DiscoverFeaturesExecuter
       for {
         agent <- ZIO.service[MediatorAgent]
