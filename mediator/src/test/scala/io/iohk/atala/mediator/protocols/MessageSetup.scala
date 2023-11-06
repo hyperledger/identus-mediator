@@ -149,14 +149,30 @@ trait MessageSetup {
       |  "from" : "$didFrom",
       |  "body" : {
       |        "queries": [
-      |            { "feature-type": "goal-code", "match": ".*routing.*" }
+      |            { "feature-type": "protocol", "match": ".*routing.*" }
       |        ]
       |    },
       |  "return_route" : "all",
       |  "typ" : "application/didcomm-plain+json"
       |}""".stripMargin
       .fromJson[PlaintextMessage]
-
+  val plaintextDiscoverFeatureRequestMessageNoMatch = (didFrom: String, mediatorDid: String) =>
+    s"""{
+       |  "id" : "17f9f122-f762-4ba8-9011-39b9e7efb177",
+       |  "type" : "https://didcomm.org/discover-features/2.0/queries",
+       |  "to" : [
+       |     "$mediatorDid"
+       |  ],
+       |  "from" : "$didFrom",
+       |  "body" : {
+       |        "queries": [
+       |            { "feature-type": "protocol", "match": "routing" }
+       |        ]
+       |    },
+       |  "return_route" : "all",
+       |  "typ" : "application/didcomm-plain+json"
+       |}""".stripMargin
+      .fromJson[PlaintextMessage]
   val plaintextKeyListUpdateRequestMessage = (didFrom: String, mediatorDid: String, recipientDid: String) => s"""{
       |  "id" : "cf64e501-d524-4fd9-8314-4dc4bc652983",
       |  "type" : "https://didcomm.org/coordinate-mediation/2.0/keylist-update",

@@ -37,10 +37,28 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
         result <- executer.execute(msg)
         message <- ZIO.fromOption(result)
         decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+        featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
+      } yield {
+        val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
+        assertTrue(plainText.`type` == FeatureDisclose.piuri) &&
+        assertTrue(featureDisclose.disclosures.nonEmpty)
+      }
+    } @@ TestAspect.before(setupAndClean),
+    test("DiscoverFeatures Query message with no match") {
+      val executer = DiscoverFeaturesExecuter
+      for {
+        agent <- ZIO.service[MediatorAgent]
+        msg <- ZIO.fromEither(plaintextDiscoverFeatureRequestMessageNoMatch(bobAgent.id.did, agent.id.did))
+        result <- executer.execute(msg)
+        message <- ZIO.fromOption(result)
+        decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+        featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
 
       } yield {
         val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-        assertTrue(plainText.`type` == FeatureDisclose.piuri)
+        assertTrue(plainText.`type` == FeatureDisclose.piuri) &&
+        assertTrue(featureDisclose.disclosures.isEmpty)
+
       }
     } @@ TestAspect.before(setupAndClean),
   ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
