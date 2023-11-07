@@ -5,7 +5,9 @@ import io.iohk.atala.mediator.db.UserAccountRepo
 import reactivemongo.api.bson.BSONDocument
 import zio.ZIO
 import zio.json.*
+import fmgp.did.comm
 import reactivemongo.api.indexes.{Index, IndexType}
+import fmgp.did.DIDSubject
 trait MessageSetup {
 
   val index = Index(
@@ -28,8 +30,10 @@ trait MessageSetup {
     } yield {}
   }
 
-  val mediatorDid =
+  val mediatorDid = DIDSubject(
     "did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9ib2IuZGlkLmZtZ3AuYXBwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
+  )
+
   val plaintextForwardNotEnrolledDidMessage: Either[String, PlaintextMessage] =
     """{
      |  "id" : "c8f9712a-fdad-45d0-81d9-c610daaa9285",
@@ -135,6 +139,40 @@ trait MessageSetup {
       |  "typ" : "application/didcomm-plain+json"
       |}""".stripMargin.fromJson[PlaintextMessage]
 
+  val plaintextDiscoverFeatureRequestMessage = (didFrom: String, mediatorDid: String) =>
+    s"""{
+      |  "id" : "17f9f122-f762-4ba8-9011-39b9e7efb177",
+      |  "type" : "https://didcomm.org/discover-features/2.0/queries",
+      |  "to" : [
+      |     "$mediatorDid"
+      |  ],
+      |  "from" : "$didFrom",
+      |  "body" : {
+      |        "queries": [
+      |            { "feature-type": "protocol", "match": ".*routing.*" }
+      |        ]
+      |    },
+      |  "return_route" : "all",
+      |  "typ" : "application/didcomm-plain+json"
+      |}""".stripMargin
+      .fromJson[PlaintextMessage]
+  val plaintextDiscoverFeatureRequestMessageNoMatch = (didFrom: String, mediatorDid: String) =>
+    s"""{
+       |  "id" : "17f9f122-f762-4ba8-9011-39b9e7efb177",
+       |  "type" : "https://didcomm.org/discover-features/2.0/queries",
+       |  "to" : [
+       |     "$mediatorDid"
+       |  ],
+       |  "from" : "$didFrom",
+       |  "body" : {
+       |        "queries": [
+       |            { "feature-type": "protocol", "match": "routing" }
+       |        ]
+       |    },
+       |  "return_route" : "all",
+       |  "typ" : "application/didcomm-plain+json"
+       |}""".stripMargin
+      .fromJson[PlaintextMessage]
   val plaintextKeyListUpdateRequestMessage = (didFrom: String, mediatorDid: String, recipientDid: String) => s"""{
       |  "id" : "cf64e501-d524-4fd9-8314-4dc4bc652983",
       |  "type" : "https://didcomm.org/coordinate-mediation/2.0/keylist-update",
