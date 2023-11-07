@@ -25,7 +25,7 @@ jobs:
       ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
       ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
       REPORTS_DIR: "didcomm-v2-mediator-test-suite/target/site/serenity"
-      DIDCOMM_V2_TESTSUITE_VERSION: "v0.1.0"
+      DIDCOMM_V2_TESTSUITE_VERSION: "3ed43f8f864ef0ea1cd89a9f81d3f379e8c0c217" # old "v0.1.0"
       MEDIATOR_DID: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
     steps:
       - name: Checkout mediator
@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: input-output-hk/didcomm-v2-mediator-test-suite
-          path: './didcomm-v2-mediator-test-suite'
+          path: "./didcomm-v2-mediator-test-suite"
           ref: ${{ env.DIDCOMM_V2_TESTSUITE_VERSION }}
 
       - name: Setup Java and Scala
@@ -62,7 +62,7 @@ jobs:
         uses: ndeloof/install-compose-action@v0.0.1
         with:
           version: v2.19.1 # defaults to 'latest'
-          legacy: true    # will also install in PATH as `docker-compose`
+          legacy: true # will also install in PATH as `docker-compose`
 
       - name: Build local version of Mediator Agent
         env:
