@@ -47,8 +47,8 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
         for {
           userAccount <- ZIO.service[UserAccountRepo]
           agent <- ZIO.service[MediatorAgent]
-          result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
-          result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(aliceAgent.id.did))
+          result <- userAccount.createOrFindDidAccount(alice)
+          result <- userAccount.addAlias(owner = alice, newAlias = DIDSubject(aliceAgent.id.did))
           msg <- ZIO.fromEither(plaintextMediationRequestMessage(aliceAgent.id.did, agent.id.did))
           result <- executer.execute(msg)
           message <- ZIO.fromOption(result)
