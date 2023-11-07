@@ -1,3 +1,4 @@
+/*
 package io.iohk.atala.mediator.utils
 
 import zio.*
@@ -50,3 +51,4 @@ object MiddlewareUtils {
     }
 
 }
+ */
