@@ -114,18 +114,20 @@ object PickupExecuter
             case Some(didAccount) =>
               val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
               if (msgHash.isEmpty) {
-               ZIO.succeed(Status(
-                  thid = m.id,
-                  from = m.to.asFROM,
-                  to = m.from.asTO,
-                  recipient_did = m.recipient_did,
-                  message_count = msgHash.size,
-                  longest_waited_seconds = None, // TODO
-                  newest_received_time = None, // TODO
-                  oldest_received_time = None, // TODO
-                  total_bytes = None, // TODO
-                  live_delivery = None, // TODO
-                ).toPlaintextMessage)
+                ZIO.succeed(
+                  Status(
+                    thid = m.id,
+                    from = m.to.asFROM,
+                    to = m.from.asTO,
+                    recipient_did = m.recipient_did,
+                    message_count = msgHash.size,
+                    longest_waited_seconds = None, // TODO
+                    newest_received_time = None, // TODO
+                    oldest_received_time = None, // TODO
+                    total_bytes = None, // TODO
+                    live_delivery = None, // TODO
+                  ).toPlaintextMessage
+                )
               } else {
                 for {
                   allMessagesFor <- repoMessageItem.findByIds(msgHash)
@@ -145,7 +147,7 @@ object PickupExecuter
                   recipient_did = m.recipient_did,
                   attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
                 ).toPlaintextMessage
-             }
+              }
 
         } yield SyncReplyOnly(ret)
       case m: MessageDelivery =>
