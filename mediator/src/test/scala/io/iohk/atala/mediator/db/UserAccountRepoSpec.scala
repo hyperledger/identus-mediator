@@ -21,7 +21,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
         userAccount <- ZIO.service[UserAccountRepo]
         col <- userAccount.collection
         _ = col.indexesManager.create(index)
-        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
+        result <- userAccount.createOrFindDidAccount(alice)
       } yield {
         assertTrue(result.isRight)
       }
@@ -29,7 +29,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("insert same Did should NOT fail") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
+        result <- userAccount.createOrFindDidAccount(alice)
       } yield {
         assertTrue(result.isRight)
       }
@@ -37,15 +37,15 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("Get Did Account") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.getDidAccount(alice)
       } yield {
-        assertTrue(result.isDefined) && assertTrue(result.exists(_.did == DIDSubject(alice)))
+        assertTrue(result.isDefined) && assertTrue(result.exists(_.did == alice))
       }
     },
     test("Get Did Account return for unknown did") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.getDidAccount(DIDSubject(bob))
+        result <- userAccount.getDidAccount(bob)
       } yield {
         assertTrue(result.isEmpty)
       }
@@ -53,8 +53,8 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("Add alias to existing Did Account return right nModified value 1") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(bob))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.addAlias(owner = alice, newAlias = bob)
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
@@ -66,7 +66,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("insert/create a UserAccount for a DID that is used as a alias should fail") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.createOrFindDidAccount(DIDSubject(bob))
+        result <- userAccount.createOrFindDidAccount(bob)
       } yield {
         assertTrue(result.isLeft)
       }
@@ -74,34 +74,34 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("Add owner as alias to existing Did Account return right with nModified value 1") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(alice))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.addAlias(owner = alice, newAlias = alice)
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
         assertTrue(result == Right(1)) &&
         assertTrue(didAccount.isDefined) &&
-        assertTrue(alias.sorted == Seq(alice, bob).sorted)
+        assertTrue(alias.sorted == Seq(alice.did, bob.did).sorted)
       }
     },
     test("Add same alias to existing Did Account return right with nModified value 0") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(alice))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.addAlias(owner = alice, newAlias = alice)
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
         assertTrue(result == Right(0)) &&
         assertTrue(didAccount.isDefined) &&
-        assertTrue(alias.sorted == Seq(alice, bob).sorted)
+        assertTrue(alias.sorted == Seq(alice.did, bob.did).sorted)
       }
     },
     test("Remove alias to existing Did Account should return right with nModified value 1 ") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.removeAlias(alice, bob)
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
@@ -113,8 +113,8 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
     test("Remove alias to unknown or unregister alias Did should return right with noModified value 0") {
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.removeAlias(DIDSubject(alice), DIDSubject(bob))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        result <- userAccount.removeAlias(alice, bob)
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val alias: Seq[String] = didAccount.map(_.alias.map(_.did)).getOrElse(Seq.empty)
         assertTrue(result.isRight) &&
@@ -129,11 +129,11 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
         for {
           userAccount <- ZIO.service[UserAccountRepo]
           messageItem <- ZIO.service[MessageItemRepo]
-          result <- userAccount.addAlias(DIDSubject(alice), DIDSubject(bob))
+          result <- userAccount.addAlias(alice, bob)
           msg <- ZIO.fromEither(encryptedMessageAlice)
           msgAdded <- messageItem.insert(msg)
-          addedToInbox <- userAccount.addToInboxes(Set(DIDSubject(bob)), msg)
-          didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+          addedToInbox <- userAccount.addToInboxes(Set(bob), msg)
+          didAccount <- userAccount.getDidAccount(alice)
         } yield {
           val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
 
@@ -145,7 +145,7 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
           assert(messageMetaData)(
             forall(
               hasField("hash", (m: MessageMetaData) => m.hash, equalTo(msg.sha1))
-                && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(DIDSubject(bob)))
+                && hasField("recipient", (m: MessageMetaData) => m.recipient, equalTo(bob))
                 && hasField("xRequestId", (m: MessageMetaData) => m.xRequestId, equalTo(Some(xRequestId)))
             )
           )
@@ -156,8 +156,8 @@ object UserAccountRepoSpec extends ZIOSpecDefault with DidAccountStubSetup with 
       for {
         userAccount <- ZIO.service[UserAccountRepo]
         msg <- ZIO.fromEither(encryptedMessageAlice)
-        markedDelivered <- userAccount.markAsDelivered(DIDSubject(alice), Seq(msg.sha1))
-        didAccount <- userAccount.getDidAccount(DIDSubject(alice))
+        markedDelivered <- userAccount.markAsDelivered(alice, Seq(msg.sha1))
+        didAccount <- userAccount.getDidAccount(alice)
       } yield {
         val messageMetaData: Seq[MessageMetaData] = didAccount.map(_.messagesRef).getOrElse(Seq.empty)
         assertTrue(markedDelivered == 1) &&

@@ -45,6 +45,7 @@ object AgentStub {
 
   def bobAgentLayer: ULayer[Agent] = ZLayer.succeed(bobAgent)
 
+  /** Mediator */
   val agentLayer = mediatorConfig.agentLayer
 
 }

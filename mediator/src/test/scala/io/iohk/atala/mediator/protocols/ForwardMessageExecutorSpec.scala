@@ -18,7 +18,6 @@ import fmgp.did.DIDSubject
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
-import io.iohk.atala.mediator.protocols.MediatorCoordinationExecuterSpec.setupAndClean
 import reactivemongo.api.bson.BSONDocument
 object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
@@ -27,7 +26,7 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
       val executer = ForwardMessageExecuter
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
+        result <- userAccount.createOrFindDidAccount(alice)
         msg <- ZIO.fromEither(plaintextForwardNotEnrolledDidMessage)
         result <- executer.execute(msg)
         message <- ZIO.fromOption(result)
@@ -52,8 +51,8 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
       val executer = ForwardMessageExecuter
       for {
         userAccount <- ZIO.service[UserAccountRepo]
-        result <- userAccount.createOrFindDidAccount(DIDSubject(alice))
-        result <- userAccount.addAlias(owner = DIDSubject(alice), newAlias = DIDSubject(alice))
+        result <- userAccount.createOrFindDidAccount(alice)
+        result <- userAccount.addAlias(owner = alice, newAlias = alice)
         msg <- ZIO.fromEither(plaintextForwardEnrolledDidMessage)
         result <- executer.execute(msg)
       } yield assertTrue(result.isEmpty)
@@ -65,8 +64,6 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
     .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(AgentStub.agentLayer)
     .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
-
-
 
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)
     >>> AsyncDriverResource.layer
