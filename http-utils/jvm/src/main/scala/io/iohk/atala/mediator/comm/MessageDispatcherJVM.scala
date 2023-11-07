@@ -33,14 +33,12 @@ class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
       .pipe(e => Header.ContentType(ZMediaType.application.any.copy(subType = "didcomm-encrypted+json")))
     val xForwardedHostHeader = xForwardedHost.map(x => Header.Custom(customName = MyHeaders.xForwardedHost, x))
 
-    //   xForwardedHost.map(x => Header.(MyHeaders.xForwardedHost, x))
     for {
       res <- Client
         .request(
-          url = destination,
-          method = Method.POST,
-          headers = Headers(Seq(Some(contentTypeHeader), xForwardedHostHeader).flatten),
-          content = Body.fromCharSequence(msg.toJson),
+          Request
+            .post(destination, Body.fromCharSequence(msg.toJson))
+            .setHeaders(Headers(Seq(Some(contentTypeHeader), xForwardedHostHeader).flatten))
         )
         .tapError(ex => ZIO.logWarning(s"Fail when calling '$destination': ${ex.toString}"))
         .mapError(ex => DispatcherError(ex))
@@ -51,5 +49,7 @@ class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
         case true  => ZIO.logWarning(data)
         case false => ZIO.logInfo(data)
     } yield (data)
-  }.provideEnvironment(ZEnvironment(client))
+  }
+    .provideSomeLayer(Scope.default)
+    .provideEnvironment(ZEnvironment(client))
 }

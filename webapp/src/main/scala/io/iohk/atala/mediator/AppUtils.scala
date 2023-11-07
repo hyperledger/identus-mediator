@@ -96,7 +96,8 @@ object AppUtils {
               href := "https://atalaprism.io",
               target := "_blank",
               img(
-                src := "https://atalaprism.io/images/atala-prism-logo-suite.svg",
+                // src := "https://atalaprism.io/images/atala-prism-logo-suite.svg",
+                src := "public/atala-prism-logo-suite.svg", // Note: this is not the best server for CDN
                 className := "logo vanilla",
                 alt := "Prism Mediator"
               ),

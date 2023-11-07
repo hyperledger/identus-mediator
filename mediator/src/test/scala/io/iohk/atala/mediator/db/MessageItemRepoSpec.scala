@@ -1,12 +1,14 @@
 package io.iohk.atala.mediator.db
 
 import fmgp.did.comm.EncryptedMessage
+import io.iohk.atala.mediator.{DuplicateMessage, StorageError, StorageThrowable}
 import zio.*
 import zio.ExecutionStrategy.Sequential
 import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
+import reactivemongo.core.errors.DatabaseException
 
 object MessageItemRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
 
@@ -23,7 +25,18 @@ object MessageItemRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
           assertTrue(result.n == 1)
         }
       }
+    },
+    test("insert same message again") {
+      ZIO.logAnnotate(XRequestId.value, "b373423c-c78f-4cbc-a3fe-89cbc1351835") {
+        for {
+          messageItem <- ZIO.service[MessageItemRepo]
 
+          msg <- ZIO.fromEither(encryptedMessageAlice)
+          result <- messageItem.insert(msg).exit
+        } yield {
+          assert(result)(fails(isSubtype[DuplicateMessage](anything)))
+        }
+      }
     },
     test("findById  message") {
       for {
