@@ -16,8 +16,6 @@ import zio.config.*
 import zio.config.magnolia.*
 import zio.config.typesafe.*
 import zio.http.*
-import zio.http.Http.{Empty, Static}
-import zio.http.ZClient.ClientLive
 import zio.json.*
 import zio.logging.LogFormat.*
 import zio.logging.backend.SLF4J
@@ -57,17 +55,6 @@ object MediatorStandalone extends ZIOAppDefault {
   override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
     Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
-  // val app: HttpApp[ // type HttpApp[-R, +Err] = Http[R, Err, Request, Response]
-  //   Hub[String] & Operations & MessageDispatcher & MediatorAgent & Resolver & MessageItemRepo & UserAccountRepo &
-  //     OutboxMessageRepo,
-  //   Throwable
-  // ]
-  val app: Http[
-    Operations & Resolver & UserAccountRepo & OutboxMessageRepo & MessageDispatcher & MediatorAgent & MessageItemRepo,
-    (HttpAppMiddleware[Nothing, Any, Nothing, Any] | HttpAppMiddleware[Nothing, Any, Nothing, Any])#OutErr[Throwable],
-    Request,
-    Response
-  ] = MediatorAgent.didCommApp
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
@@ -103,18 +90,7 @@ object MediatorStandalone extends ZIOAppDefault {
     client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
-      .serve(
-        (app @@ (MiddlewareUtils.annotateHeaders ++ MiddlewareUtils.serverTime))
-          .tapUnhandledZIO(ZIO.logError("Unhandled Endpoint"))
-          .tapErrorCauseZIO(cause => ZIO.logErrorCause(cause)) // THIS is to log all the erros
-          .mapError(err =>
-            Response(
-              status = Status.BadRequest,
-              headers = Headers.empty,
-              body = Body.fromString(err.toString()), // Body.fromString(err.getMessage()),
-            )
-          )
-      )
+      .serve(MediatorAgent.didCommApp @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
       .provideSomeLayer(
