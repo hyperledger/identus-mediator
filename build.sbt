@@ -20,7 +20,7 @@ lazy val V = new {
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
-  val zio = "2.0.18"
+  val zio = "2.0.19"
   val zioJson = "0.6.2"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC3"
@@ -33,9 +33,9 @@ lazy val V = new {
   val mongo = "1.1.0-RC10"
   val embedMongo = "4.10.1"
   val munitZio = "0.1.1"
-  val zioTest = "2.0.18"
-  val zioTestSbt = "2.0.18"
-  val zioTestMagnolia = "2.0.18"
+  val zioTest = "2.0.19"
+  val zioTestSbt = "2.0.19"
+  val zioTestMagnolia = "2.0.19"
 
   // For WEBAPP
   val laminar = "16.0.0"
