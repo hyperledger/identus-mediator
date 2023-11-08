@@ -35,9 +35,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.embedmongo
-          key: ${{ runner.os }}-embedmongo-4.9.3
+          key: ${{ runner.os }}-embedmongo-4.10.1
           restore-keys: |
-            ${{ runner.os }}-embedmongo-4.9.3
+            ${{ runner.os }}-embedmongo-4.10.1
       ### Compile and TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m "test"
         env:
