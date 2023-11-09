@@ -3,20 +3,19 @@ resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.3.0", // Also update docs/publishWebsite.sh and any ref to scala-3.3.0
+    scalaVersion := "3.3.1", // Also update docs/publishWebsite.sh and any ref to scala-3.3.1
   )
 )
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M10"
+  val scalaDID = "0.1.0-M13"
 //   val scalajsJavaSecureRandom = "1.0.0"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M10" // "0.7.29"
 
 //   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
-//   val scalajsDom = "2.4.0"
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
@@ -60,8 +59,6 @@ lazy val D = new {
 //       .cross(CrossVersion.for3Use2_13)
 //   )
 
-//   val dom = Def.setting("org.scala-js" %%% "scalajs-dom" % V.scalajsDom)
-
   val zio = Def.setting("dev.zio" %%% "zio" % V.zio)
 //   val zioStreams = Def.setting("dev.zio" %%% "zio-streams" % V.zio)
   val zioJson = Def.setting("dev.zio" %%% "zio-json" % V.zioJson)
@@ -99,7 +96,6 @@ lazy val NPM = new {
 
   val materialDesign = Seq("material-components-web" -> V.materialComponents)
 
-  val sha1 = Seq("js-sha1" -> "0.6.0", "@types/js-sha1" -> "0.6.0")
   val sha256 = Seq("js-sha256" -> "0.9.0")
 }
 
@@ -187,7 +183,7 @@ lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
     libraryDependencies += D.scalaDID.value,
   )
   .jsConfigure(scalaJSBundlerConfigure)
-  .jsSettings(Compile / npmDependencies ++= NPM.sha1 ++ NPM.sha256)
+  .jsSettings(Compile / npmDependencies ++= NPM.sha256)
   .jvmSettings(
     libraryDependencies += D.zioHttp.value,
   )
@@ -251,7 +247,7 @@ lazy val mediator = project
     // pipelineStages ++= Seq(digest, gzip), //Compression - If you serve your Scala.js application from a web server, you should additionally gzip the resulting .js files.
     Compile / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "extra-resources",
     // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "docs-build" / "target" / "mdoc").toFile,
-    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.3.0" / "fmgp-serviceworker-fastopt").toFile,
+    // Compile / unmanagedResourceDirectories += (baseDirectory.value.toPath.getParent.getParent / "serviceworker" / "target" / "scala-3.3.1" / "fmgp-serviceworker-fastopt").toFile,
     Compile / compile := ((Compile / compile) dependsOn scalaJSPipeline).value,
     // Frontend dependency configuration
     Assets / WebKeys.packagePrefix := "public/",
@@ -272,7 +268,7 @@ lazy val webapp = project
     libraryDependencies ++= Seq(D.laminar.value, D.waypoint.value, D.upickle.value),
     libraryDependencies ++= Seq(D.zio.value, D.zioJson.value),
     libraryDependencies ++= Seq(D.scalaDID.value, D.scalaDID_peer.value),
-    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign ++ NPM.sha1 ++ NPM.sha256,
+    Compile / npmDependencies ++= NPM.qrcode ++ NPM.materialDesign ++ NPM.sha256,
   )
   .settings(
     stShortModuleNames := true,
