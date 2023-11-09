@@ -12,7 +12,7 @@ import MyRouter._
 @JSExportTopLevel("AppUtils")
 object AppUtils {
 
-  def onEnterPress = onKeyPress.filter(_.keyCode == dom.ext.KeyCode.Enter)
+  def onEnterPress = onKeyPress.filter(_.keyCode == dom.KeyCode.Enter)
 
   val menuClickObserver = Observer[dom.MouseEvent](onNext = ev => {
     import typings.materialDrawer.mod.MDCDrawer
