@@ -60,15 +60,13 @@ object ActionUtils {
                     doc <- resolver
                       .didDocument(to)
                       .mapError(fail => MediatorDidError(fail))
-                    mURL = doc.service.toSeq.flatten
-                      .filter(_.`type` match {
-                        case str: String      => str == DIDService.TYPE_DIDCommMessaging
-                        case seq: Seq[String] => seq.contains(DIDService.TYPE_DIDCommMessaging)
-                      }) match {
-                      case head +: next => // FIXME discarte the next
-                        head.getServiceEndpointAsURIs.headOption // TODO head
-                      case Seq() => None // TODO
+                    services = {
+                      doc.service.toSeq.flatten
+                        .collect { case service: DIDServiceDIDCommMessaging =>
+                          service
+                        }
                     }
+                    mURL = services.flatMap(_.endpoints.map(_.uri)).headOption // TODO head
                     jobToRun <- mURL match
                       case None => ZIO.logWarning(s"No url to send message")
                       case Some(url) => {
