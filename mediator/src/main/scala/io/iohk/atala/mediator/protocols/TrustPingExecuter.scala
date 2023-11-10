@@ -3,6 +3,7 @@ package io.iohk.atala.mediator.protocols
 import fmgp.crypto.error.FailToParse
 import fmgp.did.Agent
 import fmgp.did.comm.{PIURI, PlaintextMessage}
+import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.trustping2.{
   TrustPing,
   TrustPingResponse,
@@ -10,10 +11,10 @@ import fmgp.did.comm.protocol.trustping2.{
   TrustPingWithRequestedResponse
 }
 import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
-import io.iohk.atala.mediator.actions.{Action, NoReply, ProtocolExecuter, ProtocolExecuterWithServices, Reply}
+import io.iohk.atala.mediator.actions.{ProtocolExecuterIOHK, ProtocolExecuterIOHKWithServices}
 import zio.ZIO
 
-class TrustPingExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
+class TrustPingExecuterIOHK extends ProtocolExecuterIOHKWithServices[ProtocolExecuterIOHK.Services, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)
 

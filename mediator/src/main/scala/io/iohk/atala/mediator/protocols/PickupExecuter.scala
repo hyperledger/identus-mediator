@@ -12,9 +12,9 @@ import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
 object PickupExecuter
-    extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo,
-      ProtocolExecuter.Erros
+    extends ProtocolExecuterIOHKWithServices[
+      ProtocolExecuterIOHK.Services & UserAccountRepo & MessageItemRepo,
+      ProtocolExecuterIOHK.Erros
     ] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(

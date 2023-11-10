@@ -42,11 +42,11 @@ object MessageItemRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
       for {
         messageItem <- ZIO.service[MessageItemRepo]
         msg <- ZIO.fromEither(encryptedMessageAlice)
-        result <- messageItem.findById(msg.sha1)
+        result <- messageItem.findById(msg.sha256)
       } yield {
         val outcome = result.forall { messageItem =>
           messageItem.msg == msg &&
-          messageItem._id == msg.sha1 &&
+          messageItem._id == msg.sha256 &&
           messageItem.xRequestId.contains("b373423c-c78f-4cbc-a3fe-89cbc1351835")
         }
         assertTrue(outcome)
@@ -59,11 +59,11 @@ object MessageItemRepoSpec extends ZIOSpecDefault with DidAccountStubSetup {
           msg <- ZIO.fromEither(encryptedMessageAlice)
           msg2 <- ZIO.fromEither(encryptedMessageBob)
           msg2Added <- messageItem.insert(msg2)
-          result <- messageItem.findByIds(Seq(msg.sha1, msg2.sha1))
+          result <- messageItem.findByIds(Seq(msg.sha256, msg2.sha256))
         } yield {
           val outcome = result.forall { messageItem =>
             Seq(msg, msg2).contains(messageItem.msg) &&
-            Seq(msg.sha1, msg2.sha1).contains(messageItem._id) &&
+            Seq(msg.sha256, msg2.sha256).contains(messageItem._id) &&
             messageItem.xRequestId.contains("b373423c-c78f-4cbc-a3fe-89cbc1351835")
           }
           assertTrue(outcome)

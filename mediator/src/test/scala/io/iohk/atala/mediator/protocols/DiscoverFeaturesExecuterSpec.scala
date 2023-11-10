@@ -6,7 +6,7 @@ import fmgp.did.comm.protocol.discoverfeatures2.*
 import fmgp.did.comm.{EncryptedMessage, Operations, PlaintextMessage, SignedMessage, layerDefault}
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.util.Base64
-import io.iohk.atala.mediator.comm.MessageDispatcherJVM
+import io.iohk.atala.mediator.comm.MessageDispatcherJVMIOHK
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.MessageItemRepoSpec.encryptedMessageAlice
 import io.iohk.atala.mediator.protocols.DiscoverFeaturesExecuter
@@ -66,7 +66,7 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
     } @@ TestAspect.before(setupAndClean),
   ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(Operations.layerDefault)
-    .provideSomeLayer(Scope.default >>> Client.default >>> MessageDispatcherJVM.layer)
+    .provideSomeLayer(Scope.default >>> Client.default >>> MessageDispatcherJVMIOHK.layer)
     .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(AgentStub.agentLayer)
     .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential

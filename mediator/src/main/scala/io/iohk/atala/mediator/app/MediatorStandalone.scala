@@ -99,7 +99,7 @@ object MediatorStandalone extends ZIOAppDefault {
           >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
+      .provideSomeLayer(client >>> MessageDispatcherJVMIOHK.layer)
       .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(Server.defaultWithPort(port))
       .debug

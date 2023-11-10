@@ -9,8 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M13"
-//   val scalajsJavaSecureRandom = "1.0.0"
+  val scalaDID = "0.1.0-M13+6-ef958987+20231109-1628-SNAPSHOT"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M10" // "0.7.29"
@@ -49,6 +48,7 @@ lazy val D = new {
   val scalaDID = Def.setting("app.fmgp" %%% "did" % V.scalaDID)
   val scalaDID_imp = Def.setting("app.fmgp" %%% "did-imp" % V.scalaDID)
   val scalaDID_peer = Def.setting("app.fmgp" %%% "did-method-peer" % V.scalaDID)
+  val scalaDID_framework = Def.setting("app.fmgp" %%% "did-framework" % V.scalaDID)
 
 //   /** The [[java.security.SecureRandom]] is used by the [[java.util.UUID.randomUUID()]] method in [[MsgId]].
 //     *
@@ -204,6 +204,7 @@ lazy val mediator = project
   .settings(
     libraryDependencies += D.scalaDID_imp.value,
     libraryDependencies += D.scalaDID_peer.value,
+    libraryDependencies += D.scalaDID_framework.value,
     libraryDependencies += D.zioHttp.value,
     libraryDependencies ++= Seq(
       D.zioConfig.value,

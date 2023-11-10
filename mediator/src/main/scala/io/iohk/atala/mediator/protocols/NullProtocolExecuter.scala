@@ -2,12 +2,12 @@ package io.iohk.atala.mediator.protocols
 
 import fmgp.did.comm.PlaintextMessage
 import io.iohk.atala.mediator.MissingProtocolError
-import io.iohk.atala.mediator.actions.ProtocolExecuter
+import io.iohk.atala.mediator.actions.ProtocolExecuterIOHK
 import zio.ZIO
 import fmgp.did.comm.SignedMessage
 import fmgp.did.comm.EncryptedMessage
 
-object NullProtocolExecuter extends ProtocolExecuter[Any, MissingProtocolError] {
+object NullProtocolExecuterIOHK extends ProtocolExecuterIOHK[Any, MissingProtocolError] {
 
   override def supportedPIURI = Seq()
 

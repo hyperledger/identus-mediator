@@ -12,7 +12,7 @@ import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
-import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
+import io.iohk.atala.mediator.protocols.MissingProtocolExecuterIOHK
 
 object ActionUtils {
 
@@ -20,7 +20,7 @@ object ActionUtils {
       originalMessage: Option[PlaintextMessage],
       action: Action
   ): ZIO[
-    Operations & Agent & Resolver & MessageDispatcher & OutboxMessageRepo,
+    Operations & Agent & Resolver & MessageDispatcherIOHK & OutboxMessageRepo,
     MediatorError,
     Option[SignedMessage | EncryptedMessage]
   ] =
@@ -54,7 +54,7 @@ object ActionUtils {
 
                 replyViaDIDCommMessagingProgramme = ZIO.foreach(send2DIDs) { to =>
                   for {
-                    messageDispatcher <- ZIO.service[MessageDispatcher]
+                    messageDispatcher <- ZIO.service[MessageDispatcherIOHK]
                     resolver <- ZIO.service[Resolver]
 
                     doc <- resolver

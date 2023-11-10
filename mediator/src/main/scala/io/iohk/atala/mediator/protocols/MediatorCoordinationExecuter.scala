@@ -15,9 +15,9 @@ import zio.*
 import zio.json.*
 
 object MediatorCoordinationExecuter
-    extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & UserAccountRepo,
-      ProtocolExecuter.Erros
+    extends ProtocolExecuterIOHKWithServices[
+      ProtocolExecuterIOHK.Services & UserAccountRepo,
+      ProtocolExecuterIOHK.Erros
     ] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(

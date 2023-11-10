@@ -11,16 +11,25 @@ import zio.json.*
 
 import scala.util.chaining._
 
-object MessageDispatcherJVM {
-  val layer: ZLayer[Client, Throwable, MessageDispatcher] =
+trait MessageDispatcherIOHK {
+  def send(
+      msg: EncryptedMessage,
+      /*context*/
+      destination: String,
+      xForwardedHost: Option[String],
+  ): ZIO[Any, DispatcherError, String]
+}
+
+object MessageDispatcherJVMIOHK {
+  val layer: ZLayer[Client, Throwable, MessageDispatcherIOHK] =
     ZLayer.fromZIO(
       ZIO
         .service[Client]
-        .map(MessageDispatcherJVM(_))
+        .map(MessageDispatcherJVMIOHK(_))
     )
 }
 
-class MessageDispatcherJVM(client: Client) extends MessageDispatcher {
+class MessageDispatcherJVMIOHK(client: Client) extends MessageDispatcherIOHK {
   def send(
       msg: EncryptedMessage,
       /*context*/

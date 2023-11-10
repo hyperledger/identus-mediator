@@ -30,26 +30,26 @@ case class MediatorAgent(
     override val id: DID,
     override val keyStore: KeyStore, // Should we make it lazy with ZIO
 ) extends Agent {
-  override def keys: Seq[PrivateKey] = keyStore.keys.toSeq
+  def keys: Seq[PrivateKey] = keyStore.keys.toSeq
 
-  type Services = Resolver & Agent & Operations & MessageDispatcher & UserAccountRepo & MessageItemRepo &
+  type Services = Resolver & Agent & Operations & MessageDispatcherIOHK & UserAccountRepo & MessageItemRepo &
     OutboxMessageRepo
-  val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo & OutboxMessageRepo, ProtocolExecuter[
+  val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo & OutboxMessageRepo, ProtocolExecuterIOHK[
     Services,
     MediatorError | StorageError
   ]] =
     ZLayer.succeed(
-      ProtocolExecuterCollection[Services, MediatorError | StorageError](
-        BasicMessageExecuter,
-        new TrustPingExecuter,
+      ProtocolExecuterIOHKCollectionIOHK[Services, MediatorError | StorageError](
+        BasicMessageExecuterIOHK,
+        new TrustPingExecuterIOHK,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
         PickupExecuter,
-      )(fallback = MissingProtocolExecuter())
+      )(fallback = MissingProtocolExecuterIOHK())
     )
 
-  val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcher] =
-    MessageDispatcherJVM.layer.mapError(ex => MediatorThrowable(ex))
+  val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcherIOHK] =
+    MessageDispatcherJVMIOHK.layer.mapError(ex => MediatorThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
   def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError | ProblemReport, PlaintextMessage] = {
@@ -84,7 +84,8 @@ case class MediatorAgent(
   }
 
   def receiveMessage(data: String): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
+    Operations & Resolver & MessageDispatcherIOHK & MediatorAgent & MessageItemRepo & UserAccountRepo &
+      OutboxMessageRepo,
     MediatorError | StorageError,
     Option[SignedMessage | EncryptedMessage]
   ] =
@@ -102,12 +103,13 @@ case class MediatorAgent(
     } yield (maybeSyncReplyMsg)
 
   private def receiveMessage(msg: EncryptedMessage): ZIO[
-    Operations & Resolver & MessageDispatcher & MediatorAgent & MessageItemRepo & UserAccountRepo & OutboxMessageRepo,
+    Operations & Resolver & MessageDispatcherIOHK & MediatorAgent & MessageItemRepo & UserAccountRepo &
+      OutboxMessageRepo,
     MediatorError | StorageError,
     Option[SignedMessage | EncryptedMessage]
   ] =
     ZIO
-      .logAnnotate("msgHash", msg.sha1) {
+      .logAnnotate("msgHash", msg.sha256) {
         for {
           _ <- ZIO.log("receivedMessage")
           maybeSyncReplyMsg <-
@@ -117,7 +119,7 @@ case class MediatorAgent(
               {
                 for {
                   messageItemRepo <- ZIO.service[MessageItemRepo]
-                  protocolHandler <- ZIO.service[ProtocolExecuter[Services, MediatorError | StorageError]]
+                  protocolHandler <- ZIO.service[ProtocolExecuterIOHK[Services, MediatorError | StorageError]]
                   plaintextMessage <- decrypt(msg)
                   maybeActionStorageError <- messageItemRepo
                     .insert(msg) // store all message

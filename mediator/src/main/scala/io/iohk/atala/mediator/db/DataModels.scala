@@ -20,7 +20,7 @@ case class MessageItem(
 )
 object MessageItem {
   def apply(msg: EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem = {
-    new MessageItem(msg.sha1, msg, msg.`protected`.obj, Instant.now().toString, xRequestId)
+    new MessageItem(msg.sha256, msg, msg.`protected`.obj, Instant.now().toString, xRequestId)
   }
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
@@ -79,7 +79,7 @@ object SentMessageItem {
       case sMsg: SignedMessage =>
         new SentMessageItem(
           encrypt = msg,
-          hash = sMsg.sha1, // FIXME
+          hash = sMsg.sha256,
           headers = sMsg.signatures.headOption.flatMap(_.`protected`.obj.toJsonAST.toOption).getOrElse(ast.Json.Null),
           plaintext = plaintext,
           transport = Seq(
@@ -95,7 +95,7 @@ object SentMessageItem {
       case eMsg: EncryptedMessage =>
         new SentMessageItem(
           encrypt = msg,
-          hash = eMsg.sha1,
+          hash = eMsg.sha256,
           headers = eMsg.`protected`.obj.toJsonAST.getOrElse(ast.Json.Null),
           plaintext = plaintext,
           transport = Seq(

@@ -10,12 +10,12 @@ import fmgp.did.comm.protocol.trustping2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
-import io.iohk.atala.mediator.protocols.MissingProtocolExecuter
+import io.iohk.atala.mediator.protocols.MissingProtocolExecuterIOHK
 import zio.*
 import zio.json.*
 //TODO pick a better name // maybe "Protocol" only
 
-trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
+trait ProtocolExecuterIOHK[-R, +E] { // <: MediatorError | StorageError] {
 
   def supportedPIURI: Seq[PIURI]
 
@@ -37,14 +37,14 @@ trait ProtocolExecuter[-R, +E] { // <: MediatorError | StorageError] {
   def program[R1 <: R](plaintextMessage: PlaintextMessage): ZIO[R1, E, Action]
 }
 
-object ProtocolExecuter {
-  type Services = Resolver & Agent & Operations & MessageDispatcher & OutboxMessageRepo
+object ProtocolExecuterIOHK {
+  type Services = Resolver & Agent & Operations & MessageDispatcherIOHK & OutboxMessageRepo
   type Erros = MediatorError | StorageError
 }
-case class ProtocolExecuterCollection[-R, +E](
-    executers: ProtocolExecuter[R, E]*
-)(fallback: ProtocolExecuter[R, E])
-    extends ProtocolExecuter[R, E] {
+case class ProtocolExecuterIOHKCollectionIOHK[-R, +E](
+    executers: ProtocolExecuterIOHK[R, E]*
+)(fallback: ProtocolExecuterIOHK[R, E])
+    extends ProtocolExecuterIOHK[R, E] {
 
   override def supportedPIURI: Seq[PIURI] = executers.flatMap(_.supportedPIURI)
 
@@ -54,7 +54,7 @@ case class ProtocolExecuterCollection[-R, +E](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R, E, Option[SignedMessage | EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
-      // case None     => NullProtocolExecuter.execute(plaintextMessage)
+      // case None     => NullProtocolExecuterIOHK.execute(plaintextMessage)
       case None     => fallback.execute(plaintextMessage)
       case Some(px) => px.execute(plaintextMessage)
 
@@ -62,15 +62,15 @@ case class ProtocolExecuterCollection[-R, +E](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, E, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
-      // case None     => NullProtocolExecuter.program(plaintextMessage)
+      // case None     => NullProtocolExecuterIOHK.program(plaintextMessage)
       case None     => fallback.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }
 
-trait ProtocolExecuterWithServices[
-    -R <: ProtocolExecuter.Services,
-    +E >: MediatorError // ProtocolExecuter.Erros
-] extends ProtocolExecuter[R, E] {
+trait ProtocolExecuterIOHKWithServices[
+    -R <: ProtocolExecuterIOHK.Services,
+    +E >: MediatorError // ProtocolExecuterIOHK.Erros
+] extends ProtocolExecuterIOHK[R, E] {
 
   override def execute[R1 <: R](
       plaintextMessage: PlaintextMessage,
