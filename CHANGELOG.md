@@ -1,3 +1,16 @@
+# [0.11.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.2...prism-mediator-v0.11.0) (2023-11-10)
+
+
+### Bug Fixes
+
+* incorrect body of the message results in problem report ([#161](https://github.com/input-output-hk/atala-prism-mediator/issues/161)) ([6d8b9b8](https://github.com/input-output-hk/atala-prism-mediator/commit/6d8b9b8493f32d27c31c44c170268cdd3cb5170b))
+
+
+### Features
+
+* Return 202 HTTP code (for DID Comm) ([#162](https://github.com/input-output-hk/atala-prism-mediator/issues/162)) ([50185d3](https://github.com/input-output-hk/atala-prism-mediator/commit/50185d379d08949597479db8d8fd9d53526fd82a)), closes [#160](https://github.com/input-output-hk/atala-prism-mediator/issues/160)
+* Support protocol discover-features 2.0 ([#154](https://github.com/input-output-hk/atala-prism-mediator/issues/154)) ([9220858](https://github.com/input-output-hk/atala-prism-mediator/commit/9220858111d992c099aff9e41cce90d7d06f0235))
+
 ## [0.10.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.1...prism-mediator-v0.10.2) (2023-11-06)
 
 
