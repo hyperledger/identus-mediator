@@ -38,7 +38,7 @@ object StorageThrowable {
 
 final case class DuplicateMessage(val error: String) extends StorageError
 object DuplicateMessage {
-  val code =  11000
+  val code = 11000
   def apply(throwable: Throwable) = new DuplicateMessage(throwable.getClass.getName() + ":" + throwable.getMessage)
 }
 
