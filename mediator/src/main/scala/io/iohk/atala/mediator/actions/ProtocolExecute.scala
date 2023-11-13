@@ -54,7 +54,6 @@ case class ProtocolExecuterIOHKCollectionIOHK[-R, +E](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R, E, Option[SignedMessage | EncryptedMessage]] =
     selectExecutersFor(plaintextMessage.`type`) match
-      // case None     => NullProtocolExecuterIOHK.execute(plaintextMessage)
       case None     => fallback.execute(plaintextMessage)
       case Some(px) => px.execute(plaintextMessage)
 
@@ -62,7 +61,6 @@ case class ProtocolExecuterIOHKCollectionIOHK[-R, +E](
       plaintextMessage: PlaintextMessage,
   ): ZIO[R1, E, Action] =
     selectExecutersFor(plaintextMessage.`type`) match
-      // case None     => NullProtocolExecuterIOHK.program(plaintextMessage)
       case None     => fallback.program(plaintextMessage)
       case Some(px) => px.program(plaintextMessage)
 }

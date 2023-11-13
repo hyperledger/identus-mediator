@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator.app
+package io.iohk.atala.mediator
 
 import fmgp.crypto.*
 import fmgp.crypto.error.*
@@ -24,10 +24,10 @@ import zio.stream.*
 
 import java.time.format.DateTimeFormatter
 import scala.io.Source
-case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
+case class MediatorConfig(endpoint: Seq[java.net.URI], keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
-    Seq(DIDPeerServiceEncoded(s = endpoint.toString()))
+    endpoint.map(e => DIDPeerServiceEncoded(s = e.toString))
   )
   val agentLayer = ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
 }
@@ -73,8 +73,8 @@ object MediatorStandalone extends ZIOAppDefault {
     _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
     mediatorDbConfig <- configs.nested("database").nested("mediator").load(deriveConfig[DataBaseConfig])
     _ <- ZIO.log(s"MediatorDb Connection String: ${mediatorDbConfig.displayConnectionString}")
-    myHub <- Hub.sliding[String](5)
-    _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
+    // myHub <- Hub.sliding[String](5)
+    // _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
     port <- configs
       .nested("http")
       .nested("server")
@@ -90,9 +90,10 @@ object MediatorStandalone extends ZIOAppDefault {
     client = Scope.default >>> Client.default
     inboundHub <- Hub.bounded[String](5)
     myServer <- Server
-      .serve(MediatorAgent.didCommApp @@ (Middleware.cors))
+      .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
+      .provideSomeLayer(mediatorConfig.agentLayer >>> OperatorImp.layer)
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
@@ -100,7 +101,8 @@ object MediatorStandalone extends ZIOAppDefault {
       )
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(client >>> MessageDispatcherJVMIOHK.layer)
-      .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
+
+      // .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(Server.defaultWithPort(port))
       .debug
       .fork

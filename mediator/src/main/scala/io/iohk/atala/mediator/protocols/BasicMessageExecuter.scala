@@ -1,13 +1,15 @@
 package io.iohk.atala.mediator.protocols
 
-import fmgp.crypto.error.FailToParse
+import zio._
+
+import fmgp.crypto.error._
 import fmgp.did.comm.{EncryptedMessage, PIURI, PlaintextMessage, SignedMessage}
 import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.basicmessage2.BasicMessage
 import io.iohk.atala.mediator.{MediatorDidError, MediatorError, MediatorThrowable, StorageError}
 import io.iohk.atala.mediator.actions.ProtocolExecuterIOHK
-import zio.{Console, ZIO}
 
+//TODO REMOVE
 object BasicMessageExecuterIOHK extends ProtocolExecuterIOHK[Any, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(BasicMessage.piuri)

@@ -3,7 +3,7 @@ import fmgp.crypto.{Curve, KTY, OKPPrivateKey}
 import fmgp.did.Agent
 import fmgp.did.comm.EncryptedMessage
 import fmgp.did.method.peer.{DIDPeer2, DIDPeerServiceEncoded}
-import io.iohk.atala.mediator.app.{MediatorAgent, MediatorConfig}
+import io.iohk.atala.mediator.{MediatorAgent, MediatorConfig}
 import zio.{ULayer, ZLayer}
 
 import java.net.URI
@@ -18,7 +18,7 @@ object AgentStub {
 
   val endpoint = new URI("http://localhost:8080")
   val mediatorConfig = MediatorConfig(
-    endpoint,
+    Seq(endpoint),
     keyAgreement("Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c", "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"),
     keyAuthentication("INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug", "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA")
   )

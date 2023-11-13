@@ -14,6 +14,7 @@ import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
 import io.iohk.atala.mediator.actions.{ProtocolExecuterIOHK, ProtocolExecuterIOHKWithServices}
 import zio.ZIO
 
+//TODO REMOVE
 class TrustPingExecuterIOHK extends ProtocolExecuterIOHKWithServices[ProtocolExecuterIOHK.Services, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(TrustPing.piuri, TrustPingResponse.piuri)

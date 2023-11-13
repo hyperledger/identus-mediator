@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M13+6-ef958987+20231109-1628-SNAPSHOT"
+  val scalaDID = "0.1.0-M13+12-c2b9a5e0-SNAPSHOT"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M10" // "0.7.29"
@@ -227,7 +227,7 @@ lazy val mediator = project
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .settings(
-    Compile / mainClass := Some("io.iohk.atala.mediator.app.MediatorStandalone"),
+    Compile / mainClass := Some("io.iohk.atala.mediator.MediatorStandalone"),
     Docker / maintainer := "atala-coredid@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),

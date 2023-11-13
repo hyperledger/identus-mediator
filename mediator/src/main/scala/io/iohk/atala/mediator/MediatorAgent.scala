@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator.app
+package io.iohk.atala.mediator
 
 import fmgp.crypto.*
 import fmgp.crypto.error.*
@@ -269,7 +269,7 @@ object MediatorAgent {
           )
         } yield (ret)
       },
-      Method.POST / trailing -> handler { (req: Request) =>
+      Method.POST / "http" -> handler { (req: Request) =>
         if (
           req.headers
             .get("content-type")
