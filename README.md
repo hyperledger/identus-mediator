@@ -18,14 +18,14 @@ graph LR
   M--pickup-->D((Reciever))
 ```
 
- - **CI** automate builds and tests all push to the main branch also as all PRs created.
+ - **CI** automates builds and tests all pushes to the main branch as well as all PRs created.
  - **Scala Steward** automates the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
 
 ---
 
 **#atala-mediator on Discord:**
 
-For the fastest answers, join the [#atala-mediator][Link-Discord-Mediator] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
+For the fastest answers, join the [#atala-mediator][Link-Discord] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
 
 
 **More documentation:**
@@ -140,7 +140,7 @@ To set up the mediator identity:
 
 #### mediator-storage
 To set up the mediator storage (MongoDB):
-- `MONGODB_PROTOCOL` - is the protocol type used by mongo.
+- `MONGODB_PROTOCOL` - is the protocol type used by Mongo.
 - `MONGODB_HOST` - is the endpoint where the MongoDB will be listening.
 - `MONGODB_PORT` - is the endpoint's port where the MongoDB will be listening.
 - `MONGODB_USER` - is the username used by the Mediator service to connect to the database.
@@ -153,14 +153,14 @@ This DIDComm Mediator is composed of two elements, a backend service, and a data
 The backend service is a JVM application and the database used is MongoDB.
 The backend service is also a web service that has a single-page application that will give the final user an invitation page.
 
-### Run localy
+### Run locally
 
 Everything can be run with a single command with Docker compose `docker-compose up`.
-For a specific version you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
+For a specific version, you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
 
-### MongoDB In cloud
+### MongoDB In the cloud
 
-Using the mongodb from cloud like MongoDB Atlas.
+Using the Mongodb from cloud-like MongoDB Atlas.
 You will need to create the table and indexes before starting the backend service. See the file `initdb.js`.
 
 ## Deploy
@@ -178,8 +178,7 @@ https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 
 [Link-LiveDemo]:https://beta-mediator.atalaprism.io/
 [Link-Atala]:https://atalaprism.io/
-[Link-Discord]:https://discord.gg/htdY5uwKTg
-[Link-Discord-Mediator]:https://discord.gg/vUchrCCMXt
+[Link-Discord]:https://discord.gg/atala
 
 [Badge-Stage]: https://img.shields.io/badge/0.9.2-Production%20Ready-brightgreen.svg
 [Badge-Discord]: https://img.shields.io/discord/1146426895114702858?logo=discord "chat on discord"
