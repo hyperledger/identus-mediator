@@ -13,12 +13,9 @@ import io.iohk.atala.mediator.db.DidAccount
 
 import zio.*
 import zio.json.*
+import io.iohk.atala.mediator.db.MessageItemRepo
 
-object MediatorCoordinationExecuter
-    extends ProtocolExecuterIOHKWithServices[
-      ProtocolExecuterIOHK.Services & UserAccountRepo,
-      ProtocolExecuterIOHK.Erros
-    ] {
+object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccountRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
@@ -30,9 +27,7 @@ object MediatorCoordinationExecuter
     Keylist.piuri,
   )
 
-  override def program[R1 <: (UserAccountRepo)](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError | StorageError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriMediateRequest = MediateRequest.piuri
     val piuriMediateGrant = MediateGrant.piuri

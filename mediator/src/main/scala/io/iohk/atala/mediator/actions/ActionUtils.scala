@@ -1,18 +1,16 @@
 package io.iohk.atala.mediator.actions
 
+import zio.*
+import zio.json.*
+
 import fmgp.crypto.error.*
 import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.Operations.*
 import fmgp.did.comm.protocol.*
-import fmgp.did.comm.protocol.basicmessage2.*
-import fmgp.did.comm.protocol.trustping2.*
 import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
-import zio.*
-import zio.json.*
-import io.iohk.atala.mediator.protocols.MissingProtocolExecuterIOHK
 
 object ActionUtils {
 

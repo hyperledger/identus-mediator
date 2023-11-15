@@ -15,7 +15,7 @@ import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
 import fmgp.did.{Agent, DIDSubject}
-import io.iohk.atala.mediator.MediatorAgent
+import io.iohk.atala.mediator.app.MediatorAgent
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import reactivemongo.api.indexes.{Index, IndexType}

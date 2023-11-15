@@ -1,21 +1,19 @@
 package io.iohk.atala.mediator.protocols
 
+import zio.ZIO
+
 import fmgp.crypto.error.FailToParse
 import fmgp.did.Agent
 import fmgp.did.comm.{PIURI, PlaintextMessage}
 import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.discoverfeatures2._
 import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
-import io.iohk.atala.mediator.actions.{ProtocolExecuterIOHK, ProtocolExecuterIOHKWithServices}
-import zio.ZIO
 
-object DiscoverFeaturesExecuter extends ProtocolExecuterIOHKWithServices[ProtocolExecuterIOHK.Services, MediatorError] {
+object DiscoverFeaturesExecuter extends ProtocolExecuter[Agent, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(FeatureQuery.piuri, FeatureDisclose.piuri)
 
-  override def program[R1 <: Agent](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage): ZIO[Agent, MediatorError, Action] = {
     // the val is from the match to be definitely stable
     val piuriFeatureQuery = FeatureQuery.piuri
     val piuriFeatureDisclose = FeatureDisclose.piuri

@@ -13,16 +13,11 @@ import zio.*
 import zio.json.*
 
 object ForwardMessageExecuter
-    extends ProtocolExecuterIOHKWithServices[
-      ProtocolExecuterIOHK.Services & UserAccountRepo & MessageItemRepo,
-      ProtocolExecuterIOHK.Erros
-    ] {
+    extends ProtocolExecuter[Agent & UserAccountRepo & MessageItemRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
-  override def program[R1 <: UserAccountRepo & MessageItemRepo & Agent](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, ProtocolExecuterIOHK.Erros, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriForwardMessage = ForwardMessage.piuri
 

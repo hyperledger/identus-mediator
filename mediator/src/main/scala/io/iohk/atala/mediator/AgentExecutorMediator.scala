@@ -9,14 +9,19 @@ import fmgp.did._
 import fmgp.did.comm._
 import fmgp.did.comm.protocol._
 import fmgp.util._
+import io.iohk.atala.mediator.db.{UserAccountRepo, MessageItemRepo}
 
 case class AgentExecutorMediator(
     agent: Agent,
     transportManager: Ref[TransportManager],
-    protocolHandler: ProtocolExecuter[Resolver & Agent & Operations, MediatorError],
+    protocolHandler: ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
+    userAccountRepo: UserAccountRepo,
+    messageItemRepo: MessageItemRepo,
 ) extends AgentExecutar {
   val scope = Scope.global // TODO do not use global
   val indentityLayer = ZLayer.succeed(agent)
+  val userAccountRepoLayer = ZLayer.succeed(userAccountRepo)
+  val messageItemRepoLayer = ZLayer.succeed(messageItemRepo)
   override def subject: DIDSubject = agent.id.asDIDSubject
 
   override def receiveMsg(
@@ -30,22 +35,27 @@ case class AgentExecutorMediator(
         .forkIn(scope)
       ret <- jobExecuterProtocol(msg, transport) // Run a single time (for the message already read)
     } yield ()
-  }
+  }.provideSomeLayer(userAccountRepoLayer ++ messageItemRepoLayer)
 
   def jobExecuterProtocol(
       msg: SignedMessage | EncryptedMessage,
       transport: TransportDIDComm[Any],
-  ): URIO[Operations & Resolver, Unit] =
+  ): URIO[Operations & Resolver & UserAccountRepo & MessageItemRepo, Unit] =
     this
       .receiveMessage(msg, transport)
       .tapError(ex => ZIO.log(ex.toString))
       .provideSomeLayer(this.indentityLayer)
-      .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations]) => e ++ ZEnvironment(protocolHandler))
+      .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations & UserAccountRepo & MessageItemRepo]) =>
+        e ++ ZEnvironment(protocolHandler)
+      )
       .orDieWith(ex => new RuntimeException(ex.toString))
 
-  def receiveMessage(msg: SignedMessage | EncryptedMessage, transport: TransportDIDComm[Any]): ZIO[
-    Agent & Resolver & ProtocolExecuter[AgentExecutorMediator.Services, MediatorError] & Operations,
-    MediatorError,
+  def receiveMessage(
+      msg: SignedMessage | EncryptedMessage,
+      transport: TransportDIDComm[Any]
+  ): ZIO[
+    OperatorImp.Services & ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
+    MediatorError | StorageError,
     Unit
   ] = ZIO.logAnnotate("msg_sha256", msg.sha256) {
     for {
@@ -61,7 +71,7 @@ case class AgentExecutorMediator(
       _ <- transportManager.get.flatMap { m =>
         ZIO.foreach(recipientsSubject)(subject => m.publish(subject.asTO, msg))
       }
-      a = // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      _ <-
         if (!recipientsSubject.contains(agent.id.asDIDSubject)) {
           ZIO.logError(s"This agent '${agent.id.asDIDSubject}' is not a recipient") // TODO send a FAIL!!!!!!
         } else
@@ -73,15 +83,15 @@ case class AgentExecutorMediator(
   }
 
   def processMessage(plaintextMessage: PlaintextMessage, transport: TransportDIDComm[Any]): ZIO[
-    ProtocolExecuter[AgentExecutorMediator.Services, MediatorError] & AgentExecutorMediator.Services,
-    MediatorError,
+    ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError] & OperatorImp.Services,
+    MediatorError | StorageError,
     Unit
   ] =
     for {
       _ <- plaintextMessage.from match
         case None       => ZIO.unit
         case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) }
-      protocolHandler <- ZIO.service[ProtocolExecuter[AgentExecutorMediator.Services, MediatorError]]
+      protocolHandler <- ZIO.service[ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError]]
       action <- protocolHandler
         .program(plaintextMessage)
         .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
@@ -112,13 +122,13 @@ case class AgentExecutorMediator(
 
 object AgentExecutorMediator {
 
-  type Services = Resolver & Agent & Operations // & MessageDispatcher
-
   def make[S >: Resolver & Operations](
       agent: Agent,
-      protocolHandler: ProtocolExecuter[Resolver & Agent & Operations, MediatorError]
+      protocolHandler: ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
+      userAccountRepo: UserAccountRepo,
+      messageItemRepo: MessageItemRepo,
   ): ZIO[Any, Nothing, AgentExecutar] =
-    TransportManager.make.map(AgentExecutorMediator(agent, _, protocolHandler))
+    TransportManager.make.map(AgentExecutorMediator(agent, _, protocolHandler, userAccountRepo, messageItemRepo))
 
   // TODO move to another place & move validations and build a contex
   def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, DidFail, PlaintextMessage] =

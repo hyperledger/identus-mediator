@@ -24,7 +24,7 @@ import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import reactivemongo.api.bson.BSONDocument
 import fmgp.did.DIDSubject.*
 import fmgp.did.comm.Operations.authDecrypt
-import io.iohk.atala.mediator.MediatorAgent
+import io.iohk.atala.mediator.app.MediatorAgent
 import io.iohk.atala.mediator.db.AgentStub.{bobAgent, bobAgentLayer}
 object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 

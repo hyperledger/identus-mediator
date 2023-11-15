@@ -11,11 +11,8 @@ import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
-object PickupExecuter
-    extends ProtocolExecuterIOHKWithServices[
-      ProtocolExecuterIOHK.Services & UserAccountRepo & MessageItemRepo,
-      ProtocolExecuterIOHK.Erros
-    ] {
+
+object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(
     StatusRequest.piuri,
@@ -26,9 +23,7 @@ object PickupExecuter
     LiveModeChange.piuri,
   )
 
-  override def program[R1 <: UserAccountRepo & MessageItemRepo](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, StorageError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriStatusRequest = StatusRequest.piuri
     val piuriStatus = Status.piuri

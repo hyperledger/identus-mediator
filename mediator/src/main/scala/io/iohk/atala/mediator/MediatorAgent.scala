@@ -32,6 +32,7 @@ case class MediatorAgent(
 ) extends Agent {
   def keys: Seq[PrivateKey] = keyStore.keys.toSeq
 
+  /*
   type Services = Resolver & Agent & Operations & MessageDispatcherIOHK & UserAccountRepo & MessageItemRepo &
     OutboxMessageRepo
   val protocolHandlerLayer: URLayer[UserAccountRepo & MessageItemRepo & OutboxMessageRepo, ProtocolExecuterIOHK[
@@ -93,7 +94,7 @@ case class MediatorAgent(
       msg <- data.fromJson[EncryptedMessage] match
         case Left(error) =>
           ZIO.logError(s"Data is not a EncryptedMessage: $error")
-            *> ZIO.fail(MediatorDidError(FailToParse(error)))
+   *> ZIO.fail(MediatorDidError(FailToParse(error)))
         case Right(message) =>
           ZIO.logDebug(
             "Message's recipients KIDs: " + message.recipientsKid.mkString(",") +
@@ -216,7 +217,7 @@ case class MediatorAgent(
         } yield maybeSyncReplyMsg
       }
       .provideSomeLayer( /*resolverLayer ++ indentityLayer ++*/ protocolHandlerLayer)
-
+   */
 }
 
 object MediatorAgent {
@@ -264,11 +265,12 @@ object MediatorAgent {
           _ <- ZIO.log("New mediate invitation MsgID: " + invitation.id.value)
           ret <- ZIO.succeed(
             Response.text(
-              OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI("")
+              OutOfBand.from(invitation.toPlaintextMessage).makeURI("")
             )
           )
         } yield (ret)
       },
+      /*
       Method.POST / "http" -> handler { (req: Request) =>
         if (
           req.headers
@@ -325,8 +327,8 @@ object MediatorAgent {
                 .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
                 .copy(status = Status.BadRequest)
             )
-
       },
+       */
       Method.GET / trailing -> handler { (req: Request) =>
         for {
           agent <- ZIO.service[MediatorAgent]

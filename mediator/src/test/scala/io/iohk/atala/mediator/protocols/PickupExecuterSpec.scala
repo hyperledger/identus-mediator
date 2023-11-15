@@ -8,7 +8,7 @@ import fmgp.did.comm.protocol.pickup3.StatusRequest
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.{Agent, DIDSubject}
 import fmgp.util.Base64
-import io.iohk.atala.mediator.MediatorAgent
+import io.iohk.atala.mediator.app.MediatorAgent
 import io.iohk.atala.mediator.comm.MessageDispatcherJVMIOHK
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.AgentStub.*

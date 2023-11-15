@@ -29,7 +29,8 @@ case class MediatorConfig(endpoint: Seq[java.net.URI], keyAgreement: OKPPrivateK
     Seq(keyAgreement, keyAuthentication),
     endpoint.map(e => DIDPeerServiceEncoded(s = e.toString))
   )
-  val agentLayer = ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
+  val agentLayer: ZLayer[Any, Nothing, MediatorAgent] =
+    ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
 }
 case class DataBaseConfig(
     protocol: String,
@@ -73,8 +74,6 @@ object MediatorStandalone extends ZIOAppDefault {
     _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
     mediatorDbConfig <- configs.nested("database").nested("mediator").load(deriveConfig[DataBaseConfig])
     _ <- ZIO.log(s"MediatorDb Connection String: ${mediatorDbConfig.displayConnectionString}")
-    // myHub <- Hub.sliding[String](5)
-    // _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
     port <- configs
       .nested("http")
       .nested("server")
@@ -93,16 +92,20 @@ object MediatorStandalone extends ZIOAppDefault {
       .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
-      .provideSomeLayer(mediatorConfig.agentLayer >>> OperatorImp.layer)
+      .provideSomeLayer({
+        mediatorConfig.agentLayer ++ {
+          AsyncDriverResource.layer
+            >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
+            >>> (MessageItemRepo.layer ++ UserAccountRepo.layer)
+        }
+      } >>> OperatorImp.layer)
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
           >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(client >>> MessageDispatcherJVMIOHK.layer)
-
-      // .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
+      .provideSomeLayer(client >>> MessageDispatcherJVMIOHK.layer) // TODO REMOVE
       .provide(Server.defaultWithPort(port))
       .debug
       .fork

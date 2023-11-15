@@ -20,7 +20,7 @@ object MediatorInfo {
   val host = dom.window.location.host
   val scheme = dom.window.location.protocol
   val fullPath = s"${scheme}//${host}"
-  val qrCodeData = OutOfBandPlaintext.from(invitation.toPlaintextMessage).makeURI(s"$fullPath")
+  val qrCodeData = OutOfBand.from(invitation.toPlaintextMessage).makeURI(s"$fullPath")
 
   val divQRCode = div()
   {
