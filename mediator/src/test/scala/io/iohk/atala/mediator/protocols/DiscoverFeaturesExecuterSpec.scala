@@ -3,6 +3,7 @@ package io.iohk.atala.mediator.protocols
 import fmgp.did.DIDSubject
 import fmgp.did.comm.protocol.reportproblem2.{ProblemCode, ProblemReport}
 import fmgp.did.comm.protocol.discoverfeatures2.*
+import fmgp.did.comm.protocol.*
 import fmgp.did.comm.{EncryptedMessage, Operations, PlaintextMessage, SignedMessage, layerDefault}
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.util.Base64
@@ -24,8 +25,10 @@ import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import reactivemongo.api.bson.BSONDocument
 import fmgp.did.DIDSubject.*
 import fmgp.did.comm.Operations.authDecrypt
-import io.iohk.atala.mediator.app.MediatorAgent
+import io.iohk.atala.mediator.MediatorAgent
 import io.iohk.atala.mediator.db.AgentStub.{bobAgent, bobAgentLayer}
+
+/** mediator/testOnly io.iohk.atala.mediator.protocols.DiscoverFeaturesExecuterSpec */
 object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
   override def spec = suite("DiscoverFeaturesExecuterSpec")(
@@ -34,15 +37,18 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
       for {
         agent <- ZIO.service[MediatorAgent]
         msg <- ZIO.fromEither(plaintextDiscoverFeatureRequestMessage(bobAgent.id.did, agent.id.did))
-        result <- executer.execute(msg)
-        message <- ZIO.fromOption(result)
-        decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
-        featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
+        action <- executer.program(msg)
+        // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+        // featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage])
       } yield {
-        val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-        assertTrue(plainText.`type` == FeatureDisclose.piuri) &&
-        assertTrue(featureDisclose.disclosures.nonEmpty) &&
-        assertTrue(featureDisclose.disclosures.head.id.contains("routing"))
+        action match
+          case reply: AnyReply =>
+            reply.msg.toFeatureDisclose match
+              case Left(value) => assertTrue(false)
+              case Right(featureDisclose) =>
+                assertTrue(featureDisclose.disclosures.nonEmpty) &&
+                assertTrue(featureDisclose.disclosures.head.id.contains("routing"))
+          case _ => assertTrue(false)
       }
     } @@ TestAspect.before(setupAndClean),
     test(
@@ -52,16 +58,17 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
       for {
         agent <- ZIO.service[MediatorAgent]
         msg <- ZIO.fromEither(plaintextDiscoverFeatureRequestMessageNoMatch(bobAgent.id.did, agent.id.did))
-        result <- executer.execute(msg)
-        message <- ZIO.fromOption(result)
-        decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
-        featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
-
+        action <- executer.program(msg)
+        // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+        // featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
       } yield {
-        val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-        assertTrue(plainText.`type` == FeatureDisclose.piuri) &&
-        assertTrue(featureDisclose.disclosures.isEmpty)
-
+        action match
+          case reply: AnyReply =>
+            reply.msg.toFeatureDisclose match
+              case Left(value) => assertTrue(false)
+              case Right(featureDisclose) =>
+                assertTrue(featureDisclose.disclosures.isEmpty)
+          case _ => assertTrue(false)
       }
     } @@ TestAspect.before(setupAndClean),
   ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)

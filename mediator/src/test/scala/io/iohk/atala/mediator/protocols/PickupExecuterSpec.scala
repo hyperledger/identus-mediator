@@ -8,7 +8,7 @@ import fmgp.did.comm.protocol.pickup3.StatusRequest
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.{Agent, DIDSubject}
 import fmgp.util.Base64
-import io.iohk.atala.mediator.app.MediatorAgent
+import io.iohk.atala.mediator.MediatorAgent
 import io.iohk.atala.mediator.comm.MessageDispatcherJVMIOHK
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.AgentStub.*
@@ -25,13 +25,15 @@ import zio.test.*
 import zio.test.Assertion.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import fmgp.did.comm.protocol.*
 
+/** mediator/testOnly io.iohk.atala.mediator.protocols.PickupExecuterSpec */
 object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
   override def spec = {
 
     suite("PickupExecuterSpec")(
-      test("Pickup Status message  should return ProblemReport") {
+      test("Pickup Status message should return ProblemReport") {
         val executer = PickupExecuter
         for {
           mediatorAgent <- ZIO.service[MediatorAgent]
@@ -42,29 +44,29 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             newAlias = DIDSubject(aliceAgent.id.did)
           )
           msg <- ZIO.fromEither(plaintextStatusMessage(aliceAgent.id.did, mediatorAgent.id.did))
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == ProblemReport.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
-      test("Pickup StatusRequest message  should return problem report for not enrolled did") {
+      test("Pickup StatusRequest message should return problem report for not enrolled did") {
         val executer = PickupExecuter
         for {
           mediatorAgent <- ZIO.service[MediatorAgent]
           userAccount <- ZIO.service[UserAccountRepo]
           msg <- ZIO.fromEither(plaintextStatusRequestMessage(aliceAgent.id.did, mediatorAgent.id.did))
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == ProblemReport.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
-      test("Pickup StatusRequest message  should return Status Message") {
+      test("Pickup StatusRequest message should return Status Message") {
         val executer = PickupExecuter
         for {
           mediatorAgent <- ZIO.service[MediatorAgent]
@@ -75,12 +77,12 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             newAlias = DIDSubject(aliceAgent.id.did)
           )
           msg <- ZIO.fromEither(plaintextStatusRequestMessage(aliceAgent.id.did, mediatorAgent.id.did))
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == Status.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("Pickup DeliveryRequest message  return MessageDelivery and attachment message") {
@@ -101,16 +103,17 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           msgForward <- ZIO.fromEither(
             plaintextForwardMessage(aliceAgent.id.did, mediatorAgent.id.did, encryptedBasicMessage.toJson)
           )
-          result <- forwardMessageExecuter.execute(msgForward)
+          _ <- forwardMessageExecuter.program(msgForward)
           msg <- ZIO.fromEither(
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == MessageDelivery.piuri) && assertTrue(plainText.attachments.nonEmpty)
+          action match
+            case reply: AnyReply =>
+              assertTrue(reply.msg.`type` == MessageDelivery.piuri) && assertTrue(reply.msg.attachments.nonEmpty)
+            case _ => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("Delivery Request message for Pickup returns a Status Message when there are no messages available") {
@@ -126,12 +129,12 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           msg <- ZIO.fromEither(
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
-          result <- pickupExecuter.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- pickupExecuter.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == Status.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("Messages Received  message should clear the messages from the queue") {
@@ -152,21 +155,22 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           msgForward <- ZIO.fromEither(
             plaintextForwardMessage(aliceAgent.id.did, mediatorAgent.id.did, encryptedBasicMessage.toJson)
           )
-          result <- forwardMessageExecuter.execute(msgForward)
+          _ <- forwardMessageExecuter.program(msgForward)
           msg <- ZIO.fromEither(
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
-          plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          attchmentID = plainText.attachments.map(_.flatMap(_.id).head).get
+          action1 <- executer.program(msg)
+          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          // plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
+          attchmentID = action1.asInstanceOf[AnyReply].msg.attachments.map(_.flatMap(_.id).head).get
           messagesReceived <- ZIO.fromEither(
             plaintextMessagesReceivedRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, attchmentID)
           )
-          result <- executer.execute(messagesReceived)
+          action2 <- executer.program(messagesReceived)
         } yield {
-          assertTrue(result.isEmpty)
+          action2 match
+            case reply: AnyReply => assertTrue(false)
+            case NoReply         => assertTrue(true)
         }
       } @@ TestAspect.before(setupAndClean)
     ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
