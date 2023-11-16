@@ -6,7 +6,6 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.method.peer.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
@@ -105,7 +104,6 @@ object MediatorStandalone extends ZIOAppDefault {
           >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(client >>> MessageDispatcherJVMIOHK.layer) // TODO REMOVE
       .provide(Server.defaultWithPort(port))
       .debug
       .fork

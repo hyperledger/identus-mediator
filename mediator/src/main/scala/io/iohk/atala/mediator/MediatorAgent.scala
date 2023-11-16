@@ -8,7 +8,6 @@ import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
 import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
@@ -49,8 +48,6 @@ case class MediatorAgent(
       )(fallback = MissingProtocolExecuterIOHK())
     )
 
-  val messageDispatcherLayer: ZLayer[Client, MediatorThrowable, MessageDispatcherIOHK] =
-    MessageDispatcherJVMIOHK.layer.mapError(ex => MediatorThrowable(ex))
 
   // TODO move to another place & move validations and build a contex
   def decrypt(msg: Message): ZIO[Agent & Resolver & Operations, MediatorError | ProblemReport, PlaintextMessage] = {

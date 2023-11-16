@@ -9,7 +9,6 @@ import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.{Agent, DIDSubject}
 import fmgp.util.Base64
 import io.iohk.atala.mediator.MediatorAgent
-import io.iohk.atala.mediator.comm.MessageDispatcherJVMIOHK
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.AgentStub.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
@@ -175,7 +174,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
       } @@ TestAspect.before(setupAndClean)
     ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(Scope.default >>> Client.default >>> MessageDispatcherJVMIOHK.layer)
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(AgentStub.agentLayer)
       .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential

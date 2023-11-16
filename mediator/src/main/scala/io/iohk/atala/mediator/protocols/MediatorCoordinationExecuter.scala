@@ -7,7 +7,6 @@ import fmgp.did.comm.Operations.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.mediatorcoordination2.*
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.UserAccountRepo
 import io.iohk.atala.mediator.db.DidAccount
 

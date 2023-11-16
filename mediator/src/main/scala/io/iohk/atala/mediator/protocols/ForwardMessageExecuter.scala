@@ -7,7 +7,6 @@ import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.routing2.*
 import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*

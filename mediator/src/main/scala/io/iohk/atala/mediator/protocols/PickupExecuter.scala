@@ -7,7 +7,6 @@ import fmgp.did.comm.Operations.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.pickup3.*
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
