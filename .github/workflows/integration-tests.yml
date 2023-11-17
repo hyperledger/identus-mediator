@@ -25,7 +25,7 @@ jobs:
       ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
       ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
       REPORTS_DIR: "didcomm-v2-mediator-test-suite/target/site/serenity"
-      DIDCOMM_V2_TESTSUITE_VERSION: "a6288ef6536cd15181c30896841f5c33ef0c050b" # old "v0.1.0"
+      DIDCOMM_V2_TESTSUITE_VERSION: "b396c77911d15223d64477dc2bca27ddcf8ad0e7" # https://github.com/input-output-hk/didcomm-v2-mediator-test-suite/pull/13/commits/b396c77911d15223d64477dc2bca27ddcf8ad0e7
       # MEDIATOR_DID: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
       MEDIATOR_DID: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ.SeyJ0IjoiZG0iLCJzIjoid3M6Ly9sb2NhbGhvc3Q6ODA4MC93cyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
     steps:
