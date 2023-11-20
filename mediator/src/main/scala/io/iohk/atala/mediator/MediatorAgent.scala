@@ -265,65 +265,6 @@ object MediatorAgent {
           )
         } yield (ret)
       },
-      /*
-      Method.POST / "http" -> handler { (req: Request) =>
-        if (
-          req.headers
-            .get("content-type")
-            .exists { h => h == MediaTypes.SIGNED.typ || h == MediaTypes.ENCRYPTED.typ }
-        ) {
-          for {
-            agent <- ZIO.service[MediatorAgent]
-            data <- req.body.asString
-              .catchAll(ex => ZIO.fail(Response.badRequest("Unable to read the body of the request")))
-            ret <- agent
-              .receiveMessage(data)
-              .map {
-                case None => Response(status = Status.Accepted)
-                case Some(value: SignedMessage) =>
-                  Response(
-                    status = Status.Accepted,
-                    headers = Headers(Header.ContentType(MediaType.apply("application", "didcomm-signed+json"))),
-                    body = Body.fromCharSequence(value.toJson)
-                  )
-                case Some(value: EncryptedMessage) =>
-                  Response(
-                    status = Status.Accepted,
-                    headers = Headers(Header.ContentType(MediaType.apply("application", "didcomm-encrypted+json"))),
-                    body = Body.fromCharSequence(value.toJson)
-                  )
-              }
-              .catchAll {
-                case MediatorDidError(error) =>
-                  ZIO.logError(s"Error MediatorDidError: $error") *>
-                    ZIO.succeed(Response.status(Status.BadRequest))
-                case MediatorThrowable(error) =>
-                  ZIO.logError(s"Error MediatorThrowable: $error") *>
-                    ZIO.succeed(Response.status(Status.BadRequest))
-                case StorageCollection(error) =>
-                  ZIO.logError(s"Error StorageCollection: $error") *>
-                    ZIO.succeed(Response.status(Status.BadRequest))
-                case StorageThrowable(error) =>
-                  ZIO.logError(s"Error StorageThrowable: $error") *>
-                    ZIO.succeed(Response.status(Status.BadRequest))
-                case DuplicateMessage(error) =>
-                  ZIO.logError(s"Error DuplicateKeyError: $error") *>
-                    ZIO.succeed(Response.status(Status.BadRequest))
-                case MissingProtocolError(piuri) =>
-                  ZIO.logError(s"MissingProtocolError ('$piuri')") *>
-                    ZIO.succeed(Response.status(Status.BadRequest)) // TODO
-              }
-          } yield ret
-        } else
-          ZIO
-            .logError(s"Request Headers: ${req.headers.mkString(",")}")
-            .as(
-              Response
-                .text(s"The content-type must be ${MediaTypes.SIGNED.typ} or ${MediaTypes.ENCRYPTED.typ}")
-                .copy(status = Status.BadRequest)
-            )
-      },
-       */
       Method.GET / trailing -> handler { (req: Request) =>
         for {
           agent <- ZIO.service[MediatorAgent]

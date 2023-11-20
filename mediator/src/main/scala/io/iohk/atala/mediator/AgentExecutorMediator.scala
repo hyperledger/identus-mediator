@@ -11,6 +11,7 @@ import fmgp.did.comm._
 import fmgp.did.comm.protocol._
 import fmgp.did.framework._
 import io.iohk.atala.mediator.db.{UserAccountRepo, MessageItemRepo}
+import io.iohk.atala.mediator.protocols.Problems
 
 case class AgentExecutorMediator(
     agent: Agent,
@@ -87,22 +88,78 @@ case class AgentExecutorMediator(
             _ <- pMsg.from match
               case None       => ZIO.unit
               case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) } // TODO this
-            _ <- processMessage(pMsg, transport)
+            _ <- processMessage(msg, pMsg, transport)
           } yield ()
         }
     } yield ()
   }
 
-  def processMessage(plaintextMessage: PlaintextMessage, transport: TransportDIDComm[Any]): ZIO[
+  def processMessage(
+      originalMsg: SignedMessage | EncryptedMessage,
+      plaintextMessage: PlaintextMessage,
+      transport: TransportDIDComm[Any]
+  ): ZIO[
     ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError] & OperatorImp.Services,
     MediatorError | StorageError,
     Unit
   ] =
     for {
+      messageItemRepo <- ZIO.service[MessageItemRepo]
+      maybeProblemReport <- messageItemRepo
+        .insert(originalMsg) // store all message
+        .map(_ /*WriteResult*/ => None)
+        .catchSome {
+          case StorageCollection(error) =>
+            // This deals with connection errors to the database.
+            ZIO.logWarning(s"Error StorageCollection: $error") *>
+              ZIO
+                .service[Agent]
+                .map(agent =>
+                  Some(
+                    Problems.storageError(
+                      to = plaintextMessage.from.map(_.asTO).toSet,
+                      from = agent.id,
+                      pthid = plaintextMessage.id,
+                      piuri = plaintextMessage.`type`,
+                    )
+                  )
+                )
+          case StorageThrowable(error) =>
+            ZIO.logWarning(s"Error StorageThrowable: $error") *>
+              ZIO
+                .service[Agent]
+                .map(agent =>
+                  Some(
+                    Problems.storageError(
+                      to = plaintextMessage.from.map(_.asTO).toSet,
+                      from = agent.id,
+                      pthid = plaintextMessage.id,
+                      piuri = plaintextMessage.`type`,
+                    )
+                  )
+                )
+          case DuplicateMessage(error) =>
+            ZIO.logWarning(s"Error DuplicateMessageError: $error") *>
+              ZIO
+                .service[Agent]
+                .map(agent =>
+                  Some(
+                    Problems.dejavuError(
+                      to = plaintextMessage.from.map(_.asTO).toSet,
+                      from = agent.id,
+                      pthid = plaintextMessage.id,
+                      piuri = plaintextMessage.`type`,
+                    )
+                  )
+                )
+        }
       protocolHandler <- ZIO.service[ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError]]
-      action <- protocolHandler
-        .program(plaintextMessage)
-        .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+      action <- maybeProblemReport match
+        case Some(problemReport) => ZIO.succeed(Reply(problemReport.toPlaintextMessage))
+        case None =>
+          protocolHandler
+            .program(plaintextMessage)
+            .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
       ret <- action match
         case NoReply => ZIO.unit // TODO Maybe infor transport of immediately reply/close
         case reply: AnyReply =>
@@ -135,10 +192,6 @@ case class AgentExecutorMediator(
                   }
                 } yield ()
               case Some(ReturnRoute.all) | Some(ReturnRoute.thread) => transport.send(message)
-
-            // _ <- plaintextMessage.return_route match
-            //   case Some(ReturnRoute.none) | None => transport.send(message) // FIXME transportManager pick the best way
-            //   case Some(ReturnRoute.all) | Some(ReturnRoute.thread) => transport.send(message)
           } yield ()
     } yield ()
 
