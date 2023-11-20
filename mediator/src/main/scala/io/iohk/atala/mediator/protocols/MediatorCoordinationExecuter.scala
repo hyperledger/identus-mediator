@@ -48,7 +48,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccount
       case m: MediateGrant =>
         ZIO.logWarning("MediateGrant") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -62,7 +62,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccount
       case m: MediateDeny =>
         ZIO.logWarning("MediateDeny") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -84,7 +84,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccount
             case Right(value) =>
               ZIO.log(s"MediateGrant: $value") *>
                 ZIO.succeed(m.makeRespondMediateGrant.toPlaintextMessage)
-        } yield SyncReplyOnly(reply)
+        } yield Reply(reply)
       case m: KeylistUpdate =>
         for {
           _ <- ZIO.logInfo("KeylistUpdate")
@@ -124,11 +124,11 @@ object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccount
                   result <- ZIO.succeed(m.makeKeylistResponse(updateResponse).toPlaintextMessage)
                 } yield result
 
-        } yield SyncReplyOnly(res)
+        } yield Reply(res)
       case m: KeylistResponse =>
         ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -155,7 +155,7 @@ object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccount
           }
         } yield mResponse match
           case None           => NoReply // TODO error report
-          case Some(response) => SyncReplyOnly(response.toPlaintextMessage)
+          case Some(response) => Reply(response.toPlaintextMessage)
       case m: Keylist => ZIO.logWarning("Keylist") *> ZIO.succeed(NoReply)
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply) // TODO error report

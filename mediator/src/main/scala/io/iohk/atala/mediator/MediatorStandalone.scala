@@ -6,10 +6,8 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.method.peer.*
-import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
-import io.iohk.atala.mediator.utils.*
 import zio.*
 import zio.config.*
 import zio.config.magnolia.*
@@ -23,6 +21,7 @@ import zio.stream.*
 
 import java.time.format.DateTimeFormatter
 import scala.io.Source
+import fmgp.did.framework.TransportFactoryImp
 case class MediatorConfig(endpoint: Seq[java.net.URI], keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
@@ -85,19 +84,18 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("mediator")
       .load(Config.string("escalateTo"))
     _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
-    client = Scope.default >>> Client.default
-    inboundHub <- Hub.bounded[String](5)
+    transportFactory = Scope.default >>> (Client.default >>> TransportFactoryImp.layer)
+    repos = {
+      AsyncDriverResource.layer
+        >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
+        >>> (MessageItemRepo.layer ++ UserAccountRepo.layer)
+    }
+    // inboundHub <- Hub.bounded[String](5)
     myServer <- Server
       .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
-      .provideSomeLayer({
-        mediatorConfig.agentLayer ++ {
-          AsyncDriverResource.layer
-            >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-            >>> (MessageItemRepo.layer ++ UserAccountRepo.layer)
-        }
-      } >>> OperatorImp.layer)
+      .provideSomeLayer(mediatorConfig.agentLayer)
+      .provideSomeLayer((mediatorConfig.agentLayer ++ transportFactory ++ repos) >>> OperatorImp.layer)
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)

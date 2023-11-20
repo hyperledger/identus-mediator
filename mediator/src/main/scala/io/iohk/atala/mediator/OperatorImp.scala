@@ -2,12 +2,13 @@ package io.iohk.atala.mediator
 
 import zio.*
 
+import fmgp.crypto.error.DidFail
 import fmgp.did.*
 import fmgp.util.*
 import fmgp.did.comm.*
-import fmgp.did.comm.protocol._
-import fmgp.crypto.error.DidFail
-import io.iohk.atala.mediator.protocols._
+import fmgp.did.comm.protocol.*
+import fmgp.did.framework.*
+import io.iohk.atala.mediator.protocols.*
 import io.iohk.atala.mediator.db.{UserAccountRepo, MessageItemRepo}
 
 object OperatorImp {
@@ -27,7 +28,7 @@ object OperatorImp {
       )(MissingProtocolExecuter) // (NullProtocolExecute.mapError(didFail => MediatorDidError(didFail)))
     )
 
-  val layer: ZLayer[MediatorAgent & UserAccountRepo & MessageItemRepo, Nothing, Operator] =
+  val layer: ZLayer[MediatorAgent & UserAccountRepo & MessageItemRepo & TransportFactory, Nothing, Operator] =
     protocolHandlerLayer >>>
       ZLayer.fromZIO(
         for {

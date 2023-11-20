@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M14"
+  val scalaDID = "0.1.0-M14+4-5c9a7671+20231120-1958-SNAPSHOT"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M10" // "0.7.29"
@@ -175,19 +175,6 @@ lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugi
     ),
   )
 
-lazy val httpUtils = crossProject(JSPlatform, JVMPlatform) // project
-  .in(file("http-utils"))
-  .settings(publish / skip := true)
-  .settings((setupTestConfig): _*)
-  .settings(
-    libraryDependencies += D.scalaDID.value,
-  )
-  .jsConfigure(scalaJSBundlerConfigure)
-  .jsSettings(Compile / npmDependencies ++= NPM.sha256)
-  .jvmSettings(
-    libraryDependencies += D.zioHttp.value,
-  )
-
 lazy val mediator = project
   .in(file("mediator"))
   .configure(buildInfoConfigure)
@@ -255,7 +242,6 @@ lazy val mediator = project
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .enablePlugins(WebScalaJSBundlerPlugin)
-  .dependsOn(httpUtils.jvm) // did, didExample,
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
 lazy val webapp = project

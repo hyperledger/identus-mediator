@@ -13,15 +13,20 @@ type XRequestID = String // x-request-id
 
 case class MessageItem(
     _id: HASH,
-    msg: EncryptedMessage,
+    msg: SignedMessage | EncryptedMessage,
     headers: ProtectedHeader,
     ts: String,
     xRequestId: Option[XRequestID]
 )
 object MessageItem {
-  def apply(msg: EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem = {
-    new MessageItem(msg.sha256, msg, msg.`protected`.obj, Instant.now().toString, xRequestId)
-  }
+  def apply(msg: SignedMessage | EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem =
+    msg match {
+      case sMsg: SignedMessage =>
+        new MessageItem(msg.sha256, msg, ???, Instant.now().toString, xRequestId) // FIXME TODO
+      case eMsg: EncryptedMessage =>
+        new MessageItem(msg.sha256, msg, eMsg.`protected`.obj, Instant.now().toString, xRequestId)
+    }
+
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }

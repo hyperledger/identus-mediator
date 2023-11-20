@@ -70,11 +70,11 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
                 total_bytes = None, // TODO
                 live_delivery = None, // TODO
               ).toPlaintextMessage
-        } yield SyncReplyOnly(ret)
+        } yield Reply(ret)
       case m: Status =>
         ZIO.logInfo("Status") *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -128,10 +128,14 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
                   messagesToReturn =
                     if (m.recipient_did.isEmpty) allMessagesFor
                     else {
-                      allMessagesFor.filterNot(
-                        _.msg.recipientsSubject
-                          .map(_.did)
-                          .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                      allMessagesFor.filterNot(item =>
+                        item.msg match {
+                          case sMsg: SignedMessage => ??? // FIXME TODO
+                          case eMsg: EncryptedMessage =>
+                            eMsg.recipientsSubject
+                              .map(_.did)
+                              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                        }
                       )
                     }
                 } yield MessageDelivery(
@@ -143,7 +147,7 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
                 ).toPlaintextMessage
               }
 
-        } yield SyncReplyOnly(ret)
+        } yield Reply(ret)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
           ZIO.succeed(
@@ -169,7 +173,7 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
       case m: LiveModeChange =>
         ZIO.logInfo("LiveModeChange Not Supported") *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .liveModeNotSupported(
                   from = m.to.asFROM,

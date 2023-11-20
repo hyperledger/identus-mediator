@@ -10,9 +10,9 @@ import fmgp.crypto._
 import fmgp.crypto.error._
 import fmgp.did._
 import fmgp.did.comm._
+import fmgp.did.framework._
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.method.peer.DIDPeer.AgentDIDPeer
-import fmgp.util._
 
 object DIDCommRoutes {
 

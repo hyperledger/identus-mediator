@@ -8,10 +8,8 @@ import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.oobinvitation.OOBInvitation
 import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
-import io.iohk.atala.mediator.utils.*
 import io.netty.handler.codec.http.HttpHeaderNames
 import reactivemongo.api.bson.{*, given}
 import zio.*

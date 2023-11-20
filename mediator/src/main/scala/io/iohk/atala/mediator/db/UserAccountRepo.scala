@@ -145,7 +145,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     */
   def addToInboxes(
       recipients: Set[DIDSubject],
-      msg: EncryptedMessage
+      msg: SignedMessage | EncryptedMessage
   ): ZIO[Any, StorageError, Int] = {
     def selector =
       BSONDocument(
