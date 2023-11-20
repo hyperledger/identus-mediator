@@ -182,7 +182,12 @@ case class AgentExecutorMediator(
                 for {
                   transportDispatcher: TransportDispatcher <- transportManager.get
                   _ <- reply.msg.to.toSeq.flatten match {
-                    case Seq() => ZIO.logWarning("This reply message will be sented to nobody: " + reply.msg.toJson)
+                    case Seq() =>
+                      message match
+                        case sMsg: SignedMessage =>
+                          transport.send(sMsg) // REVIEW we are forcing the message to be synchronous
+                        case eMsg: EncryptedMessage =>
+                          ZIO.logWarning("This reply message will be sented to nobody: " + reply.msg.toJson)
                     case tos =>
                       ZIO.foreachParDiscard(tos) { to =>
                         transportDispatcher
