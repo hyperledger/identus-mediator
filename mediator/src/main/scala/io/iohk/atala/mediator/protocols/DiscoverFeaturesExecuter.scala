@@ -7,7 +7,7 @@ import fmgp.did.Agent
 import fmgp.did.comm.{PIURI, PlaintextMessage}
 import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.discoverfeatures2._
-import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
+import io.iohk.atala.mediator.{ProtocolExecutionFailToParse, MediatorError}
 
 object DiscoverFeaturesExecuter extends ProtocolExecuter[Agent, MediatorError] {
 
@@ -24,7 +24,7 @@ object DiscoverFeaturesExecuter extends ProtocolExecuter[Agent, MediatorError] {
           ret <- plaintextMessage.toFeatureQuery match
             case Left(error) =>
               ZIO.logError(s"Fail in FeatureQuery: $error") *>
-                ZIO.fail(MediatorDidError(FailToParse(error)))
+                ZIO.fail(ProtocolExecutionFailToParse(FailToParse(error)))
             case Right(featureQuery) =>
               for {
                 _ <- ZIO.logInfo(featureQuery.toString())
@@ -71,7 +71,7 @@ object DiscoverFeaturesExecuter extends ProtocolExecuter[Agent, MediatorError] {
       case `piuriFeatureDisclose` =>
         for {
           _ <- plaintextMessage.toFeatureDisclose match
-            case Left(error)            => ZIO.fail(MediatorDidError(FailToParse(error)))
+            case Left(error)            => ZIO.fail(ProtocolExecutionFailToParse(FailToParse(error)))
             case Right(featureDisclose) => ZIO.logInfo(featureDisclose.toString())
         } yield NoReply
   }

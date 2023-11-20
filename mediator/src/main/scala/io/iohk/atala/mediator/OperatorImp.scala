@@ -19,13 +19,13 @@ object OperatorImp {
   ] =
     ZLayer.succeed(
       ProtocolExecuterCollection(
-        BasicMessageExecuter.mapError(didFail => MediatorDidError(didFail)),
-        (new TrustPingExecuter).mapError(didFail => MediatorDidError(didFail)),
+        BasicMessageExecuter.mapError(didFail => ProtocolExecutionFailToParse(didFail)),
+        (new TrustPingExecuter).mapError(didFail => ProtocolExecutionFailToParse(didFail)),
         DiscoverFeaturesExecuter,
         MediatorCoordinationExecuter,
         ForwardMessageExecuter,
         PickupExecuter
-      )(MissingProtocolExecuter) // (NullProtocolExecute.mapError(didFail => MediatorDidError(didFail)))
+      )(MissingProtocolExecuter) // (NullProtocolExecute.mapError(didFail => ProtocolExecutionFailToParse(didFail)))
     )
 
   val layer: ZLayer[MediatorAgent & UserAccountRepo & MessageItemRepo & TransportFactory, Nothing, Operator] =

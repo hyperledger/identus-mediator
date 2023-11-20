@@ -134,6 +134,7 @@ object Problems {
       from: FROM,
       pthid: MsgID,
       piuri: PIURI,
+      comment: String
   ) = ProblemReport(
     // id: MsgID = MsgID(),
     to = to,
@@ -141,7 +142,7 @@ object Problems {
     pthid = pthid,
     ack = None,
     code = ProblemCode.ErroFail("msg", piuri.value),
-    comment = None,
+    comment = Some(comment),
     args = None,
     escalate_to = email,
   )

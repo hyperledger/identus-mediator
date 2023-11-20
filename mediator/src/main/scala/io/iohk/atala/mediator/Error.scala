@@ -9,10 +9,9 @@ sealed trait MediatorError
 
 case class MediatorException(fail: MediatorError) extends Exception(fail.toString())
 
+final case class ProtocolExecutionFailToParse(error: FailToParse) extends MediatorError
+
 final case class MediatorDidError(val error: DidFail) extends MediatorError
-object MediatorDidError {
-  def apply(error: DidFail) = new MediatorDidError(error)
-}
 
 final case class MediatorThrowable(val error: String) extends MediatorError
 object MediatorThrowable {

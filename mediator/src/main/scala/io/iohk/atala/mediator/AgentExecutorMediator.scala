@@ -50,7 +50,7 @@ case class AgentExecutorMediator(
   ): URIO[Operations & Resolver, Unit] =
     this
       .receiveMessage(msg, transport)
-      .tapError(ex => ZIO.log(ex.toString))
+      .tapError(ex => ZIO.logError(ex.toString))
       .provideSomeLayer(this.indentityLayer)
       .provideSomeLayer(userAccountRepoLayer ++ messageItemRepoLayer)
       .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations]) => e ++ ZEnvironment(protocolHandler))
@@ -84,7 +84,10 @@ case class AgentExecutorMediator(
           for {
             pMsg <- AgentExecutorMediator
               .decrypt(msg)
-              .mapError(didFail => MediatorDidError(didFail))
+              .mapError { didFail =>
+                println(":;;;;;;;;;;;;;;;;;;;;;;;;;;") // FIXME
+                MediatorDidError(didFail)
+              }
             _ <- pMsg.from match
               case None       => ZIO.unit
               case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) } // TODO this
@@ -159,6 +162,18 @@ case class AgentExecutorMediator(
         case None =>
           protocolHandler
             .program(plaintextMessage)
+            .catchSome { case ProtocolExecutionFailToParse(failToParse) =>
+              for {
+                agent <- ZIO.service[Agent]
+                problemReport = Problems.malformedError(
+                  to = plaintextMessage.from.toSet.map(_.asTO),
+                  from = agent.id.asFROM,
+                  pthid = plaintextMessage.id,
+                  piuri = plaintextMessage.`type`,
+                  comment = failToParse.error
+                )
+              } yield (Reply(problemReport.toPlaintextMessage))
+            }
             .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
       ret <- action match
         case NoReply => ZIO.unit // TODO Maybe infor transport of immediately reply/close

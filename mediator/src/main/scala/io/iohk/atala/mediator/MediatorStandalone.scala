@@ -51,8 +51,8 @@ object MediatorStandalone extends ZIOAppDefault {
       allAnnotations |-|
       cause.highlight
 
-  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
-    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
+  // override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+  //   Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator

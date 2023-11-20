@@ -47,7 +47,6 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
           ret = mDidAccount match
             case None =>
-              println("-------------------------------------------------------------")
               Problems
                 .notEnroledError(
                   from = m.to.asFROM,
