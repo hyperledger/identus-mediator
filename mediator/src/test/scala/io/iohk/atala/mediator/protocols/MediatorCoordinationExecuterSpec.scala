@@ -37,7 +37,6 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
           agent <- ZIO.service[MediatorAgent]
           msg <- ZIO.fromEither(plaintextMediationRequestMessage(bobAgent.id.did, agent.id.did))
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == MediateGrant.piuri)
@@ -70,7 +69,6 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
             plaintextKeyListUpdateRequestMessage(aliceAgent.id.did, agent.id.did, aliceAgent.id.did)
           )
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == KeylistResponse.piuri)
@@ -105,7 +103,6 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
             plaintextKeyListRemoveAliasRequestMessage(bobAgent.id.did, agent.id.did, bobAgent.id.did)
           )
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
         } yield {
           action match
             case reply: AnyReply =>

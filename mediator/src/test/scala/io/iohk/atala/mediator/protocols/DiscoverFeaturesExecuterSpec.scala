@@ -37,8 +37,6 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
         agent <- ZIO.service[MediatorAgent]
         msg <- ZIO.fromEither(plaintextDiscoverFeatureRequestMessage(bobAgent.id.did, agent.id.did))
         action <- executer.program(msg)
-        // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
-        // featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage])
       } yield {
         action match
           case reply: AnyReply =>
@@ -58,8 +56,6 @@ object DiscoverFeaturesExecuterSpec extends ZIOSpecDefault with DidAccountStubSe
         agent <- ZIO.service[MediatorAgent]
         msg <- ZIO.fromEither(plaintextDiscoverFeatureRequestMessageNoMatch(bobAgent.id.did, agent.id.did))
         action <- executer.program(msg)
-        // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
-        // featureDisclose <- ZIO.fromEither(decryptedMessage.asInstanceOf[PlaintextMessage].toFeatureDisclose)
       } yield {
         action match
           case reply: AnyReply =>
