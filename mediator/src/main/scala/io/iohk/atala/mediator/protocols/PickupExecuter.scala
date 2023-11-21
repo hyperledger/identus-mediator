@@ -130,7 +130,12 @@ object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo
                     else {
                       allMessagesFor.filterNot(item =>
                         item.msg match {
-                          case sMsg: SignedMessage => ??? // FIXME TODO
+                          case sMsg: SignedMessage =>
+                            sMsg.payloadAsPlaintextMessage
+                              .map(_.to.toSeq.flatMap(i => i))
+                              .getOrElse(Seq.empty)
+                              .map(_.toDID) // All Recipient Of The Message
+                              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
                           case eMsg: EncryptedMessage =>
                             eMsg.recipientsSubject
                               .map(_.did)

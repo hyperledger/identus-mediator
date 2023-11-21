@@ -32,10 +32,6 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
         msg <- ZIO.fromEither(plaintextForwardNotEnrolledDidMessage)
         action <- executer.program(msg)
       } yield {
-        // TODO assertTrue(message.isInstanceOf[SignedMessage])
-        // val signedMessage = message.asInstanceOf[SignedMessage]
-        // val jsonString = Base64.fromBase64url(signedMessage.payload.base64url).decodeToString
-        // val problemReport = jsonString.fromJson[PlaintextMessage].flatMap(ProblemReport.fromPlaintextMessage)
         action match
           case reply: AnyReply =>
             assert(reply.msg.toProblemReport)(

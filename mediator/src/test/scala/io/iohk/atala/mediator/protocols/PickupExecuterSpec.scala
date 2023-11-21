@@ -44,7 +44,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           )
           msg <- ZIO.fromEither(plaintextStatusMessage(aliceAgent.id.did, mediatorAgent.id.did))
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
@@ -58,7 +57,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           userAccount <- ZIO.service[UserAccountRepo]
           msg <- ZIO.fromEither(plaintextStatusRequestMessage(aliceAgent.id.did, mediatorAgent.id.did))
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
@@ -77,7 +75,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
           )
           msg <- ZIO.fromEither(plaintextStatusRequestMessage(aliceAgent.id.did, mediatorAgent.id.did))
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
@@ -107,7 +104,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
           action <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply =>
@@ -129,7 +125,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
           action <- pickupExecuter.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
         } yield {
           action match
             case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
@@ -159,7 +154,6 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             plaintextDeliveryRequestMessage(aliceAgent.id.did, mediatorAgent.id.did, aliceAgent.id.did)
           )
           action1 <- executer.program(msg)
-          // decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
           // plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
           attchmentID = action1.asInstanceOf[AnyReply].msg.attachments.map(_.flatMap(_.id).head).get
           messagesReceived <- ZIO.fromEither(
