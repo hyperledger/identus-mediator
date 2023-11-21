@@ -15,7 +15,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = to,
     from = from,
     pthid = pthid,
@@ -32,7 +31,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = Set(to),
     from = from,
     pthid = pthid,
@@ -49,7 +47,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = Set(to),
     from = from,
     pthid = pthid,
@@ -66,7 +63,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = Set(to),
     from = from,
     pthid = pthid,
@@ -83,7 +79,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = to,
     from = from,
     pthid = pthid,
@@ -100,7 +95,6 @@ object Problems {
       pthid: MsgID,
       piuri: PIURI,
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = to,
     from = from,
     pthid = pthid,
@@ -118,7 +112,6 @@ object Problems {
       piuri: PIURI,
       didNotEnrolled: DIDSubject
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = to.toSet,
     from = from,
     pthid = pthid,
@@ -136,12 +129,25 @@ object Problems {
       piuri: PIURI,
       comment: String
   ) = ProblemReport(
-    // id: MsgID = MsgID(),
     to = to,
     from = from,
     pthid = pthid,
     ack = None,
     code = ProblemCode.ErroFail("msg", piuri.value),
+    comment = Some(comment),
+    args = None,
+    escalate_to = email,
+  )
+
+  def decryptFail(
+      from: FROM,
+      comment: String
+  ) = ProblemReport(
+    to = Set.empty,
+    from = from,
+    pthid = MsgID("?"), // TODO
+    ack = None,
+    code = ProblemCode.ErroFail("msg"),
     comment = Some(comment),
     args = None,
     escalate_to = email,

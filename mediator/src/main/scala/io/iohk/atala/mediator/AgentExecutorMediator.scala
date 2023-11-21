@@ -12,6 +12,7 @@ import fmgp.did.comm.protocol._
 import fmgp.did.framework._
 import io.iohk.atala.mediator.db.{UserAccountRepo, MessageItemRepo}
 import io.iohk.atala.mediator.protocols.Problems
+import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 
 case class AgentExecutorMediator(
     agent: Agent,
@@ -82,16 +83,25 @@ case class AgentExecutorMediator(
           ZIO.logError(s"This agent '${agent.id.asDIDSubject}' is not a recipient") // TODO send a FAIL!!!!!!
         } else {
           for {
-            pMsg <- AgentExecutorMediator
+            pMsgOrReplay <- AgentExecutorMediator
               .decrypt(msg)
-              .mapError { didFail =>
-                println(":;;;;;;;;;;;;;;;;;;;;;;;;;;") // FIXME
-                MediatorDidError(didFail)
+              .tap { pMsg =>
+                pMsg.from match
+                  case None       => ZIO.unit
+                  case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) }
               }
-            _ <- pMsg.from match
-              case None       => ZIO.unit
-              case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) } // TODO this
-            _ <- processMessage(msg, pMsg, transport)
+              .map(Right(_))
+              .catchAll { didFail =>
+                for {
+                  _ <- ZIO.logWarning(s"Error Mediator fail to decrypt: $didFail")
+                  agent <- ZIO.service[Agent]
+                  problemReport = Problems.decryptFail(
+                    from = agent.id.asFROM,
+                    comment = "Fail to decrypt Message: " + didFail
+                  )
+                } yield Left(problemReport)
+              }
+            _ <- processMessage(msg, pMsgOrReplay, transport)
           } yield ()
         }
     } yield ()
@@ -99,7 +109,7 @@ case class AgentExecutorMediator(
 
   def processMessage(
       originalMsg: SignedMessage | EncryptedMessage,
-      plaintextMessage: PlaintextMessage,
+      pMsgOrProblemReport: Either[ProblemReport, PlaintextMessage],
       transport: TransportDIDComm[Any]
   ): ZIO[
     ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError] & OperatorImp.Services,
@@ -107,74 +117,80 @@ case class AgentExecutorMediator(
     Unit
   ] =
     for {
-      messageItemRepo <- ZIO.service[MessageItemRepo]
-      maybeProblemReport <- messageItemRepo
-        .insert(originalMsg) // store all message
-        .map(_ /*WriteResult*/ => None)
-        .catchSome {
-          case StorageCollection(error) =>
-            // This deals with connection errors to the database.
-            ZIO.logWarning(s"Error StorageCollection: $error") *>
-              ZIO
-                .service[Agent]
-                .map(agent =>
-                  Some(
-                    Problems.storageError(
-                      to = plaintextMessage.from.map(_.asTO).toSet,
-                      from = agent.id,
-                      pthid = plaintextMessage.id,
-                      piuri = plaintextMessage.`type`,
-                    )
-                  )
-                )
-          case StorageThrowable(error) =>
-            ZIO.logWarning(s"Error StorageThrowable: $error") *>
-              ZIO
-                .service[Agent]
-                .map(agent =>
-                  Some(
-                    Problems.storageError(
-                      to = plaintextMessage.from.map(_.asTO).toSet,
-                      from = agent.id,
-                      pthid = plaintextMessage.id,
-                      piuri = plaintextMessage.`type`,
-                    )
-                  )
-                )
-          case DuplicateMessage(error) =>
-            ZIO.logWarning(s"Error DuplicateMessageError: $error") *>
-              ZIO
-                .service[Agent]
-                .map(agent =>
-                  Some(
-                    Problems.dejavuError(
-                      to = plaintextMessage.from.map(_.asTO).toSet,
-                      from = agent.id,
-                      pthid = plaintextMessage.id,
-                      piuri = plaintextMessage.`type`,
-                    )
-                  )
-                )
-        }
-      protocolHandler <- ZIO.service[ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError]]
-      action <- maybeProblemReport match
-        case Some(problemReport) => ZIO.succeed(Reply(problemReport.toPlaintextMessage))
-        case None =>
-          protocolHandler
-            .program(plaintextMessage)
-            .catchSome { case ProtocolExecutionFailToParse(failToParse) =>
-              for {
-                agent <- ZIO.service[Agent]
-                problemReport = Problems.malformedError(
-                  to = plaintextMessage.from.toSet.map(_.asTO),
-                  from = agent.id.asFROM,
-                  pthid = plaintextMessage.id,
-                  piuri = plaintextMessage.`type`,
-                  comment = failToParse.error
-                )
-              } yield (Reply(problemReport.toPlaintextMessage))
-            }
-            .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+      action <- pMsgOrProblemReport match
+        case Left(problemReport) => ZIO.succeed(Reply(problemReport.toPlaintextMessage))
+        case Right(plaintextMessage) =>
+          for {
+            messageItemRepo <- ZIO.service[MessageItemRepo]
+            maybeProblemReport <- messageItemRepo
+              .insert(originalMsg) // store all message
+              .map(_ /*WriteResult*/ => None)
+              .catchSome {
+                case StorageCollection(error) =>
+                  // This deals with connection errors to the database.
+                  ZIO.logWarning(s"Error StorageCollection: $error") *>
+                    ZIO
+                      .service[Agent]
+                      .map(agent =>
+                        Some(
+                          Problems.storageError(
+                            to = plaintextMessage.from.map(_.asTO).toSet,
+                            from = agent.id,
+                            pthid = plaintextMessage.id,
+                            piuri = plaintextMessage.`type`,
+                          )
+                        )
+                      )
+                case StorageThrowable(error) =>
+                  ZIO.logWarning(s"Error StorageThrowable: $error") *>
+                    ZIO
+                      .service[Agent]
+                      .map(agent =>
+                        Some(
+                          Problems.storageError(
+                            to = plaintextMessage.from.map(_.asTO).toSet,
+                            from = agent.id,
+                            pthid = plaintextMessage.id,
+                            piuri = plaintextMessage.`type`,
+                          )
+                        )
+                      )
+                case DuplicateMessage(error) =>
+                  ZIO.logWarning(s"Error DuplicateMessageError: $error") *>
+                    ZIO
+                      .service[Agent]
+                      .map(agent =>
+                        Some(
+                          Problems.dejavuError(
+                            to = plaintextMessage.from.map(_.asTO).toSet,
+                            from = agent.id,
+                            pthid = plaintextMessage.id,
+                            piuri = plaintextMessage.`type`,
+                          )
+                        )
+                      )
+              }
+            protocolHandler <- ZIO.service[ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError]]
+            goodAction <- maybeProblemReport match
+              case Some(problemReport) => ZIO.succeed(Reply(problemReport.toPlaintextMessage))
+              case None =>
+                protocolHandler
+                  .program(plaintextMessage)
+                  .catchSome { case ProtocolExecutionFailToParse(failToParse) =>
+                    for {
+                      _ <- ZIO.logWarning(s"Error ProtocolExecutionFailToParse: $failToParse")
+                      agent <- ZIO.service[Agent]
+                      problemReport = Problems.malformedError(
+                        to = plaintextMessage.from.toSet.map(_.asTO),
+                        from = agent.id.asFROM,
+                        pthid = plaintextMessage.id,
+                        piuri = plaintextMessage.`type`,
+                        comment = failToParse.error
+                      )
+                    } yield (Reply(problemReport.toPlaintextMessage))
+                  }
+                  .tapError(ex => ZIO.logError(s"Error when execute Protocol: $ex"))
+          } yield goodAction
       ret <- action match
         case NoReply => ZIO.unit // TODO Maybe infor transport of immediately reply/close
         case reply: AnyReply =>
@@ -192,26 +208,30 @@ case class AgentExecutorMediator(
                     case None       => anonEncrypt(reply.msg)
               }
             }.mapError(didFail => MediatorDidError(didFail))
-            _ <- plaintextMessage.return_route match
-              case Some(ReturnRoute.none) | None =>
-                for {
-                  transportDispatcher: TransportDispatcher <- transportManager.get
-                  _ <- reply.msg.to.toSeq.flatten match {
-                    case Seq() =>
-                      message match
-                        case sMsg: SignedMessage =>
-                          transport.send(sMsg) // REVIEW we are forcing the message to be synchronous
-                        case eMsg: EncryptedMessage =>
-                          ZIO.logWarning("This reply message will be sented to nobody: " + reply.msg.toJson)
-                    case tos =>
-                      ZIO.foreachParDiscard(tos) { to =>
-                        transportDispatcher
-                          .send(to = to, msg = message, thid = reply.msg.thid, pthid = reply.msg.pthid)
-                          .mapError(didFail => MediatorDidError(didFail))
+            _ <- pMsgOrProblemReport match
+              case Left(value) => transport.send(message) // REVIEW we are forcing the message to be synchronous
+              case Right(plaintextMessage) => {
+                plaintextMessage.return_route match
+                  case Some(ReturnRoute.none) | None =>
+                    for {
+                      transportDispatcher: TransportDispatcher <- transportManager.get
+                      _ <- reply.msg.to.toSeq.flatten match {
+                        case Seq() =>
+                          message match
+                            case sMsg: SignedMessage =>
+                              transport.send(sMsg) // REVIEW we are forcing the message to be synchronous
+                            case eMsg: EncryptedMessage =>
+                              ZIO.logWarning("This reply message will be sented to nobody: " + reply.msg.toJson)
+                        case tos =>
+                          ZIO.foreachParDiscard(tos) { to =>
+                            transportDispatcher
+                              .send(to = to, msg = message, thid = reply.msg.thid, pthid = reply.msg.pthid)
+                              .mapError(didFail => MediatorDidError(didFail))
+                          }
                       }
-                  }
-                } yield ()
-              case Some(ReturnRoute.all) | Some(ReturnRoute.thread) => transport.send(message)
+                    } yield ()
+                  case Some(ReturnRoute.all) | Some(ReturnRoute.thread) => transport.send(message)
+              }
           } yield ()
     } yield ()
 
