@@ -136,7 +136,7 @@ To set up the mediator identity:
 - `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
 - `KEY_AUTHENTICATION_D` - is the key authentication private key (MUST be an Ed25519 OKP key type).
 - `KEY_AUTHENTICATION_X` - is the key authentication public key (MUST be an Ed25519 OKP key type).
-- `SERVICE_ENDPOINT` - is the endpoint of the mediator. Where the mediator will be listening to incoming DID Comm messages.
+- `SERVICE_ENDPOINTS` - is the list of endpoints of the mediator split by ';'. Where the mediator will be listening to incoming DID Comm messages.
 
 #### mediator-storage
 To set up the mediator storage (MongoDB):

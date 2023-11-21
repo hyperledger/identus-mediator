@@ -22,10 +22,10 @@ import zio.stream.*
 import java.time.format.DateTimeFormatter
 import scala.io.Source
 import fmgp.did.framework.TransportFactoryImp
-case class MediatorConfig(endpoint: Seq[java.net.URI], keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
+case class MediatorConfig(endpoints: String, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
-    endpoint.map(e => DIDPeerServiceEncoded(s = e.toString))
+    endpoints.split(";").toSeq.map(e => DIDPeerServiceEncoded(s = e.toString))
   )
   val agentLayer: ZLayer[Any, Nothing, MediatorAgent] =
     ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
@@ -67,6 +67,7 @@ object MediatorStandalone extends ZIOAppDefault {
     )
     configs = ConfigProvider.fromResourcePath()
     mediatorConfig <- configs.nested("identity").nested("mediator").load(deriveConfig[MediatorConfig])
+    agentLayer = mediatorConfig.agentLayer
     _ <- ZIO.log(s"Mediator APP. See https://github.com/input-output-hk/atala-prism-mediator")
     _ <- ZIO.log(s"MediatorConfig: $mediatorConfig")
     _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
@@ -94,8 +95,8 @@ object MediatorStandalone extends ZIOAppDefault {
     myServer <- Server
       .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(mediatorConfig.agentLayer)
-      .provideSomeLayer((mediatorConfig.agentLayer ++ transportFactory ++ repos) >>> OperatorImp.layer)
+      .provideSomeLayer(agentLayer)
+      .provideSomeLayer((agentLayer ++ transportFactory ++ repos) >>> OperatorImp.layer)
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
