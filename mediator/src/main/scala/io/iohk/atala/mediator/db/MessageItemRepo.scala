@@ -1,7 +1,7 @@
 package io.iohk.atala.mediator.db
 
 import fmgp.did.*
-import fmgp.did.comm.EncryptedMessage
+import fmgp.did.comm.{SignedMessage, EncryptedMessage}
 import io.iohk.atala.mediator.{DuplicateMessage, StorageCollection, StorageError, StorageThrowable}
 import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
@@ -11,6 +11,7 @@ import zio.*
 import reactivemongo.core.errors.DatabaseException
 
 import scala.concurrent.ExecutionContext
+
 object MessageItemRepo {
   def layer: ZLayer[ReactiveMongoApi, Throwable, MessageItemRepo] =
     ZLayer {
@@ -27,7 +28,7 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  def insert(msg: EncryptedMessage): IO[StorageError, WriteResult] = {
+  def insert(msg: SignedMessage | EncryptedMessage): IO[StorageError, WriteResult] = {
     for {
       _ <- ZIO.logInfo("insert")
       xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))

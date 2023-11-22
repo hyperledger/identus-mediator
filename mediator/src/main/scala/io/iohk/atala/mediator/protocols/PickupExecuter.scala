@@ -7,15 +7,11 @@ import fmgp.did.comm.Operations.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.pickup3.*
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
-object PickupExecuter
-    extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo,
-      ProtocolExecuter.Erros
-    ] {
+
+object PickupExecuter extends ProtocolExecuter[UserAccountRepo & MessageItemRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(
     StatusRequest.piuri,
@@ -26,9 +22,7 @@ object PickupExecuter
     LiveModeChange.piuri,
   )
 
-  override def program[R1 <: UserAccountRepo & MessageItemRepo](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, StorageError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriStatusRequest = StatusRequest.piuri
     val piuriStatus = Status.piuri
@@ -76,11 +70,11 @@ object PickupExecuter
                 total_bytes = None, // TODO
                 live_delivery = None, // TODO
               ).toPlaintextMessage
-        } yield SyncReplyOnly(ret)
+        } yield Reply(ret)
       case m: Status =>
         ZIO.logInfo("Status") *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -134,10 +128,19 @@ object PickupExecuter
                   messagesToReturn =
                     if (m.recipient_did.isEmpty) allMessagesFor
                     else {
-                      allMessagesFor.filterNot(
-                        _.msg.recipientsSubject
-                          .map(_.did)
-                          .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                      allMessagesFor.filterNot(item =>
+                        item.msg match {
+                          case sMsg: SignedMessage =>
+                            sMsg.payloadAsPlaintextMessage
+                              .map(_.to.toSeq.flatMap(i => i))
+                              .getOrElse(Seq.empty)
+                              .map(_.toDID) // All Recipient Of The Message
+                              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                          case eMsg: EncryptedMessage =>
+                            eMsg.recipientsSubject
+                              .map(_.did)
+                              .forall(e => !m.recipient_did.map(_.toDID.did).contains(e))
+                        }
                       )
                     }
                 } yield MessageDelivery(
@@ -149,7 +152,7 @@ object PickupExecuter
                 ).toPlaintextMessage
               }
 
-        } yield SyncReplyOnly(ret)
+        } yield Reply(ret)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
           ZIO.succeed(
@@ -175,7 +178,7 @@ object PickupExecuter
       case m: LiveModeChange =>
         ZIO.logInfo("LiveModeChange Not Supported") *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .liveModeNotSupported(
                   from = m.to.asFROM,

@@ -145,7 +145,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     */
   def addToInboxes(
       recipients: Set[DIDSubject],
-      msg: EncryptedMessage
+      msg: SignedMessage | EncryptedMessage
   ): ZIO[Any, StorageError, Int] = {
     def selector =
       BSONDocument(
@@ -156,7 +156,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
               BSONDocument(
                 "$elemMatch" ->
                   BSONDocument(
-                    "hash" -> msg.sha1,
+                    "hash" -> msg.sha256,
                     "recipient" -> BSONDocument("$in" -> recipients.map(_.did))
                   )
               )
@@ -167,7 +167,7 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
       "$push" -> BSONDocument(
         "messagesRef" -> BSONDocument(
           "$each" ->
-            recipients.map(recipient => MessageMetaData(msg.sha1, recipient, xRequestId))
+            recipients.map(recipient => MessageMetaData(msg.sha256, recipient, xRequestId))
         )
       )
     )

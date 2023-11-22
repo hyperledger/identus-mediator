@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator.app
+package io.iohk.atala.mediator
 
 import fmgp.crypto.*
 import fmgp.crypto.error.*
@@ -6,11 +6,8 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.method.peer.*
-import io.iohk.atala.mediator.actions.*
-import io.iohk.atala.mediator.comm.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
-import io.iohk.atala.mediator.utils.*
 import zio.*
 import zio.config.*
 import zio.config.magnolia.*
@@ -24,12 +21,14 @@ import zio.stream.*
 
 import java.time.format.DateTimeFormatter
 import scala.io.Source
-case class MediatorConfig(endpoint: java.net.URI, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
+import fmgp.did.framework.TransportFactoryImp
+case class MediatorConfig(endpoints: String, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
-    Seq(DIDPeerServiceEncoded(s = endpoint.toString()))
+    endpoints.split(";").toSeq.map(e => DIDPeerServiceEncoded(s = e.toString))
   )
-  val agentLayer = ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
+  val agentLayer: ZLayer[Any, Nothing, MediatorAgent] =
+    ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
 }
 case class DataBaseConfig(
     protocol: String,
@@ -52,8 +51,8 @@ object MediatorStandalone extends ZIOAppDefault {
       allAnnotations |-|
       cause.highlight
 
-  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
-    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
+  // override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+  //   Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
   override val run = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
@@ -68,13 +67,12 @@ object MediatorStandalone extends ZIOAppDefault {
     )
     configs = ConfigProvider.fromResourcePath()
     mediatorConfig <- configs.nested("identity").nested("mediator").load(deriveConfig[MediatorConfig])
+    agentLayer = mediatorConfig.agentLayer
     _ <- ZIO.log(s"Mediator APP. See https://github.com/input-output-hk/atala-prism-mediator")
     _ <- ZIO.log(s"MediatorConfig: $mediatorConfig")
     _ <- ZIO.log(s"DID: ${mediatorConfig.did.id.string}")
     mediatorDbConfig <- configs.nested("database").nested("mediator").load(deriveConfig[DataBaseConfig])
     _ <- ZIO.log(s"MediatorDb Connection String: ${mediatorDbConfig.displayConnectionString}")
-    myHub <- Hub.sliding[String](5)
-    _ <- ZStream.fromHub(myHub).run(ZSink.foreach((str: String) => ZIO.logInfo("HUB: " + str))).fork
     port <- configs
       .nested("http")
       .nested("server")
@@ -87,20 +85,24 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("mediator")
       .load(Config.string("escalateTo"))
     _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
-    client = Scope.default >>> Client.default
-    inboundHub <- Hub.bounded[String](5)
+    transportFactory = Scope.default >>> (Client.default >>> TransportFactoryImp.layer)
+    repos = {
+      AsyncDriverResource.layer
+        >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
+        >>> (MessageItemRepo.layer ++ UserAccountRepo.layer)
+    }
+    // inboundHub <- Hub.bounded[String](5)
     myServer <- Server
-      .serve(MediatorAgent.didCommApp @@ (Middleware.cors))
+      .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(mediatorConfig.agentLayer) // .provideSomeLayer(AgentByHost.layer)
+      .provideSomeLayer(agentLayer)
+      .provideSomeLayer((agentLayer ++ transportFactory ++ repos) >>> OperatorImp.layer)
       .provideSomeLayer(
         AsyncDriverResource.layer
           >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
           >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
       )
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(client >>> MessageDispatcherJVM.layer)
-      .provideSomeEnvironment { (env: ZEnvironment[Server]) => env.add(myHub) }
       .provide(Server.defaultWithPort(port))
       .debug
       .fork

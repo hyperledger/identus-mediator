@@ -4,16 +4,15 @@ import zio.ZIO
 
 import fmgp.did.*
 import fmgp.did.comm.PlaintextMessage
+import fmgp.did.comm.protocol.Reply
 import io.iohk.atala.mediator.MissingProtocolError
-import io.iohk.atala.mediator.actions.ProtocolExecuter
-import io.iohk.atala.mediator.actions.Reply
-import io.iohk.atala.mediator.actions.ProtocolExecuterWithServices
 import io.iohk.atala.mediator.MediatorError
+import fmgp.did.comm.protocol.ProtocolExecuter
 
-case class MissingProtocolExecuter() extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
+object MissingProtocolExecuter extends ProtocolExecuter[Agent, Nothing] {
 
   override def supportedPIURI = Seq()
-  override def program[R1 <: Agent](plaintextMessage: PlaintextMessage) =
+  override def program(plaintextMessage: PlaintextMessage) =
     ZIO
       .service[Agent]
       .map(agent =>

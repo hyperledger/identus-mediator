@@ -1,20 +1,19 @@
 package io.iohk.atala.mediator.protocols
 
+import zio.ZIO
+
 import fmgp.crypto.error.FailToParse
 import fmgp.did.Agent
 import fmgp.did.comm.{PIURI, PlaintextMessage}
+import fmgp.did.comm.protocol._
 import fmgp.did.comm.protocol.discoverfeatures2._
-import io.iohk.atala.mediator.{MediatorDidError, MediatorError}
-import io.iohk.atala.mediator.actions.{Action, NoReply, ProtocolExecuter, ProtocolExecuterWithServices, Reply}
-import zio.ZIO
+import io.iohk.atala.mediator.{ProtocolExecutionFailToParse, MediatorError}
 
-object DiscoverFeaturesExecuter extends ProtocolExecuterWithServices[ProtocolExecuter.Services, MediatorError] {
+object DiscoverFeaturesExecuter extends ProtocolExecuter[Agent, MediatorError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(FeatureQuery.piuri, FeatureDisclose.piuri)
 
-  override def program[R1 <: Agent](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage): ZIO[Agent, MediatorError, Action] = {
     // the val is from the match to be definitely stable
     val piuriFeatureQuery = FeatureQuery.piuri
     val piuriFeatureDisclose = FeatureDisclose.piuri
@@ -25,7 +24,7 @@ object DiscoverFeaturesExecuter extends ProtocolExecuterWithServices[ProtocolExe
           ret <- plaintextMessage.toFeatureQuery match
             case Left(error) =>
               ZIO.logError(s"Fail in FeatureQuery: $error") *>
-                ZIO.fail(MediatorDidError(FailToParse(error)))
+                ZIO.fail(ProtocolExecutionFailToParse(FailToParse(error)))
             case Right(featureQuery) =>
               for {
                 _ <- ZIO.logInfo(featureQuery.toString())
@@ -72,7 +71,7 @@ object DiscoverFeaturesExecuter extends ProtocolExecuterWithServices[ProtocolExe
       case `piuriFeatureDisclose` =>
         for {
           _ <- plaintextMessage.toFeatureDisclose match
-            case Left(error)            => ZIO.fail(MediatorDidError(FailToParse(error)))
+            case Left(error)            => ZIO.fail(ProtocolExecutionFailToParse(FailToParse(error)))
             case Right(featureDisclose) => ZIO.logInfo(featureDisclose.toString())
         } yield NoReply
   }

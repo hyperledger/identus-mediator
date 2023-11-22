@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator.app
+package io.iohk.atala.mediator
 
 import zio.http._
 import fmgp.did.DID

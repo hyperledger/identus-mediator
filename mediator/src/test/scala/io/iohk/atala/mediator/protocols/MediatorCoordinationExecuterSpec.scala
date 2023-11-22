@@ -1,10 +1,10 @@
 package io.iohk.atala.mediator.protocols
 
-import fmgp.did.comm.protocol.reportproblem2.{ProblemCode, ProblemReport}
+import fmgp.did.comm.protocol.reportproblem2.*
+import fmgp.did.comm.protocol.*
 import fmgp.did.comm.{EncryptedMessage, Operations, PlaintextMessage, SignedMessage, layerDefault}
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.util.Base64
-import io.iohk.atala.mediator.comm.MessageDispatcherJVM
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.MessageItemRepoSpec.encryptedMessageAlice
 import io.iohk.atala.mediator.protocols.*
@@ -15,7 +15,7 @@ import zio.json.*
 import zio.test.*
 import zio.test.Assertion.*
 import fmgp.did.{Agent, DIDSubject}
-import io.iohk.atala.mediator.app.MediatorAgent
+import io.iohk.atala.mediator.MediatorAgent
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -24,6 +24,8 @@ import Operations.*
 import fmgp.did.comm.protocol.mediatorcoordination2.*
 import io.iohk.atala.mediator.db.AgentStub.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
+
+/** mediator/testOnly io.iohk.atala.mediator.protocols.MediatorCoordinationExecuterSpec */
 object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with MessageSetup {
 
   override def spec = {
@@ -34,12 +36,11 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
         for {
           agent <- ZIO.service[MediatorAgent]
           msg <- ZIO.fromEither(plaintextMediationRequestMessage(bobAgent.id.did, agent.id.did))
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+          action <- executer.program(msg)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == MediateGrant.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == MediateGrant.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("MediationRequest message for already used alias did should get mediation deny") {
@@ -50,12 +51,11 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
           result <- userAccount.createOrFindDidAccount(alice)
           result <- userAccount.addAlias(owner = alice, newAlias = DIDSubject(aliceAgent.id.did))
           msg <- ZIO.fromEither(plaintextMediationRequestMessage(aliceAgent.id.did, agent.id.did))
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == MediateDeny.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == MediateDeny.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("KeyList Update message Request should add alias and return keyList Response") {
@@ -67,12 +67,11 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
           msg <- ZIO.fromEither(
             plaintextKeyListUpdateRequestMessage(aliceAgent.id.did, agent.id.did, aliceAgent.id.did)
           )
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == KeylistResponse.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == KeylistResponse.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("KeyList remove alias message Request should remove alias and return keyList Response") {
@@ -85,12 +84,11 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
           msg <- ZIO.fromEither(
             plaintextKeyListRemoveAliasRequestMessage(aliceAgent.id.did, agent.id.did, bobAgent.id.did)
           )
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(aliceAgentLayer)
+          action <- executer.program(msg)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          assertTrue(plainText.`type` == KeylistResponse.piuri)
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == KeylistResponse.piuri)
+            case _               => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean),
       test("KeyList remove alias non existing didAccount Request should return problem report") {
@@ -102,28 +100,25 @@ object MediatorCoordinationExecuterSpec extends ZIOSpecDefault with DidAccountSt
           msg <- ZIO.fromEither(
             plaintextKeyListRemoveAliasRequestMessage(bobAgent.id.did, agent.id.did, bobAgent.id.did)
           )
-          result <- executer.execute(msg)
-          message <- ZIO.fromOption(result)
-          decryptedMessage <- authDecrypt(message.asInstanceOf[EncryptedMessage]).provideSomeLayer(bobAgentLayer)
+          action <- executer.program(msg)
         } yield {
-          val plainText = decryptedMessage.asInstanceOf[PlaintextMessage]
-          val problemReport = ProblemReport.fromPlaintextMessage(plainText)
-          assert(problemReport)(
-            isRight(
-              hasField("code", (p: ProblemReport) => p.code, equalTo(ProblemCode.ErroFail("req", "not_enroll"))) &&
-                hasField(
-                  "from",
-                  (p: ProblemReport) => p.from,
-                  equalTo(agent.id.did)
+          action match
+            case reply: AnyReply =>
+              assert(reply.msg.toProblemReport)(
+                isRight(
+                  hasField("code", (p: ProblemReport) => p.code, equalTo(ProblemCode.ErroFail("req", "not_enroll"))) &&
+                    hasField(
+                      "from",
+                      (p: ProblemReport) => p.from,
+                      equalTo(agent.id.did)
+                    )
                 )
-            )
-          ) && assertTrue(plainText.`type` == ProblemReport.piuri)
-
+              )
+            case _ => assertTrue(false)
         }
       } @@ TestAspect.before(setupAndClean)
     ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(Scope.default >>> Client.default >>> MessageDispatcherJVM.layer)
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(AgentStub.agentLayer)
       .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential

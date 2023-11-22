@@ -7,18 +7,14 @@ import fmgp.did.comm.Operations.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.mediatorcoordination2.*
 import io.iohk.atala.mediator.*
-import io.iohk.atala.mediator.actions.*
 import io.iohk.atala.mediator.db.UserAccountRepo
 import io.iohk.atala.mediator.db.DidAccount
 
 import zio.*
 import zio.json.*
+import io.iohk.atala.mediator.db.MessageItemRepo
 
-object MediatorCoordinationExecuter
-    extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & UserAccountRepo,
-      ProtocolExecuter.Erros
-    ] {
+object MediatorCoordinationExecuter extends ProtocolExecuter[Agent & UserAccountRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(
     MediateRequest.piuri,
@@ -30,9 +26,7 @@ object MediatorCoordinationExecuter
     Keylist.piuri,
   )
 
-  override def program[R1 <: (UserAccountRepo)](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, MediatorError | StorageError, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriMediateRequest = MediateRequest.piuri
     val piuriMediateGrant = MediateGrant.piuri
@@ -54,7 +48,7 @@ object MediatorCoordinationExecuter
       case m: MediateGrant =>
         ZIO.logWarning("MediateGrant") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -68,7 +62,7 @@ object MediatorCoordinationExecuter
       case m: MediateDeny =>
         ZIO.logWarning("MediateDeny") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -90,7 +84,7 @@ object MediatorCoordinationExecuter
             case Right(value) =>
               ZIO.log(s"MediateGrant: $value") *>
                 ZIO.succeed(m.makeRespondMediateGrant.toPlaintextMessage)
-        } yield SyncReplyOnly(reply)
+        } yield Reply(reply)
       case m: KeylistUpdate =>
         for {
           _ <- ZIO.logInfo("KeylistUpdate")
@@ -130,11 +124,11 @@ object MediatorCoordinationExecuter
                   result <- ZIO.succeed(m.makeKeylistResponse(updateResponse).toPlaintextMessage)
                 } yield result
 
-        } yield SyncReplyOnly(res)
+        } yield Reply(res)
       case m: KeylistResponse =>
         ZIO.logWarning("KeylistResponse") *> ZIO.succeed(NoReply) *>
           ZIO.succeed(
-            SyncReplyOnly(
+            Reply(
               Problems
                 .unsupportedProtocolRole(
                   from = m.to.asFROM,
@@ -161,7 +155,7 @@ object MediatorCoordinationExecuter
           }
         } yield mResponse match
           case None           => NoReply // TODO error report
-          case Some(response) => SyncReplyOnly(response.toPlaintextMessage)
+          case Some(response) => Reply(response.toPlaintextMessage)
       case m: Keylist => ZIO.logWarning("Keylist") *> ZIO.succeed(NoReply)
     } match
       case Left(error)    => ZIO.logError(error) *> ZIO.succeed(NoReply) // TODO error report
