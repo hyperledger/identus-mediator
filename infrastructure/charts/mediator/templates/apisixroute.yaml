@@ -30,6 +30,29 @@ spec:
         header_name: "X-Request-ID"
         include_in_response: true
     {{ template "cors" . }}
+  - name: mediator-ws-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /*
+    backends:
+       - serviceName: mediator-service
+         servicePort: 8080
+       websocket: true
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/(.*)","/$1"]
+    - name: request-id
+      enable: true
+      config:
+        header_name: "X-Request-ID"
+        include_in_response: true
+    {{ template "cors" . }}
 
 ---
 
