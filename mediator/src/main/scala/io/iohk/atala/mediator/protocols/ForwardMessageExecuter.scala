@@ -5,24 +5,18 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.comm.protocol.routing2.*
-import io.iohk.atala.mediator._
-import io.iohk.atala.mediator.actions.*
+import fmgp.did.comm.protocol.reportproblem2.ProblemReport
+import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
-import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 
 object ForwardMessageExecuter
-    extends ProtocolExecuterWithServices[
-      ProtocolExecuter.Services & UserAccountRepo & MessageItemRepo,
-      ProtocolExecuter.Erros
-    ] {
+    extends ProtocolExecuter[Agent & UserAccountRepo & MessageItemRepo, MediatorError | StorageError] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
-  override def program[R1 <: UserAccountRepo & MessageItemRepo & Agent](
-      plaintextMessage: PlaintextMessage
-  ): ZIO[R1, ProtocolExecuter.Erros, Action] = {
+  override def program(plaintextMessage: PlaintextMessage) = {
     // the val is from the match to be definitely stable
     val piuriForwardMessage = ForwardMessage.piuri
 
