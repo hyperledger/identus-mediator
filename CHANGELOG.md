@@ -1,3 +1,10 @@
+## [0.12.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.1...prism-mediator-v0.12.2) (2023-11-22)
+
+
+### Bug Fixes
+
+* websocket correct indentation ([#182](https://github.com/input-output-hk/atala-prism-mediator/issues/182)) ([c30fc1f](https://github.com/input-output-hk/atala-prism-mediator/commit/c30fc1f7f15ab3fc14cf0fc36bcf2fc5b5bdc0b6))
+
 ## [0.12.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.0...prism-mediator-v0.12.1) (2023-11-22)
 
 
