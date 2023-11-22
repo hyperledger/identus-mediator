@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.11.0...prism-mediator-v0.12.0) (2023-11-22)
+
+
+### Features
+
+* websockets support ([#172](https://github.com/input-output-hk/atala-prism-mediator/issues/172)) ([30da5e7](https://github.com/input-output-hk/atala-prism-mediator/commit/30da5e7603e5373b96762214f82b0329a5d4000d))
+
 # [0.11.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.10.2...prism-mediator-v0.11.0) (2023-11-10)
 
 
