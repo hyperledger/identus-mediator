@@ -30,18 +30,6 @@ spec:
         header_name: "X-Request-ID"
         include_in_response: true
     {{ template "cors" . }}
-
----
-
-apiVersion: apisix.apache.org/v2
-kind: ApisixRoute
-metadata:
-  name: mediator-ws-route
-  namespace: "{{ .Release.Namespace }}"
-  labels:
-    {{ template "labels.common" . }}
-spec:
-  http:
   - name: mediator-ws-rule
     match:
       hosts:
