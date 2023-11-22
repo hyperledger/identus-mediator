@@ -23,7 +23,7 @@ services:
       - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
       - KEY_AUTHENTICATION_D=INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug
       - KEY_AUTHENTICATION_X=MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA
-      - SERVICE_ENDPOINT=http://localhost:8080
+      - SERVICE_ENDPOINTS=http://localhost:8080;ws://localhost:8080/ws
       - MONGODB_USER=admin
       - MONGODB_PASSWORD=admin
       - MONGODB_PROTOCOL=mongodb

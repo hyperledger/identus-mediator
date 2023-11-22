@@ -6,6 +6,8 @@ import reactivemongo.api.bson.*
 import java.time.Instant
 import scala.util.Try
 import zio.json._
+import scala.util.Failure
+import scala.util.Success
 
 type HASH = String
 // messages
@@ -13,15 +15,63 @@ type XRequestID = String // x-request-id
 
 case class MessageItem(
     _id: HASH,
-    msg: EncryptedMessage,
-    headers: ProtectedHeader,
+    msg: SignedMessage | EncryptedMessage,
+    headers: ProtectedHeader | Seq[SignProtectedHeader],
     ts: String,
     xRequestId: Option[XRequestID]
 )
 object MessageItem {
-  def apply(msg: EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem = {
-    new MessageItem(msg.sha1, msg, msg.`protected`.obj, Instant.now().toString, xRequestId)
+  def apply(msg: SignedMessage | EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem =
+    msg match {
+      case sMsg: SignedMessage =>
+        new MessageItem(
+          msg.sha256,
+          msg,
+          sMsg.signatures.map(_.`protected`.obj),
+          Instant.now().toString,
+          xRequestId
+        )
+      case eMsg: EncryptedMessage =>
+        new MessageItem(msg.sha256, msg, eMsg.`protected`.obj, Instant.now().toString, xRequestId)
+    }
+
+  given BSONWriter[ProtectedHeader | Seq[SignProtectedHeader]] with {
+    override def writeTry(obj: ProtectedHeader | Seq[SignProtectedHeader]): Try[BSONValue] =
+      obj match {
+        case obj: ProtectedHeader =>
+          summon[BSONDocumentWriter[ProtectedHeader]].writeTry(obj)
+        case seq: Seq[_] =>
+          val f = summon[BSONDocumentWriter[SignProtectedHeader]]
+          seq
+            .map(e => Try(e.asInstanceOf[SignProtectedHeader]).flatMap(ee => f.writeTry(ee)))
+            .foldLeft(Try(Seq.empty[BSONDocument]))((acc, e) =>
+              (acc, e) match
+                case (Failure(exception), _)            => Failure(exception)
+                case (Success(seq), Failure(exception)) => Failure(exception)
+                case (Success(seq), Success(value))     => Success(seq :+ value)
+            )
+            .map(e => BSONArray(e))
+      }
   }
+
+  given BSONReader[ProtectedHeader | Seq[SignProtectedHeader]] with {
+    override def readTry(bson: BSONValue): Try[ProtectedHeader | Seq[SignProtectedHeader]] = {
+      bson match
+        case array: BSONArray =>
+          val f = summon[BSONDocumentReader[SignProtectedHeader]]
+          array.values
+            .map(e => f.readTry(e))
+            .foldLeft(Try(Seq.empty[SignProtectedHeader]))((acc, e) =>
+              (acc, e) match
+                case (Failure(exception), _)            => Failure(exception)
+                case (Success(seq), Failure(exception)) => Failure(exception)
+                case (Success(seq), Success(value))     => Success(seq :+ value)
+            )
+        case obj: BSONDocument => summon[BSONDocumentReader[ProtectedHeader]].readTry(obj)
+        case _                 => Failure(new RuntimeException("Must be a Document for a Array of Documents"))
+    }
+  }
+
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
 }
@@ -79,7 +129,7 @@ object SentMessageItem {
       case sMsg: SignedMessage =>
         new SentMessageItem(
           encrypt = msg,
-          hash = sMsg.sha1, // FIXME
+          hash = sMsg.sha256,
           headers = sMsg.signatures.headOption.flatMap(_.`protected`.obj.toJsonAST.toOption).getOrElse(ast.Json.Null),
           plaintext = plaintext,
           transport = Seq(
@@ -95,7 +145,7 @@ object SentMessageItem {
       case eMsg: EncryptedMessage =>
         new SentMessageItem(
           encrypt = msg,
-          hash = eMsg.sha1,
+          hash = eMsg.sha256,
           headers = eMsg.`protected`.obj.toJsonAST.getOrElse(ast.Json.Null),
           plaintext = plaintext,
           transport = Seq(
