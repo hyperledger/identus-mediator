@@ -51,6 +51,8 @@ object DIDCommRoutes {
                 ZStream.fromQueue(inboundQueue)
               def outbound: ZSink[Any, Transport.OutErr, SignedMessage | EncryptedMessage, Nothing, Unit] =
                 ZSink.fromQueue(outboundQueue)
+
+              // TODO def close = inboundQueue.shutdown <&> outboundQueue.shutdown
             }
             operator <- ZIO.service[Operator]
             fiber <- operator.receiveTransport(transport).fork
@@ -65,8 +67,8 @@ object DIDCommRoutes {
                 case Some(msg: EncryptedMessage) =>
                   Response(Status.Ok, Headers(MediaTypes.ENCRYPTED.asContentType), Body.fromCharSequence(msg.toJson))
               }
-            _ <- fiber.join
             shutdown <- inboundQueue.shutdown <&> outboundQueue.shutdown
+            _ <- fiber.join
           } yield ret)
             .tapErrorCause(ZIO.logErrorCause("Error", _))
             .catchAllCause(cause => ZIO.succeed(Response.fromCause(cause)))
