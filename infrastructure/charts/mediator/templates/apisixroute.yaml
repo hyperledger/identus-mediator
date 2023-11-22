@@ -19,7 +19,7 @@ spec:
     backends:
        - serviceName: mediator-service
          servicePort: 8080
-       websocket: true
+    websocket: true
     plugins:
     - name: proxy-rewrite
       enable: true
