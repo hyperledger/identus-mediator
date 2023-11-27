@@ -8,7 +8,7 @@ import fmgp.did.comm.protocol.pickup3.StatusRequest
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.{Agent, DIDSubject}
 import fmgp.util.Base64
-import io.iohk.atala.mediator.MediatorAgent
+import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.AgentStub.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
@@ -166,11 +166,16 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case NoReply         => assertTrue(true)
         }
       } @@ TestAspect.before(setupAndClean)
-    ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
+    )
+      .provideSomeLayer(MediatorTransportManagerUtil.layerTest)
+      .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(Operations.layerDefault)
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(AgentStub.agentLayer)
-      .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
+      .provideSomeEnvironment((e: ZEnvironment[UserAccountRepo & MessageItemRepo]) =>
+        e ++ ZEnvironment(TransportUtil.newTransportEmpty)
+      )
+      .provideLayerShared(dataAccessLayer)
   }
 
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)

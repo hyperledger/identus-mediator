@@ -10,9 +10,13 @@ import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.db.*
 import zio.*
 import zio.json.*
+import fmgp.did.comm.protocol.pickup3.MessageDelivery
 
 object ForwardMessageExecuter
-    extends ProtocolExecuter[Agent & UserAccountRepo & MessageItemRepo, MediatorError | StorageError] {
+    extends ProtocolExecuter[
+      Resolver & Operations & Agent & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager],
+      MediatorError | StorageError
+    ] {
 
   override def supportedPIURI: Seq[PIURI] = Seq(ForwardMessage.piuri)
 
@@ -34,6 +38,25 @@ object ForwardMessageExecuter
               for {
                 _ <- repoMessageItem.insert(m.msg)
                 _ <- ZIO.logInfo("Add next msg (of the ForwardMessage) to the Message Repo")
+
+                // For Live Mode
+                mediatorTransportManager <- ZIO.service[Ref[MediatorTransportManager]].flatMap(_.get)
+                agent <- ZIO.service[Agent]
+                messageDelivery = MessageDelivery(
+                  thid = m.id, // FIXME what should I put here?
+                  from = agent.id.asFROM, // Mediator agent
+                  to = m.next.asTO, // Destination of the message that is being forward
+                  recipient_did = None,
+                  attachments = Map(
+                    m.msg.sha256 -> m.msg
+                  )
+                ).toPlaintextMessage
+                eMsgDelivery <- Operations
+                  .authEncrypt(messageDelivery)
+                  .mapError(didFail => MediatorDidError(didFail))
+                _ <- mediatorTransportManager
+                  .sendForLiveMode(m.next.asTO, eMsgDelivery)
+                  .mapError(didFail => MediatorDidError(didFail))
               } yield NoReply
             } else {
               for {

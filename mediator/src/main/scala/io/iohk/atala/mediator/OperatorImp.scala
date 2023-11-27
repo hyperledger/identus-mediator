@@ -12,7 +12,8 @@ import io.iohk.atala.mediator.protocols.*
 import io.iohk.atala.mediator.db.{UserAccountRepo, MessageItemRepo}
 
 object OperatorImp {
-  type Services = Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo
+  type Services = Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager] &
+    TransportDIDComm[Any]
 
   val protocolHandlerLayer: ULayer[
     ProtocolExecuter[Services, MediatorError | StorageError]
