@@ -187,6 +187,7 @@ object PickupExecuter
           // For Live Mode
           refMediatorTransportManager <- ZIO.service[Ref[MediatorTransportManager]]
           transport <- ZIO.service[TransportDIDComm[Any]]
+          _ <- ZIO.log(s"The transport's transmissionType is of the type ${transport.transmissionType}")
           ret <-
             transport.transmissionType match // If sent with live_delivery set to true on a connection incapable of live delivery, a problem_report SHOULD be sent
               case TransmissionType.SingleTransmission => // Like HTTP

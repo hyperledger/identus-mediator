@@ -55,7 +55,7 @@ case class AgentExecutorMediator(
       .provideSomeLayer(this.indentityLayer)
       .provideSomeLayer(userAccountRepoLayer ++ messageItemRepoLayer)
       .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations]) =>
-        e ++ ZEnvironment(protocolHandler) ++ ZEnvironment(transportManager) ++ ZEnvironment(transport)
+        e ++ ZEnvironment(protocolHandler) ++ ZEnvironment(transportManager)
       )
       .orDieWith(ex => new RuntimeException(ex.toString))
 
@@ -63,7 +63,9 @@ case class AgentExecutorMediator(
       msg: SignedMessage | EncryptedMessage,
       transport: TransportDIDComm[Any]
   ): ZIO[
-    OperatorImp.Services & ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
+    Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager] &
+      // instead of OperatorImp.Services
+      ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     MediatorError | StorageError,
     Unit
   ] = ZIO.logAnnotate("msg_sha256", msg.sha256) {
@@ -114,7 +116,9 @@ case class AgentExecutorMediator(
       pMsgOrProblemReport: Either[ProblemReport, PlaintextMessage],
       transport: TransportDIDComm[Any]
   ): ZIO[
-    ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError] & OperatorImp.Services,
+    Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager] &
+      // instead of OperatorImp.Services
+      ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     MediatorError | StorageError,
     Unit
   ] =
