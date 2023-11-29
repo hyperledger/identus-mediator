@@ -1,3 +1,18 @@
+## [0.12.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.1...prism-mediator-v0.12.2) (2023-11-22)
+
+
+### Bug Fixes
+
+* websocket correct indentation ([#182](https://github.com/input-output-hk/atala-prism-mediator/issues/182)) ([c30fc1f](https://github.com/input-output-hk/atala-prism-mediator/commit/c30fc1f7f15ab3fc14cf0fc36bcf2fc5b5bdc0b6))
+
+## [0.12.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.0...prism-mediator-v0.12.1) (2023-11-22)
+
+
+### Bug Fixes
+
+* Add and enable websocket on apisix route ([#179](https://github.com/input-output-hk/atala-prism-mediator/issues/179)) ([e5cfb1c](https://github.com/input-output-hk/atala-prism-mediator/commit/e5cfb1c0d5c284ab98ab36fef9e4bb81c97f3f53))
+* correct endpoint for wss in deployment.yaml ([#178](https://github.com/input-output-hk/atala-prism-mediator/issues/178)) ([94866a9](https://github.com/input-output-hk/atala-prism-mediator/commit/94866a9077adf37761bd4b2218c280ef3bdc6e79))
+
 # [0.12.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.11.0...prism-mediator-v0.12.0) (2023-11-22)
 
 
