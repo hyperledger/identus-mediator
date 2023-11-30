@@ -5,7 +5,9 @@ import fmgp.did.comm.protocol.*
 import fmgp.did.comm.{EncryptedMessage, Operations, PlaintextMessage, SignedMessage, layerDefault}
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.util.Base64
+import io.iohk.atala.mediator.MediatorTransportManager
 import io.iohk.atala.mediator.db.*
+import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import io.iohk.atala.mediator.db.MessageItemRepoSpec.encryptedMessageAlice
 import io.iohk.atala.mediator.protocols.ForwardMessageExecuter
 import zio.*
@@ -17,7 +19,6 @@ import zio.test.Assertion.*
 import fmgp.did.DIDSubject
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
 import reactivemongo.api.bson.BSONDocument
 
 /** mediator/testOnly io.iohk.atala.mediator.protocols.ForwardMessageExecutorSpec */
@@ -56,7 +57,9 @@ object ForwardMessageExecutorSpec extends ZIOSpecDefault with DidAccountStubSetu
         case NoReply         => assertTrue(true)
 
     } @@ TestAspect.before(setupAndClean)
-  ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
+  )
+    .provideSomeLayer(io.iohk.atala.mediator.MediatorTransportManagerUtil.layerTest)
+    .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(Operations.layerDefault)
     .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
     .provideSomeLayer(AgentStub.agentLayer)

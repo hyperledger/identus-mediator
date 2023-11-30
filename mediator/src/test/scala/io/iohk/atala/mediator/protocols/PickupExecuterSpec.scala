@@ -8,7 +8,7 @@ import fmgp.did.comm.protocol.pickup3.StatusRequest
 import fmgp.did.method.peer.DidPeerResolver
 import fmgp.did.{Agent, DIDSubject}
 import fmgp.util.Base64
-import io.iohk.atala.mediator.MediatorAgent
+import io.iohk.atala.mediator.*
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.db.AgentStub.*
 import io.iohk.atala.mediator.db.EmbeddedMongoDBInstance.*
@@ -49,7 +49,7 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
             case _               => assertTrue(false)
         }
-      } @@ TestAspect.before(setupAndClean),
+      },
       test("Pickup StatusRequest message should return problem report for not enrolled did") {
         val executer = PickupExecuter
         for {
@@ -62,7 +62,7 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
             case _               => assertTrue(false)
         }
-      } @@ TestAspect.before(setupAndClean),
+      },
       test("Pickup StatusRequest message should return Status Message") {
         val executer = PickupExecuter
         for {
@@ -80,8 +80,8 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
             case _               => assertTrue(false)
         }
-      } @@ TestAspect.before(setupAndClean),
-      test("Pickup DeliveryRequest message  return MessageDelivery and attachment message") {
+      },
+      test("Pickup DeliveryRequest message return MessageDelivery and attachment message") {
         val executer = PickupExecuter
         val forwardMessageExecuter = ForwardMessageExecuter
         for {
@@ -110,7 +110,7 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
               assertTrue(reply.msg.`type` == MessageDelivery.piuri) && assertTrue(reply.msg.attachments.nonEmpty)
             case _ => assertTrue(false)
         }
-      } @@ TestAspect.before(setupAndClean),
+      },
       test("Delivery Request message for Pickup returns a Status Message when there are no messages available") {
         val pickupExecuter = PickupExecuter
         for {
@@ -130,8 +130,8 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
             case _               => assertTrue(false)
         }
-      } @@ TestAspect.before(setupAndClean),
-      test("Messages Received  message should clear the messages from the queue") {
+      },
+      test("Messages Received message should clear the messages from the queue") {
         val executer = PickupExecuter
         val forwardMessageExecuter = ForwardMessageExecuter
         for {
@@ -165,13 +165,54 @@ object PickupExecuterSpec extends ZIOSpecDefault with DidAccountStubSetup with M
             case reply: AnyReply => assertTrue(false)
             case NoReply         => assertTrue(true)
         }
-      } @@ TestAspect.before(setupAndClean)
-    ).provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(Operations.layerDefault)
-      .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
-      .provideSomeLayer(AgentStub.agentLayer)
-      .provideLayerShared(dataAccessLayer) @@ TestAspect.sequential
+      },
+      test("Pickup LiveMode over WS message should return Status Message") {
+        val executer = PickupExecuter
+        for {
+          mediatorAgent <- ZIO.service[MediatorAgent]
+          userAccount <- ZIO.service[UserAccountRepo]
+          _ <- userAccount.createOrFindDidAccount(DIDSubject(aliceAgent.id.did))
+          _ <- userAccount.addAlias(
+            owner = DIDSubject(aliceAgent.id.did),
+            newAlias = DIDSubject(aliceAgent.id.did)
+          )
+          msg <- ZIO.fromEither(plaintextLiveModeEnable(aliceAgent.id.did, mediatorAgent.id.did))
+          action <- executer.program(msg)
+        } yield {
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == Status.piuri)
+            case _               => assertTrue(false)
+        }
+      }
+        .provideSomeLayer(ZLayer.succeed(TransportUtil.newTransportEmptyMultiTransmissions)),
+      test("Pickup LiveMode over SingleTransmission (HTTP) message should return ProblemReport") {
+        val executer = PickupExecuter
+        for {
+          mediatorAgent <- ZIO.service[MediatorAgent]
+          userAccount <- ZIO.service[UserAccountRepo]
+          _ <- userAccount.createOrFindDidAccount(DIDSubject(aliceAgent.id.did))
+          _ <- userAccount.addAlias(
+            owner = DIDSubject(aliceAgent.id.did),
+            newAlias = DIDSubject(aliceAgent.id.did)
+          )
+          msg <- ZIO.fromEither(plaintextLiveModeEnable(aliceAgent.id.did, mediatorAgent.id.did))
+          action <- executer.program(msg)
+        } yield {
+          action match
+            case reply: AnyReply => assertTrue(reply.msg.`type` == ProblemReport.piuri)
+            case _               => assertTrue(false)
+        }
+      }
+        .provideSomeLayer(ZLayer.succeed(TransportUtil.newTransportEmptySingleTransmission)),
+    ) @@ TestAspect.sequential @@ TestAspect.before(setupAndClean)
   }
+    .provideSomeLayer(MediatorTransportManagerUtil.layerTest)
+    .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
+    .provideSomeLayer(Operations.layerDefault)
+    .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
+    .provideSomeLayer(AgentStub.agentLayer)
+    .provideSomeLayer(ZLayer.succeed(TransportUtil.newTransportEmpty))
+    .provideLayerShared(dataAccessLayer)
 
   val dataAccessLayer = EmbeddedMongoDBInstance.layer(port, hostIp)
     >>> AsyncDriverResource.layer
