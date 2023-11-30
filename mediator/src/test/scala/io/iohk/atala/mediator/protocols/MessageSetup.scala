@@ -312,4 +312,26 @@ trait MessageSetup {
       |  "typ" : "application/didcomm-plain+json"
       |}""".stripMargin.fromJson[PlaintextMessage]
 
+  val plaintextLiveModeEnable = (didFrom: String, mediatorDid: String) => s"""{
+       |  "id" : "f0f6c406-c247-4842-8d37-c9a4f77226d8",
+       |  "type" : "https://didcomm.org/messagepickup/3.0/live-delivery-change",
+       |  "to" : ["$mediatorDid"],
+       |  "from" : "$didFrom",
+       |  "thid" : "maybe-thid-if-responding",
+       |  "body" : {"live_delivery" : true},
+       |  "return_route" : "all",
+       |  "typ" : "application/didcomm-plain+json"
+       |}""".stripMargin.fromJson[PlaintextMessage]
+
+  val plaintextLiveModeDisable = (didFrom: String, mediatorDid: String) => s"""{
+       |  "id" : "f0f6c406-c247-4842-8d37-c9a4f77226d8",
+       |  "type" : "https://didcomm.org/messagepickup/3.0/live-delivery-change",
+       |  "to" : ["$mediatorDid"],
+       |  "from" : "$didFrom",
+       |  "thid" : "maybe-thid-if-responding",
+       |  "body" : {"live_delivery" : false},
+       |  "return_route" : "all",
+       |  "typ" : "application/didcomm-plain+json"
+       |}""".stripMargin.fromJson[PlaintextMessage]
+
 }
