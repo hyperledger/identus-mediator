@@ -30,11 +30,14 @@ case class AgentExecutorMediator(
   override def acceptTransport(
       transport: TransportDIDComm[Any]
   ): URIO[Operations & Resolver, Unit] =
-    transport.inbound
-      .mapZIO(msg => jobExecuterProtocol(msg, transport))
-      .runDrain
-      .forkIn(scope)
-      .unit // From Fiber.Runtime[fmgp.util.Transport.InErr, Unit] to Unit
+    for {
+      _ <- transportManager.update { _.registerTransport(transport) }
+      _ <- transport.inbound
+        .mapZIO(msg => jobExecuterProtocol(msg, transport))
+        .runDrain
+        .forkIn(scope)
+        .unit // From Fiber.Runtime[fmgp.util.Transport.InErr, Unit] to Unit
+    } yield ()
 
   override def receiveMsg(
       msg: SignedMessage | EncryptedMessage,
@@ -80,6 +83,7 @@ case class AgentExecutorMediator(
             .map(_.to.toSet.flatten.map(_.toDIDSubject))
             .mapError(didFail => MediatorDidError(didFail))
       _ <- transportManager.get.flatMap { m =>
+        // TODO REVIEW what is this code for?
         ZIO.foreach(recipientsSubject)(subject => m.publish(subject.asTO, msg))
       }
       _ <-
@@ -91,8 +95,10 @@ case class AgentExecutorMediator(
               .decrypt(msg)
               .tap { pMsg =>
                 pMsg.from match
-                  case None       => ZIO.unit
-                  case Some(from) => transportManager.update { _.link(from.asFROMTO, transport) }
+                  case None => ZIO.unit
+                  case Some(from) =>
+                    ZIO.logInfo(s"Link ${transport.id} to agent ${from.asFROMTO}") *>
+                      transportManager.update { _.link(from.asFROMTO, transport) }
               }
               .map(Right(_))
               .catchAll { didFail =>
@@ -257,6 +263,7 @@ object AgentExecutorMediator {
       messageItemRepo: MessageItemRepo,
   ): ZIO[TransportFactory, Nothing, AgentExecutar] =
     for {
+      _ <- ZIO.logInfo(s"Make Madiator AgentExecutor for ${agent.id}")
       transportManager <- MediatorTransportManager.make
       mediator = AgentExecutorMediator(agent, transportManager, protocolHandler, userAccountRepo, messageItemRepo)
     } yield mediator

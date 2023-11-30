@@ -54,16 +54,16 @@ case class MediatorTransportManager(
   def enableLiveMode(subject: FROMTO, transportID: TransportID): MediatorTransportManager =
     this.copy(
       liveMode = liveMode.updatedWith(subject) {
-        case Some(set) => Some(set - transportID).filter(_.isEmpty)
-        case None      => None
+        case Some(set) => Some(set + transportID)
+        case None      => Some(Set(transportID))
       }
     )
 
   def disableLiveMode(subject: FROMTO, transportID: TransportID): MediatorTransportManager =
     this.copy(
       liveMode = liveMode.updatedWith(subject) {
-        case Some(set) => Some(set + transportID)
-        case None      => Some(Set(transportID))
+        case Some(set) => Some(set - transportID).filter(_.isEmpty)
+        case None      => None
       }
     )
 
@@ -73,11 +73,12 @@ case class MediatorTransportManager(
   def sendForLiveMode(
       next: TO,
       msg: /*lazy*/ => SignedMessage | EncryptedMessage
-  ): ZIO[Any, DidFail, Iterable[Unit]] = {
-    val transportIDs = this.liveMode.getOrElse(next.asFROMTO, Seq.empty)
-    val myChannels = transportIDs.flatMap(id => this.transports.find(_.id == id))
-    ZIO.foreach(myChannels) { _.send(msg) }
-  }
+  ): ZIO[Any, DidFail, Unit] =
+    for {
+      transportIDs <- ZIO.succeed(this.liveMode.getOrElse(next.asFROMTO, Set.empty))
+      myChannels <- ZIO.succeed(transportIDs.flatMap(id => this.transports.find(_.id == id)))
+      _ <- ZIO.foreach(myChannels) { _.send(msg) }
+    } yield ()
 
   // TODO maybe rename to send
   def publish(to: TO, msg: SignedMessage | EncryptedMessage): ZIO[Any, Nothing, Iterable[Unit]] = {
