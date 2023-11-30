@@ -21,8 +21,8 @@ spec:
          servicePort: 8080
     timeout:
       connect: 60s
-      read: 60m
-      send: 60m
+      read: 8h
+      send: 8h
     websocket: true
     plugins:
     - name: proxy-rewrite
