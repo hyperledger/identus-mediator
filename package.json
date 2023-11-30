@@ -1,6 +1,6 @@
 {
     "name": "atala-prism-mediator",
-    "version": "0.12.3",
+    "version": "0.13.0",
     "engines": {
         "node": ">=16.13.0"
     },
