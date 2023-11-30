@@ -38,7 +38,7 @@ object OperatorImp {
           userAccountRepo <- ZIO.service[UserAccountRepo]
           messageItemRepo <- ZIO.service[MessageItemRepo]
           self <- AgentExecutorMediator.make(mediator, protocolHandlerAux, userAccountRepo, messageItemRepo)
-          _ <- ZIO.log("Operator: " + self.subject.toString)
+          _ <- ZIO.log("Layer Operator: " + self.subject.toString)
           operator = Operator(
             selfOperator = self,
             contacts = Seq(self)
