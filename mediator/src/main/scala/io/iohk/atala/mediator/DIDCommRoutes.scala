@@ -46,6 +46,8 @@ object DIDCommRoutes {
             inboundQueue <- Queue.bounded[SignedMessage | EncryptedMessage](1)
             outboundQueue <- Queue.bounded[SignedMessage | EncryptedMessage](1)
             transport = new TransportDIDComm[Any] {
+              def transmissionFlow = Transport.TransmissionFlow.BothWays
+              def transmissionType = Transport.TransmissionType.SingleTransmission
               def id: TransportID = TransportID.http(req.headers.get("request_id"))
               def inbound: ZStream[Any, Transport.InErr, SignedMessage | EncryptedMessage] =
                 ZStream.fromQueue(inboundQueue)

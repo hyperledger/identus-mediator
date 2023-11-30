@@ -16,7 +16,7 @@ import fmgp.did.comm.protocol.reportproblem2.ProblemReport
 
 case class AgentExecutorMediator(
     agent: Agent,
-    transportManager: Ref[TransportManager],
+    transportManager: Ref[MediatorTransportManager],
     protocolHandler: ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     userAccountRepo: UserAccountRepo,
     messageItemRepo: MessageItemRepo,
@@ -54,14 +54,18 @@ case class AgentExecutorMediator(
       .tapError(ex => ZIO.logError(ex.toString))
       .provideSomeLayer(this.indentityLayer)
       .provideSomeLayer(userAccountRepoLayer ++ messageItemRepoLayer)
-      .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations]) => e ++ ZEnvironment(protocolHandler))
+      .provideSomeEnvironment((e: ZEnvironment[Resolver & Operations]) =>
+        e ++ ZEnvironment(protocolHandler) ++ ZEnvironment(transportManager)
+      )
       .orDieWith(ex => new RuntimeException(ex.toString))
 
   def receiveMessage(
       msg: SignedMessage | EncryptedMessage,
       transport: TransportDIDComm[Any]
   ): ZIO[
-    OperatorImp.Services & ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
+    Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager] &
+      // instead of OperatorImp.Services
+      ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     MediatorError | StorageError,
     Unit
   ] = ZIO.logAnnotate("msg_sha256", msg.sha256) {
@@ -112,7 +116,9 @@ case class AgentExecutorMediator(
       pMsgOrProblemReport: Either[ProblemReport, PlaintextMessage],
       transport: TransportDIDComm[Any]
   ): ZIO[
-    ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError] & OperatorImp.Services,
+    Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager] &
+      // instead of OperatorImp.Services
+      ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     MediatorError | StorageError,
     Unit
   ] =
@@ -175,7 +181,12 @@ case class AgentExecutorMediator(
               case Some(problemReport) => ZIO.succeed(Reply(problemReport.toPlaintextMessage))
               case None =>
                 protocolHandler
-                  .program(plaintextMessage)
+                  .program(plaintextMessage) // should we change the signature of the method or use the ZEnvironment
+                  .provideSomeEnvironment(
+                    (e: ZEnvironment[
+                      Resolver & Agent & Operations & UserAccountRepo & MessageItemRepo & Ref[MediatorTransportManager]
+                    ]) => e ++ ZEnvironment(transport)
+                  )
                   .catchSome { case ProtocolExecutionFailToParse(failToParse) =>
                     for {
                       _ <- ZIO.logWarning(s"Error ProtocolExecutionFailToParse: $failToParse")
@@ -246,7 +257,7 @@ object AgentExecutorMediator {
       messageItemRepo: MessageItemRepo,
   ): ZIO[TransportFactory, Nothing, AgentExecutar] =
     for {
-      transportManager <- TransportManager.make
+      transportManager <- MediatorTransportManager.make
       mediator = AgentExecutorMediator(agent, transportManager, protocolHandler, userAccountRepo, messageItemRepo)
     } yield mediator
 

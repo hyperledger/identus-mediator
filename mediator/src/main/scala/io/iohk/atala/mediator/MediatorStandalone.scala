@@ -6,22 +6,22 @@ import fmgp.did.*
 import fmgp.did.comm.*
 import fmgp.did.comm.protocol.*
 import fmgp.did.method.peer.*
+import fmgp.did.framework.TransportFactoryImp
 import io.iohk.atala.mediator.db.*
 import io.iohk.atala.mediator.protocols.*
 import zio.*
+import zio.stream.*
 import zio.config.*
 import zio.config.magnolia.*
 import zio.config.typesafe.*
 import zio.http.*
 import zio.json.*
+import zio.logging.*
 import zio.logging.LogFormat.*
 import zio.logging.backend.SLF4J
-import zio.logging.*
-import zio.stream.*
 
 import java.time.format.DateTimeFormatter
 import scala.io.Source
-import fmgp.did.framework.TransportFactoryImp
 case class MediatorConfig(endpoints: String, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
