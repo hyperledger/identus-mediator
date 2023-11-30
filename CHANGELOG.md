@@ -1,3 +1,15 @@
+# [0.13.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.3...prism-mediator-v0.13.0) (2023-11-30)
+
+
+### Bug Fixes
+
+* register the transport ([#192](https://github.com/input-output-hk/atala-prism-mediator/issues/192)) ([e73a2ab](https://github.com/input-output-hk/atala-prism-mediator/commit/e73a2ab74c60916eec68f0415ba9a1d3da5c2587))
+
+
+### Features
+
+* Update timeout settings for websocket ([#191](https://github.com/input-output-hk/atala-prism-mediator/issues/191)) ([11a4437](https://github.com/input-output-hk/atala-prism-mediator/commit/11a44376664c55e97e18faa2b7f7849591b20532))
+
 ## [0.12.3](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.2...prism-mediator-v0.12.3) (2023-11-30)
 
 
