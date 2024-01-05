@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M16"
+  val scalaDID = "0.1.0-M17"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M10" // "0.7.29"
