@@ -114,11 +114,14 @@ By default mediator will start on port 8080
 You can open the `http://localhost:8080/` URL in a web browser, and it will show a QR code that serves as an out-of-band invitation for the Mediator.
 
 ## How to run mediator as docker image
+
 ### Docker only
+
 It is possible to run everything with a single command with Docker compose docker-compose.yml
 The latest stable image version is available in the IOHK repositories.
-To build a docker image locally, run NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal.
-```
+To build a docker image locally, run `NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal`.
+
+```shell
 shell> cd atala-prism-mediator
 shell> NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal
 shell> MEDIATOR_VERSION=$(sbt "print mediator/version" --error) docker-compose up

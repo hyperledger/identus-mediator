@@ -7,6 +7,33 @@ inThisBuild(
   )
 )
 
+import scala.sys.process.Process
+lazy val ensureDockerBuildx = taskKey[Unit]("Ensure that docker buildx configuration exists")
+lazy val dockerBuildWithBuildx = taskKey[Unit]("Build docker images using buildx")
+lazy val dockerBuildxSettings = Seq(
+  ensureDockerBuildx := {
+    if (Process("docker buildx inspect multi-arch-builder").! == 1) {
+      Process("docker buildx create --use --name multi-arch-builder", baseDirectory.value).!
+    }
+  },
+  dockerBuildWithBuildx := {
+    streams.value.log("Building and pushing image with Buildx")
+    dockerAliases.value.foreach { alias =>
+      Process(
+        "docker buildx build --platform=linux/arm64,linux/amd64 --push -t " + alias + " .",
+        baseDirectory.value / "target" / "docker" / "stage"
+      ).!
+    }
+  },
+  Docker / publish := Def
+    .sequential(
+      Docker / publishLocal,
+      ensureDockerBuildx,
+      dockerBuildWithBuildx
+    )
+    .value
+)
+
 /** Versions */
 lazy val V = new {
   val scalaDID = "0.1.0-M17"
@@ -216,13 +243,16 @@ lazy val mediator = project
   .settings(
     Compile / mainClass := Some("io.iohk.atala.mediator.MediatorStandalone"),
     Docker / maintainer := "atala-coredid@iohk.io",
-    Docker / dockerUsername := Some("input-output-hk"),
-    Docker / dockerRepository := Some("ghcr.io"),
+    // Docker / dockerUsername := Some("input-output-hk"),
+    // Docker / dockerRepository := Some("ghcr.io"),
+    Docker / dockerUsername := Some("fabio"),
+    Docker / dockerRepository := Some("registry.fmgp.app"),
     Docker / packageName := "atala-prism-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
     dockerUpdateLatest := true,
   )
+  .settings(dockerBuildxSettings)
   .settings(Test / parallelExecution := false)
   .settings(
     // WebScalaJSBundlerPlugin
