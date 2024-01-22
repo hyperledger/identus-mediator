@@ -29,7 +29,7 @@ object OperatorImp {
       )(MissingProtocolExecuter) // (NullProtocolExecute.mapError(didFail => ProtocolExecutionFailToParse(didFail)))
     )
 
-  val layer: ZLayer[MediatorAgent & UserAccountRepo & MessageItemRepo & TransportFactory, Nothing, Operator] =
+  val layer: ZLayer[Scope & MediatorAgent & UserAccountRepo & MessageItemRepo & TransportFactory, Nothing, Operator] =
     protocolHandlerLayer >>>
       ZLayer.fromZIO(
         for {
@@ -37,7 +37,8 @@ object OperatorImp {
           mediator <- ZIO.service[MediatorAgent]
           userAccountRepo <- ZIO.service[UserAccountRepo]
           messageItemRepo <- ZIO.service[MessageItemRepo]
-          self <- AgentExecutorMediator.make(mediator, protocolHandlerAux, userAccountRepo, messageItemRepo)
+          scope <- ZIO.service[Scope]
+          self <- AgentExecutorMediator.make(mediator, protocolHandlerAux, userAccountRepo, messageItemRepo, scope)
           _ <- ZIO.log("Layer Operator: " + self.subject.toString)
           operator = Operator(
             selfOperator = self,

@@ -51,10 +51,10 @@ object MediatorStandalone extends ZIOAppDefault {
       allAnnotations |-|
       cause.highlight
 
-  // override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
-  //   Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
+  override val bootstrap: ZLayer[ZIOAppArgs, Any, Any] =
+    Runtime.removeDefaultLoggers >>> SLF4J.slf4j(mediatorColorFormat)
 
-  override val run = for {
+  def mainProgram = for {
     _ <- Console.printLine( // https://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Mediator
       """███╗   ███╗███████╗██████╗ ██╗ █████╗ ████████╗ ██████╗ ██████╗ 
         |████╗ ████║██╔════╝██╔══██╗██║██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗
@@ -84,25 +84,17 @@ object MediatorStandalone extends ZIOAppDefault {
       .nested("problem")
       .nested("mediator")
       .load(Config.string("escalateTo"))
-    _ <- ZIO.log(s"Problem reports escalated to : $escalateTo")
+    _ <- ZIO.log(s"Problem reports escalated to: $escalateTo")
     transportFactory = Scope.default >>> (Client.default >>> TransportFactoryImp.layer)
-    repos = {
-      AsyncDriverResource.layer
-        >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-        >>> (MessageItemRepo.layer ++ UserAccountRepo.layer)
-    }
-    // inboundHub <- Hub.bounded[String](5)
+    mongo = AsyncDriverResource.layer >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
+    repos = mongo >>> (MessageItemRepo.layer ++ UserAccountRepo.layer ++ OutboxMessageRepo.layer)
     myServer <- Server
       .serve((MediatorAgent.didCommApp ++ DIDCommRoutes.app) @@ (Middleware.cors))
       .provideSomeLayer(DidPeerResolver.layerDidPeerResolver)
       .provideSomeLayer(agentLayer)
-      .provideSomeLayer((agentLayer ++ transportFactory ++ repos) >>> OperatorImp.layer)
-      .provideSomeLayer(
-        AsyncDriverResource.layer
-          >>> ReactiveMongoApi.layer(mediatorDbConfig.connectionString)
-          >>> MessageItemRepo.layer.and(UserAccountRepo.layer).and(OutboxMessageRepo.layer)
-      )
+      .provideSomeLayer((agentLayer ++ transportFactory ++ repos ++ Scope.default) >>> OperatorImp.layer)
       .provideSomeLayer(Operations.layerDefault)
+      .provideSomeLayer(Scope.default)
       .provide(Server.defaultWithPort(port))
       .debug
       .fork
@@ -110,5 +102,9 @@ object MediatorStandalone extends ZIOAppDefault {
     _ <- myServer.join *> ZIO.log(s"Mediator End")
     _ <- ZIO.log(s"*" * 100)
   } yield ()
+
+  override val run = ZIO.logAnnotate(
+    zio.LogAnnotation("version", MediatorBuildInfo.version)
+  ) { mainProgram }
 
 }
