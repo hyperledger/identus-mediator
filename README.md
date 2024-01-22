@@ -158,6 +158,17 @@ The backend service is also a web service that has a single-page application tha
 Everything can be run with a single command with Docker compose `docker-compose up`.
 For a specific version, you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
 
+#### Troubleshooting
+
+If you see the [compilation error](https://stackoverflow.com/questions/69719601/getting-error-digital-envelope-routines-reason-unsupported-code-err-oss)
+```shell
+[error]   opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+[error]   library: 'digital envelope routines',
+[error]   reason: 'unsupported',
+[error]   code: 'ERR_OSSL_EVP_UNSUPPORTED'
+```
+You can try to run with `NODE_OPTIONS=--openssl-legacy-provider` to use the legacy provider.
+
 ### MongoDB In the cloud
 
 Using the Mongodb from cloud-like MongoDB Atlas.
