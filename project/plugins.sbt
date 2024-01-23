@@ -58,7 +58,16 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.2")
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.3.0")
 
 // Github Packages
-addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.3")
+if (sys.env.get("GITHUB_TOKEN").isDefined) {
+  println(s"Adding plugin sbt-dependency-tree since env GITHUB_TOKEN is defined.")
+  // The reason for this is that the plugin needs the variable to be defined. We don't want to have that requirement.
+  libraryDependencies += {
+    val dependency = "com.codecommit" % "sbt-github-packages" % "0.5.3"
+    val sbtV = (pluginCrossBuild / sbtBinaryVersion).value
+    val scalaV = (update / scalaBinaryVersion).value
+    Defaults.sbtPluginExtra(dependency, sbtV, scalaV)
+  }
+} else libraryDependencies ++= Seq[ModuleID]()
 
 // Native Packager
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
