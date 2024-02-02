@@ -63,6 +63,8 @@ jobs:
         with:
           version: v2.19.1 # defaults to 'latest'
           legacy: true # will also install in PATH as `docker-compose`
+      - name: Log SBT packageName Setting
+        run: sbt 'show Docker / packageName'
 
       - name: Build local version of Mediator Agent
         env:
