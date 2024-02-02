@@ -102,7 +102,7 @@ git clone git@github.com:input-output-hk/atala-prism-mediator.git
 ```
 ```
 shell> cd atala-prism-mediator
-shell> docker compose up mongo 
+shell> docker compose up mongo
 ```
 In another shell from the project root directory `atala-prism-mediator`
 ```
