@@ -102,7 +102,7 @@ git clone git@github.com:input-output-hk/atala-prism-mediator.git
 ```
 ```
 shell> cd atala-prism-mediator
-shell> docker-compose up mongo 
+shell> docker compose up mongo
 ```
 In another shell from the project root directory `atala-prism-mediator`
 ```
@@ -124,7 +124,7 @@ To build a docker image locally, run `NODE_OPTIONS=--openssl-legacy-provider sbt
 ```shell
 shell> cd atala-prism-mediator
 shell> NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal
-shell> MEDIATOR_VERSION=$(sbt "print mediator/version" --error) docker-compose up
+shell> MEDIATOR_VERSION=$(sbt "print mediator/version" --error) docker compose up
 ```
 
 ### Configure the Mediator
@@ -158,8 +158,19 @@ The backend service is also a web service that has a single-page application tha
 
 ### Run locally
 
-Everything can be run with a single command with Docker compose `docker-compose up`.
-For a specific version, you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
+Everything can be run with a single command with Docker compose `docker compose up`.
+For a specific version, you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker compose up`.
+
+#### Troubleshooting
+
+If you see the [compilation error](https://stackoverflow.com/questions/69719601/getting-error-digital-envelope-routines-reason-unsupported-code-err-oss)
+```shell
+[error]   opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+[error]   library: 'digital envelope routines',
+[error]   reason: 'unsupported',
+[error]   code: 'ERR_OSSL_EVP_UNSUPPORTED'
+```
+You can try to run with `NODE_OPTIONS=--openssl-legacy-provider` to use the legacy provider.
 
 ### MongoDB In the cloud
 
