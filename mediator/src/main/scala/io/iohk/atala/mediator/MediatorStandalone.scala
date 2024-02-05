@@ -28,7 +28,7 @@ case class MediatorConfig(endpoints: String, keyAgreement: OKPPrivateKey, keyAut
     endpoints
       .split(";")
       .toSeq
-      .map { endpoint => fmgp.util.Base64.encode(s"""{"t":"dm","s":{"uri":"$endpoint","accept":["didcomm/v2"]}}""") }
+      .map { endpoint => fmgp.util.Base64.encode(s"""{"t":"dm","s":{"uri":"$endpoint","a":["didcomm/v2"]}}""") }
       .map(DIDPeerServiceEncodedNew(_))
   )
   val agentLayer: ZLayer[Any, Nothing, MediatorAgent] =
