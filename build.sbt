@@ -9,7 +9,7 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M16"
+  val scalaDID = "0.1.0-M18"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
   val munit = "1.0.0-M11" // "0.7.29"
@@ -23,7 +23,7 @@ lazy val V = new {
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC4"
   val zioConfig = "4.0.1"
-  val zioLogging = "2.1.17"
+  val zioLogging = "2.2.0"
   val zioSl4j = "2.1.17"
   val logback = "1.3.14"
   val logstash = "7.4"

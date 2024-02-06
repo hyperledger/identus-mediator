@@ -1,14 +1,15 @@
 package io.iohk.atala.mediator.protocols
 
 import fmgp.did.comm.{EncryptedMessage, PlaintextMessage}
-import io.iohk.atala.mediator.db.UserAccountRepo
+import io.iohk.atala.mediator.db.*
 import reactivemongo.api.bson.BSONDocument
 import zio.ZIO
 import zio.json.*
 import fmgp.did.comm
 import reactivemongo.api.indexes.{Index, IndexType}
 import fmgp.did.DIDSubject
-trait MessageSetup {
+
+trait MessageSetup extends DidAccountStubSetup {
 
   val index = Index(
     key = Seq("alias" -> IndexType.Ascending),
@@ -30,9 +31,7 @@ trait MessageSetup {
     } yield {}
   }
 
-  val mediatorDid = DIDSubject(
-    "did:peer:2.Ez6LSkGy3e2z54uP4U9HyXJXRpaF2ytsnTuVgh6SNNmCyGZQZ.Vz6Mkjdwvf9hWc6ibZndW9B97si92DSk9hWAhGYBgP9kUFk8Z.SeyJ0IjoiZG0iLCJzIjoiaHR0cHM6Ly9ib2IuZGlkLmZtZ3AuYXBwLyIsInIiOltdLCJhIjpbImRpZGNvbW0vdjIiXX0"
-  )
+  def mediatorDid = bob
 
   val plaintextForwardNotEnrolledDidMessage: Either[String, PlaintextMessage] =
     """{
@@ -81,15 +80,15 @@ trait MessageSetup {
      |}""".stripMargin.fromJson[PlaintextMessage]
 
   val plaintextForwardEnrolledDidMessage: Either[String, PlaintextMessage] =
-    """{
+    s"""{
       |  "id" : "5fbd421d-a2d6-458e-a232-396411b7a793",
       |  "type" : "https://didcomm.org/routing/2.0/forward",
       |  "to" : [
-      |    "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+      |    "${alice}"
       |  ],
       |  "expires_time" : 987654321,
       |  "body" : {
-      |    "next" : "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwIiwiciI6W10sImEiOlsiZGlkY29tbS92MiJdfQ"
+      |    "next" : "${alice}"
       |  },
       |  "attachments" : [
       |    {

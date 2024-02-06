@@ -16,7 +16,7 @@ import fmgp.did.method.peer.DIDPeer.AgentDIDPeer
 
 object DIDCommRoutes {
 
-  def app: HttpApp[Operator & Operations & Resolver] = routes.toHttpApp
+  def app: HttpApp[Operator & Operations & Resolver & Scope] = routes.@@(TraceIdMiddleware.addTraceId).toHttpApp
 
   def routes: Routes[Operator & Operations & Resolver, Nothing] = Routes(
     Method.GET / "ws" -> handler { (req: Request) =>
@@ -75,7 +75,6 @@ object DIDCommRoutes {
             .tapErrorCause(ZIO.logErrorCause("Error", _))
             .catchAllCause(cause => ZIO.succeed(Response.fromCause(cause)))
         case Some(_) | None => ZIO.succeed(Response.badRequest(s"The content-type must be $SignedTyp or $EncryptedTyp"))
-
     },
   )
 }
