@@ -1,3 +1,15 @@
+# [0.14.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.13.0...prism-mediator-v0.14.0) (2024-02-06)
+
+
+### Bug Fixes
+
+* re-enable the logging based on X-Request-Id header ([#211](https://github.com/input-output-hk/atala-prism-mediator/issues/211)) ([dee7dc2](https://github.com/input-output-hk/atala-prism-mediator/commit/dee7dc2bd9a0de689e2c6fb8141383aa7779d6a4))
+
+
+### Features
+
+* Update ScalaDID to 0.1.0-M18 and support new format of DID Peer ([#204](https://github.com/input-output-hk/atala-prism-mediator/issues/204)) ([26a1623](https://github.com/input-output-hk/atala-prism-mediator/commit/26a16230d7e7e68ccff92bc4f8fc1fd403254200)), closes [#158](https://github.com/input-output-hk/atala-prism-mediator/issues/158)
+
 # [0.13.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.3...prism-mediator-v0.13.0) (2023-11-30)
 
 
