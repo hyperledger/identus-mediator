@@ -20,8 +20,8 @@ case class AgentExecutorMediator(
     protocolHandler: ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
     userAccountRepo: UserAccountRepo,
     messageItemRepo: MessageItemRepo,
+    scope: Scope,
 ) extends AgentExecutar {
-  val scope = Scope.global // TODO do not use global
   val indentityLayer = ZLayer.succeed(agent)
   val userAccountRepoLayer = ZLayer.succeed(userAccountRepo)
   val messageItemRepoLayer = ZLayer.succeed(messageItemRepo)
@@ -251,7 +251,6 @@ case class AgentExecutorMediator(
               }
           } yield ()
     } yield ()
-
 }
 
 object AgentExecutorMediator {
@@ -261,11 +260,20 @@ object AgentExecutorMediator {
       protocolHandler: ProtocolExecuter[OperatorImp.Services, MediatorError | StorageError],
       userAccountRepo: UserAccountRepo,
       messageItemRepo: MessageItemRepo,
+      scope: Scope,
   ): ZIO[TransportFactory, Nothing, AgentExecutar] =
     for {
       _ <- ZIO.logInfo(s"Make Madiator AgentExecutor for ${agent.id}")
       transportManager <- MediatorTransportManager.make
-      mediator = AgentExecutorMediator(agent, transportManager, protocolHandler, userAccountRepo, messageItemRepo)
+
+      mediator = AgentExecutorMediator(
+        agent,
+        transportManager,
+        protocolHandler,
+        userAccountRepo,
+        messageItemRepo,
+        scope
+      )
     } yield mediator
 
   // TODO move to another place & move validations and build a contex

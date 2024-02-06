@@ -30,9 +30,11 @@ case class MediatorAgent(
 
 object MediatorAgent {
 
+  def didCommApp = didCommAppAux.@@(TraceIdMiddleware.addTraceId).toHttpApp
+
   def make(id: DID, keyStore: KeyStore): ZIO[Any, Nothing, MediatorAgent] = ZIO.succeed(MediatorAgent(id, keyStore))
 
-  def didCommApp = {
+  def didCommAppAux = {
     Routes(
       Method.GET / "headers" -> handler { (req: Request) =>
         val data = req.headers.toSeq.map(e => (e.headerName, e.renderedValue))
@@ -99,6 +101,6 @@ object MediatorAgent {
         Handler.fromResource(fullPath).map(_.addHeader(headerContentType))
       }.flatten
     )
-  }.sandbox.toHttpApp
+  }.sandbox
 
 }
