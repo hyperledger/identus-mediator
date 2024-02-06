@@ -25,7 +25,11 @@ import scala.io.Source
 case class MediatorConfig(endpoints: String, keyAgreement: OKPPrivateKey, keyAuthentication: OKPPrivateKey) {
   val did = DIDPeer2.makeAgent(
     Seq(keyAgreement, keyAuthentication),
-    endpoints.split(";").toSeq.map(e => DIDPeerServiceEncoded(s = e.toString))
+    endpoints
+      .split(";")
+      .toSeq
+      .map { endpoint => fmgp.util.Base64.encode(s"""{"t":"dm","s":{"uri":"$endpoint","a":["didcomm/v2"]}}""") }
+      .map(DIDPeerServiceEncodedNew(_))
   )
   val agentLayer: ZLayer[Any, Nothing, MediatorAgent] =
     ZLayer(MediatorAgent.make(id = did.id, keyStore = did.keyStore))
