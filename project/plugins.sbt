@@ -1,4 +1,4 @@
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.14.0")
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.15.0")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
@@ -32,7 +32,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.21.1")
 //https://github.com/ScalablyTyped/Converter/releases
 resolvers += Resolver.bintrayRepo("oyvindberg", "converter")
 resolvers += MavenRepository("sonatype-s01-snapshots", "https://s01.oss.sonatype.org/content/repositories/snapshots")
-addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta43")
+addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta44")
 
 // Utils Buildinfo
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
@@ -52,13 +52,22 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.11.1")
 
 // Deploy demo
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
-addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.2")
+addSbtPlugin("com.github.sbt" % "sbt-gzip" % "2.0.0")
 
 // Release
-addSbtPlugin("com.github.sbt" % "sbt-release" % "1.1.0")
+addSbtPlugin("com.github.sbt" % "sbt-release" % "1.4.0")
 
 // Github Packages
-addSbtPlugin("com.codecommit" % "sbt-github-packages" % "0.5.3")
+if (sys.env.get("GITHUB_TOKEN").isDefined) {
+  println(s"Adding plugin sbt-dependency-tree since env GITHUB_TOKEN is defined.")
+  // The reason for this is that the plugin needs the variable to be defined. We don't want to have that requirement.
+  libraryDependencies += {
+    val dependency = "com.codecommit" % "sbt-github-packages" % "0.5.3"
+    val sbtV = (pluginCrossBuild / sbtBinaryVersion).value
+    val scalaV = (update / scalaBinaryVersion).value
+    Defaults.sbtPluginExtra(dependency, sbtV, scalaV)
+  }
+} else libraryDependencies ++= Seq[ModuleID]()
 
 // Native Packager
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")

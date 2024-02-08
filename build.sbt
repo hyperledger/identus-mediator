@@ -9,36 +9,36 @@ inThisBuild(
 
 /** Versions */
 lazy val V = new {
-  val scalaDID = "0.1.0-M16"
+  val scalaDID = "0.1.0-M18"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
-  val munit = "1.0.0-M10" // "0.7.29"
+  val munit = "1.0.0-M11" // "0.7.29"
 
 //   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
-  val zio = "2.0.19"
+  val zio = "2.0.21"
   val zioJson = "0.6.2"
   // val zioMunitTest = "0.1.1"
-  val zioHttp = "3.0.0-RC3"
-  val zioConfig = "4.0.0-RC16"
-  val zioLogging = "2.1.16"
-  val zioSl4j = "2.1.16"
+  val zioHttp = "3.0.0-RC4"
+  val zioConfig = "4.0.1"
+  val zioLogging = "2.2.0"
+  val zioSl4j = "2.1.17"
   val logback = "1.4.14"
   val logstash = "7.4"
   val jansi = "2.4.1"
   val mongo = "1.1.0-RC10"
-  val embedMongo = "4.11.1"
+  val embedMongo = "4.12.2"
   val munitZio = "0.1.1"
-  val zioTest = "2.0.19"
-  val zioTestSbt = "2.0.19"
-  val zioTestMagnolia = "2.0.19"
+  val zioTest = "2.0.21"
+  val zioTestSbt = "2.0.21"
+  val zioTestMagnolia = "2.0.21"
 
   // For WEBAPP
   val laminar = "16.0.0"
   val waypoint = "7.0.0"
-  val upickle = "3.1.3"
+  val upickle = "3.1.4"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }

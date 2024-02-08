@@ -1,3 +1,15 @@
+# [0.14.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.13.0...prism-mediator-v0.14.0) (2024-02-06)
+
+
+### Bug Fixes
+
+* re-enable the logging based on X-Request-Id header ([#211](https://github.com/input-output-hk/atala-prism-mediator/issues/211)) ([dee7dc2](https://github.com/input-output-hk/atala-prism-mediator/commit/dee7dc2bd9a0de689e2c6fb8141383aa7779d6a4))
+
+
+### Features
+
+* Update ScalaDID to 0.1.0-M18 and support new format of DID Peer ([#204](https://github.com/input-output-hk/atala-prism-mediator/issues/204)) ([26a1623](https://github.com/input-output-hk/atala-prism-mediator/commit/26a16230d7e7e68ccff92bc4f8fc1fd403254200)), closes [#158](https://github.com/input-output-hk/atala-prism-mediator/issues/158)
+
 # [0.13.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.12.3...prism-mediator-v0.13.0) (2023-11-30)
 
 
@@ -80,7 +92,7 @@
 * Annotate Headers & Update zio-http to version 3.0.0-RC2 ([#106](https://github.com/input-output-hk/atala-prism-mediator/issues/106)) ([aa19f0a](https://github.com/input-output-hk/atala-prism-mediator/commit/aa19f0a1b9a547a562139b7c91373c1d84ddfa39))
 * Encoder for VerificationMethodReferenced as String ([#110](https://github.com/input-output-hk/atala-prism-mediator/issues/110)) ([761d422](https://github.com/input-output-hk/atala-prism-mediator/commit/761d4227b8eef486fa12510814bb4c075f0b9c87))
 * sign ProblemReport when TO is unspecified ([#105](https://github.com/input-output-hk/atala-prism-mediator/issues/105)) ([586dd9f](https://github.com/input-output-hk/atala-prism-mediator/commit/586dd9f1cce1763fd4cf5f1db93cf53f94740816))
-* Update local docker-compose configuration by adding the SERVICE_ENDPOINT port ([#128](https://github.com/input-output-hk/atala-prism-mediator/issues/128)) ([2adc6aa](https://github.com/input-output-hk/atala-prism-mediator/commit/2adc6aac26593e0f868dfee2e81afae7c4337b32))
+* Update local docker compose configuration by adding the SERVICE_ENDPOINT port ([#128](https://github.com/input-output-hk/atala-prism-mediator/issues/128)) ([2adc6aa](https://github.com/input-output-hk/atala-prism-mediator/commit/2adc6aac26593e0f868dfee2e81afae7c4337b32))
 
 
 ### Features
@@ -195,7 +207,7 @@
 ### Bug Fixes
 
 * dynamic DID on the web page ([#40](https://github.com/input-output-hk/atala-prism-mediator/issues/40)) ([0949a19](https://github.com/input-output-hk/atala-prism-mediator/commit/0949a191679caf91575a7d27d69ad1ced89577cd))
-* mediator docker-compose image repo and version ([#39](https://github.com/input-output-hk/atala-prism-mediator/issues/39)) ([116174b](https://github.com/input-output-hk/atala-prism-mediator/commit/116174ba616c31f5f28c099dfb1b04a360d258e0))
+* mediator docker compose image repo and version ([#39](https://github.com/input-output-hk/atala-prism-mediator/issues/39)) ([116174b](https://github.com/input-output-hk/atala-prism-mediator/commit/116174ba616c31f5f28c099dfb1b04a360d258e0))
 * mediator rename package and refactoring ([#41](https://github.com/input-output-hk/atala-prism-mediator/issues/41)) ([c755c99](https://github.com/input-output-hk/atala-prism-mediator/commit/c755c99f3547561b46d3b2cbac4e3cecc467d0c6))
 
 
@@ -219,7 +231,7 @@
 
 ### Features
 
-* Add config from application.conf and docker-compose and an example ([#10](https://github.com/input-output-hk/atala-prism-mediator/issues/10)) ([2037377](https://github.com/input-output-hk/atala-prism-mediator/commit/203737789a53c9a22d0450564a988518c61f1fc0))
+* Add config from application.conf and docker compose and an example ([#10](https://github.com/input-output-hk/atala-prism-mediator/issues/10)) ([2037377](https://github.com/input-output-hk/atala-prism-mediator/commit/203737789a53c9a22d0450564a988518c61f1fc0))
 * Add Storage ([#8](https://github.com/input-output-hk/atala-prism-mediator/issues/8)) ([881e66e](https://github.com/input-output-hk/atala-prism-mediator/commit/881e66e9b6d0bbfc49cb0d8ec63583c802257a40))
 * mediator  added more logs and associated message Hash and structured logging ([#16](https://github.com/input-output-hk/atala-prism-mediator/issues/16)) ([119b637](https://github.com/input-output-hk/atala-prism-mediator/commit/119b6372ab51ece6ded913b93ea7a607cde9acfe))
 * mediator added test for storage layer ([#13](https://github.com/input-output-hk/atala-prism-mediator/issues/13)) ([25728b6](https://github.com/input-output-hk/atala-prism-mediator/commit/25728b6d8aad7cc2143844bad10e2e27bdf5d25f))

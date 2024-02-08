@@ -23,6 +23,8 @@ jobs:
           fetch-depth: 0 # Needed for the release tag // `git fetch --tags` will also work
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v14
+        with:
+          java-version: openjdk@1.11
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -35,9 +37,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.embedmongo
-          key: ${{ runner.os }}-embedmongo-4.11.1
+          key: ${{ runner.os }}-embedmongo-4.12.2
           restore-keys: |
-            ${{ runner.os }}-embedmongo-4.11.1
+            ${{ runner.os }}-embedmongo-4.12.2
       ### Compile and TESTS ###
       - run: sbt -mem 2048 -J-Xmx5120m "test"
         env:
