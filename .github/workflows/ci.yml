@@ -23,6 +23,8 @@ jobs:
           fetch-depth: 0 # Needed for the release tag // `git fetch --tags` will also work
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v14
+        with:
+          java-version: openjdk@1.11
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
