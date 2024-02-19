@@ -75,6 +75,25 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     } yield result
   }
 
+  def getDidAccountFromAlias(alias: DIDSubject): IO[StorageError, Option[DidAccount]] = {
+    def selector: BSONDocument = BSONDocument("alias" -> alias.did) // BSONDocument("$in" -> BSONArray(alias.did)))
+    def projection: Option[BSONDocument] = None
+
+    for {
+      _ <- ZIO.logInfo("getDidAccountFromAlias")
+      coll <- collection
+      result <- ZIO
+        .fromFuture(implicit ec =>
+          coll
+            .find(selector, projection)
+            .cursor[DidAccount]()
+            .collect[Seq](1, Cursor.FailOnError[Seq[DidAccount]]()) // Just one
+        )
+        .tapError(err => ZIO.logError(s"getDidAccount :  ${err.getMessage}"))
+        .mapError(ex => StorageThrowable(ex))
+    } yield result.headOption
+  }
+
   def getDidAccount(did: DIDSubject): IO[StorageError, Option[DidAccount]] = {
     def selector: BSONDocument = BSONDocument("did" -> did)
     def projection: Option[BSONDocument] = None
@@ -92,7 +111,6 @@ class UserAccountRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
         .tapError(err => ZIO.logError(s"getDidAccount :  ${err.getMessage}"))
         .mapError(ex => StorageThrowable(ex))
     } yield result.headOption
-
   }
 
   def addAlias(owner: DIDSubject, newAlias: DIDSubject): ZIO[Any, StorageError, Either[String, Int]] = {
