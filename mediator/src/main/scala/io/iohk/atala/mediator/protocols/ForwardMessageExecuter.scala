@@ -54,9 +54,22 @@ object ForwardMessageExecuter
                 eMsgDelivery <- Operations
                   .authEncrypt(messageDelivery)
                   .mapError(didFail => MediatorDidError(didFail))
-                _ <- mediatorTransportManager
-                  .sendForLiveMode(m.next.asTO, eMsgDelivery)
-                  .mapError(didFail => MediatorDidError(didFail))
+                _ <- for {
+                  maybeDidAccount <- repoDidAccount
+                    .getDidAccountFromAlias(m.next)
+                    .tapErrorCause(errorCause =>
+                      ZIO.logErrorCause("Error when retrieving account for live mode forward message", errorCause)
+                    )
+                    .catchAll(ex => ZIO.none) // ignoring error
+                  ret <- maybeDidAccount match {
+                    case None => ZIO.unit // nothing to do
+                    case Some(didAccount) =>
+                      val accountOwner = didAccount.did
+                      mediatorTransportManager
+                        .sendForLiveMode(accountOwner.asFROMTO, eMsgDelivery)
+                        .mapError(didFail => MediatorDidError(didFail))
+                  }
+                } yield ret
               } yield NoReply
             } else {
               for {
