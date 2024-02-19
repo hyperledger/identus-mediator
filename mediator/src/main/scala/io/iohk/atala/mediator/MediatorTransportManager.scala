@@ -71,11 +71,11 @@ case class MediatorTransportManager(
     liveMode.get(subject).toSeq.flatMap(transportId => transports.filter(t => transportId.contains(t.id)))
 
   def sendForLiveMode(
-      next: TO,
+      next: FROMTO,
       msg: /*lazy*/ => SignedMessage | EncryptedMessage
   ): ZIO[Any, DidFail, Unit] =
     for {
-      transportIDs <- ZIO.succeed(this.liveMode.getOrElse(next.asFROMTO, Set.empty))
+      transportIDs <- ZIO.succeed(this.liveMode.getOrElse(next, Set.empty))
       myChannels <- ZIO.succeed(transportIDs.flatMap(id => this.transports.find(_.id == id)))
       _ <- ZIO.foreach(myChannels) { _.send(msg) }
     } yield ()
