@@ -1,3 +1,10 @@
+## [0.14.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.14.0...prism-mediator-v0.14.1) (2024-02-20)
+
+
+### Bug Fixes
+
+* Support alias (DID) in Live mode ([#235](https://github.com/input-output-hk/atala-prism-mediator/issues/235)) ([2de77ed](https://github.com/input-output-hk/atala-prism-mediator/commit/2de77ed707e90c6356eaaf3ed9b7ced7325c8949)), closes [#230](https://github.com/input-output-hk/atala-prism-mediator/issues/230)
+
 # [0.14.0](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.13.0...prism-mediator-v0.14.0) (2024-02-06)
 
 
