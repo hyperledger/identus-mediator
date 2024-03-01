@@ -3,7 +3,7 @@ resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 inThisBuild(
   Seq(
-    scalaVersion := "3.3.3", // Also update docs/publishWebsite.sh and any ref to scala-3.3.1
+    scalaVersion := "3.3.3", // Also update docs/publishWebsite.sh and any ref to scala-3.3.3
   )
 )
 
