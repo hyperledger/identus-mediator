@@ -67,6 +67,12 @@ case class MediatorTransportManager(
       }
     )
 
+  def isLiveModeEnabled(subject: FROMTO, transportID: TransportID): Boolean =
+    liveMode.get(subject) match {
+      case Some(set) => set.contains(transportID)
+      case None      => false
+    }
+
   def getLiveModeEnableConnections(subject: FROMTO): Seq[TransportDIDComm[Any]] =
     liveMode.get(subject).toSeq.flatMap(transportId => transports.filter(t => transportId.contains(t.id)))
 
