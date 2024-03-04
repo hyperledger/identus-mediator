@@ -51,6 +51,9 @@ object PickupExecuter
           repoDidAccount <- ZIO.service[UserAccountRepo]
           didRequestingMessages = m.from.asFROMTO
           mDidAccount <- repoDidAccount.getDidAccount(didRequestingMessages.toDID)
+          mediatorTransportManager <- ZIO.service[Ref[MediatorTransportManager]].flatMap(_.get)
+          transport <- ZIO.service[TransportDIDComm[Any]]
+          live_delivery = mediatorTransportManager.isLiveModeEnabled(m.from.asFROMTO, transport.id)
           ret = mDidAccount match
             case None =>
               Problems
@@ -74,7 +77,7 @@ object PickupExecuter
                 newest_received_time = None, // TODO
                 oldest_received_time = None, // TODO
                 total_bytes = None, // TODO
-                live_delivery = None, // TODO
+                live_delivery = Some(live_delivery),
               ).toPlaintextMessage
         } yield Reply(ret)
       case m: Status =>
@@ -114,8 +117,11 @@ object PickupExecuter
             case Some(didAccount) =>
               val msgHash = didAccount.messagesRef.filter(_.state == false).map(_.hash)
               if (msgHash.isEmpty) {
-                ZIO.succeed(
-                  Status(
+                for {
+                  mediatorTransportManager <- ZIO.service[Ref[MediatorTransportManager]].flatMap(_.get)
+                  transport <- ZIO.service[TransportDIDComm[Any]]
+                  live_delivery = mediatorTransportManager.isLiveModeEnabled(m.from.asFROMTO, transport.id)
+                  ret = Status(
                     thid = m.id,
                     from = m.to.asFROM,
                     to = m.from.asTO,
@@ -125,9 +131,9 @@ object PickupExecuter
                     newest_received_time = None, // TODO
                     oldest_received_time = None, // TODO
                     total_bytes = None, // TODO
-                    live_delivery = None, // TODO
+                    live_delivery = Some(live_delivery)
                   ).toPlaintextMessage
-                )
+                } yield ret
               } else {
                 for {
                   allMessagesFor <- repoMessageItem.findByIds(msgHash)
@@ -157,7 +163,6 @@ object PickupExecuter
                   attachments = messagesToReturn.map(m => (m._id, m.msg)).toMap,
                 ).toPlaintextMessage
               }
-
         } yield Reply(ret)
       case m: MessageDelivery =>
         ZIO.logInfo("MessageDelivery") *>
@@ -236,7 +241,7 @@ object PickupExecuter
                         newest_received_time = None, // TODO
                         oldest_received_time = None, // TODO
                         total_bytes = None, // TODO
-                        live_delivery = None, // TODO
+                        live_delivery = Some(m.live_delivery),
                       ).toPlaintextMessage
                 } yield ret
         } yield Reply(ret)
