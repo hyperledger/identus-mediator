@@ -24,6 +24,8 @@ server:
     requests:
       cpu: 250m
       memory: 512Mi
+  # Additional environment variables to be added to the server container
+  additionalEnvVariables: {}
 
 database:
   mongodb:
