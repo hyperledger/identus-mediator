@@ -41,3 +41,7 @@ spec:
           value: "mediator"
         - name: SERVICE_ENDPOINTS
           value: "https://{{ index .Values.ingress.applicationUrls 0 }};wss://{{ index .Values.ingress.applicationUrls 0 }}/ws"
+        {{- range $key, $value := .Values.server.additionalEnvVariables }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
