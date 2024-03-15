@@ -18,14 +18,14 @@ graph LR
   M--pickup-->D((Reciever))
 ```
 
- - **CI** automates builds and tests all pushes to the main branch as well as all PRs created.
- - **Scala Steward** automates the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help ensure that libraries are kept up-to-date, improving their reliability and performance.
+ - **CI** automates builds and tests that push to the main branch for all PRs created.
+ - **Scala Steward** automates the creation of pull requests for libraries with updated dependencies, saving maintainers time and effort. It can also help keep libraries updated, improving their reliability and performance.
 
 ---
 
 **#atala-mediator on Discord:**
 
-For the fastest answers, join the [#atala-mediator][Link-Discord] channel in the official Atala Discord and ask your questions, or just chat with other Atala developers and pioneers!
+For the fastest answers, join the [#atala-mediator][Link-Discord] channel in the official Atala Discord and ask your questions, or chat with other Atala developers and pioneers!
 
 
 **More documentation:**
@@ -152,14 +152,15 @@ To set up the mediator storage (MongoDB):
 
 ## Run
 
-This DIDComm Mediator is composed of two elements, a backend service, and a database.
-The backend service is a JVM application and the database used is MongoDB.
-The backend service is also a web service that has a single-page application that will give the final user an invitation page.
+The DIDComm Mediator comprises two elements: a backend service and a database.
+The backend service is a JVM application, and the database used is MongoDB.
+The backend service is also a web service with a single-page application that will give the final user an invitation page.
+
 
 ### Run locally
 
-Everything can be run with a single command with Docker compose `docker compose up`.
-For a specific version, you can setup with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker compose up`.
+Everything runs with a single Docker compose command: `docker compose up`.
+You can set up a specific version with `MEDIATOR_VERSION` like `MEDIATOR_VERSION=0.9.2-SNAPSHOT docker-compose up`.
 
 #### Troubleshooting
 
@@ -174,7 +175,7 @@ You can try to run with `NODE_OPTIONS=--openssl-legacy-provider` to use the lega
 
 ### MongoDB In the cloud
 
-Using the Mongodb from cloud-like MongoDB Atlas.
+Use the Mongodb from the cloud like MongoDB Atlas.
 You will need to create the table and indexes before starting the backend service. See the file `initdb.js`.
 
 ## Deploy
