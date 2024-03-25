@@ -25,9 +25,9 @@ This table defines the expected behavior of the mediator in different scenarios 
 |             |                |                        |
 | Scenario M1 | M1B            | -                      |
 | Scenario M2 | M2B            | -                      |
-| Scenario M3 | Fallback G4    | M3B                    |
+| Scenario M3 | M3B            | -                      |
 | Scenario M4 | M4B            | -                      |
-| Scenario M5 | M5A            | M5B [#145]             |
+| Scenario M5 | M5B [#145]     | -                      |
 
 ### Scenarios Description
 
@@ -98,10 +98,9 @@ This table defines the expected behavior of the mediator in different scenarios 
 
 In the Atala PRISM Mediator, when an issue arises, we undertake the following steps:
 * Log the error.
-* Dispatch a problem report as outlined in the aforementioned table.
+* Dispatch a problem report as outlined in the table above.
 * Record the problem report and error information in the database.
-Every one of these steps should be traceable back to the initial call via a XRequestID,
-and by the MsgID (which is the SHA-251 hash of the encrypted message).
+Every one of these steps should be traceable back to the initial call via an `XRequestID`, and by the MsgID (the SHA-251 hash of the encrypted message).
 This procedure will enhance Level 3 support and debugging capabilities. (For [ATL-4147](https://input-output.atlassian.net/browse/ATL-4147))
 
 [TODO optional] Would be nice to propose a list/table of new tokens to the protocol specs:
