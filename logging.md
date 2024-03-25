@@ -1,10 +1,10 @@
 # Logging
 
 We want traceability from HTTP calls.
-- Each HTTP call needs to generate a call ID (preferable on the proxy). This ID must be should be pass to the scope of the ZIO application. So every log will mention this ID. This ID must also be returned to the user as a HTTP header.
-- In case of errors and problem reports those IDs can be use by the user to get support.
+- Each HTTP call needs to generate a call ID (preferably on the proxy). The ID must be within the scope of the ZIO application. So, every log will mention this ID. This ID must return to the user as an HTTP header.
+- In case of errors and problem reports, the user can use those IDs to get support.
 
-Level 3 support can be provided to user during the logging retention policies. We user need to provide the value in the header `X-Request-Id` to get this support.
+A user can receive Level 3 support during the logging retention policies. The user needs to provide the value in the header `X-Request-Id` to get this support.
 
 ## Annotates
 
@@ -17,12 +17,12 @@ Here is the list of annotations and their meaning that we currently have:
 
 ## Code
 
-To have a concise code we have created a Middleware that modifies the Annotations in the Scope before each execution of that endpoint, to include the trace ID of the request.
+To have a concise code, we have created a middleware that modifies the annotations in the scope before each execution of that endpoint and includes the trace ID of the request.
 See code in file `TraceIdMiddleware` (`mediator/src/main/scala/io/iohk/atala/mediator/TraceIdMiddleware.scala`).
 
 ## Logging Backend
 
-We use the Simple Logging Facade for Java (SLF4J) API to call the logging backend is determined at runtime.
+We use the Simple Logging Facade for Java (SLF4J) API to call the logging backend determined at runtime.
 
 ### Logging Pattern
 

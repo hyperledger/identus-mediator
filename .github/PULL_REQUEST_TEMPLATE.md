@@ -1,6 +1,6 @@
 ### Description: 
 Summarize the changes you're submitting in a few sentences, including Jira ticket ATL-xxxx if applicable.
-Link to any discussion, related issues and bug reports to give the context to help the reviewer understand the PR.
+Link to any discussion, related issues, and bug reports to give the context and help the reviewer understand the PR.
 
 ### Alternatives Considered (optional): 
 Link to existing ADR (Architecture Decision Record), if any. If relevant, describe other approaches explored and the selected approach. Documenting why the methods were not selected will create a knowledge base for future reference, helping prevent others from revisiting less optimal ideas.
