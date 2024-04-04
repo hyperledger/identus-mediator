@@ -255,8 +255,7 @@ lazy val mediator = project
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .settings(run / fork := true)
-  .settings(run / envVars ++= ENV.envVars )
-  .settings(reStart / envVars ++= ENV.envVars )
+  .settings(envVars ++= ENV.envVars )
   .enablePlugins(WebScalaJSBundlerPlugin)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
