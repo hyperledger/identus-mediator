@@ -27,6 +27,14 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        - name: KEY_AGREEMENT_D
+          value: "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
+        - name: KEY_AGREEMENT_X
+          value: "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
+        - name: KEY_AUTHENTICATION_D
+          value: "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
+        - name: KEY_AUTHENTICATION_X
+          value: "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
         - name: MONGODB_USER
           value: "admin"
         - name: MONGODB_PASSWORD
