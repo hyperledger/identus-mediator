@@ -99,6 +99,19 @@ lazy val NPM = new {
   val sha256 = Seq("js-sha256" -> "0.9.0")
 }
 
+lazy val ENV = new {
+   val keyAgreementD = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
+   val keyAgreementX = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
+   val keyAuthenticationD = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
+   val keyAuthenticationX = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
+   val envVars = Map(
+      "KEY_AGREEMENT_D" -> keyAgreementD,
+      "KEY_AGREEMENT_X" -> keyAgreementX,
+      "KEY_AUTHENTICATION_D" -> keyAuthenticationD,
+      "KEY_AUTHENTICATION_X" -> keyAuthenticationX
+    )
+}
+
 inThisBuild(
   Seq(
     scalacOptions ++= Seq(
@@ -241,6 +254,8 @@ lazy val mediator = project
     Assets / WebKeys.packagePrefix := "public/",
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
+  .settings(run / fork := true)
+  .settings(envVars ++= ENV.envVars )
   .enablePlugins(WebScalaJSBundlerPlugin)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 

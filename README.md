@@ -133,8 +133,13 @@ The default configuration is set up [application.conf](/mediator/src/main/resour
 So in order to configure the mediator for your needs.
 You can either change the default configuration or you can set up environment variables that overrides the defaults:
 
-#### identity
+#### identity  
+> KEY_AGREEMENT, KEY_AUTHENTICATION  use JOSE (JSON Object Signing and Encryption) format, utilizing OKP (Octet Key Pair) type with base64url-safe encoded keys.
+
 To set up the mediator identity:
+
+[How to generate mediator identity](./mediator-identity-key-generation.md)
+
 - `KEY_AGREEMENT_D` - is the key agreement private key (MUST be a X25519 OKP key type).
 - `KEY_AGREEMENT_X` - is the key agreement public key (MUST be a X25519 OKP key type).
 - `KEY_AUTHENTICATION_D` - is the key authentication private key (MUST be an Ed25519 OKP key type).
