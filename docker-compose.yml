@@ -19,6 +19,8 @@ services:
       - "8080:8080"
     environment:
       # Creates the identity:
+      # These keys are for demo purpose only for production deployments generate keys
+      # Please follow the README file for guidelines on How to generate JWK format keys
       # KEY_AGREEMENT KEY_AUTHENTICATION are using format JOSE(JWK) OKP type base64urlsafe encoded keys
       - KEY_AGREEMENT_D=Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c
       - KEY_AGREEMENT_X=Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw
