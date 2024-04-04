@@ -29,7 +29,7 @@ lazy val V = new {
   val logstash = "7.4"
   val jansi = "2.4.1"
   val mongo = "1.1.0-RC10"
-  val embedMongo = "4.12.2"
+  val embedMongo = "4.12.3"
   val munitZio = "0.1.1"
   val zioTest = "2.0.21"
   val zioTestSbt = "2.0.21"
@@ -100,16 +100,16 @@ lazy val NPM = new {
 }
 
 lazy val ENV = new {
-   val keyAgreementD = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
-   val keyAgreementX = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
-   val keyAuthenticationD = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
-   val keyAuthenticationX = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
-   val envVars = Map(
-      "KEY_AGREEMENT_D" -> keyAgreementD,
-      "KEY_AGREEMENT_X" -> keyAgreementX,
-      "KEY_AUTHENTICATION_D" -> keyAuthenticationD,
-      "KEY_AUTHENTICATION_X" -> keyAuthenticationX
-    )
+  val keyAgreementD = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
+  val keyAgreementX = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
+  val keyAuthenticationD = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
+  val keyAuthenticationX = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
+  val envVars = Map(
+    "KEY_AGREEMENT_D" -> keyAgreementD,
+    "KEY_AGREEMENT_X" -> keyAgreementX,
+    "KEY_AUTHENTICATION_D" -> keyAuthenticationD,
+    "KEY_AUTHENTICATION_X" -> keyAuthenticationX
+  )
 }
 
 inThisBuild(
@@ -255,7 +255,7 @@ lazy val mediator = project
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .settings(run / fork := true)
-  .settings(envVars ++= ENV.envVars )
+  .settings(envVars ++= ENV.envVars)
   .enablePlugins(WebScalaJSBundlerPlugin)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
