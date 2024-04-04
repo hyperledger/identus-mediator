@@ -1,3 +1,10 @@
+## [0.14.2](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.14.1...prism-mediator-v0.14.2) (2024-04-04)
+
+
+### Bug Fixes
+
+* **mediator:** Update the readme and docker with type of key forma… ([#267](https://github.com/input-output-hk/atala-prism-mediator/issues/267)) ([236620f](https://github.com/input-output-hk/atala-prism-mediator/commit/236620f8e8db2a9e07c4ee29c3cbb2411077f3b7))
+
 ## [0.14.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.14.0...prism-mediator-v0.14.1) (2024-02-20)
 
 
