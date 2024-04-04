@@ -256,6 +256,7 @@ lazy val mediator = project
   )
   .settings(run / fork := true)
   .settings(run / envVars ++= ENV.envVars )
+  .settings(reStart / envVars ++= ENV.envVars )
   .enablePlugins(WebScalaJSBundlerPlugin)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
