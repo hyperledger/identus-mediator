@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator
+package org.hyperledger.identus.mediator
 
 import com.raquo.laminar.api.L.{_, given}
 import com.raquo.waypoint._

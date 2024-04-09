@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator
+package org.hyperledger.identus.mediator
 
 import org.scalajs.dom
 import com.raquo.laminar.api.L._

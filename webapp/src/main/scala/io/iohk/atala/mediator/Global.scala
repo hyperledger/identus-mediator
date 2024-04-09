@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator
+package org.hyperledger.identus.mediator
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport

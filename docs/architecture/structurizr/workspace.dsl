@@ -4,7 +4,7 @@ workspace {
         agent = softwareSystem "Cloud / Edge Agent" "" "External"
 
         enterprise "Atala" {
-            atalaPrismMediator = softwareSystem "Atala PRISM Mediator" {
+            atalaPrismMediator = softwareSystem "Identus Mediator" {
                 mediatorAgent = container "Mediator Agent" {
                     didCommHandler = component "DIDComm v2 Handler" "Supported protocols:\nBasicMessage 2.0\nMediatorCoordination 2.0\nPickup 3.0\nTrustPing 2.0" "ZIO HTTP" {
                         agent -> this "Sends and receives messages" "HTTPS"

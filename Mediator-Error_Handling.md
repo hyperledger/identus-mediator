@@ -96,7 +96,7 @@ This table defines the expected behavior of the mediator in different scenarios 
 
 ### Considerations
 
-In the Atala PRISM Mediator, when an issue arises, we undertake the following steps:
+In the Identus Mediator, when an issue arises, we undertake the following steps:
 * Log the error.
 * Dispatch a problem report as outlined in the table above.
 * Record the problem report and error information in the database.

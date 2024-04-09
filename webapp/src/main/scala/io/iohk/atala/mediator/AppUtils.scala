@@ -1,4 +1,4 @@
-package io.iohk.atala.mediator
+package org.hyperledger.identus.mediator
 
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.annotation.JSExport
@@ -73,6 +73,7 @@ object AppUtils {
           menuButton,
           span(className("mdc-top-app-bar__title"), child.text <-- title)
         ),
+        /* TODO REMOVE
         sectionTag(
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-start"),
           div(
@@ -83,11 +84,12 @@ object AppUtils {
                 // src := "https://atalaprism.io/images/atala-prism-logo-suite.svg",
                 src := "public/atala-prism-logo-suite.svg", // Note: this is not the best server for CDN
                 className := "logo vanilla",
-                alt := "Prism Mediator"
+                alt := "Identus Mediator"
               ),
             )
           )
         ),
+         */
         sectionTag(
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-end"),
           role("toolbar"),
@@ -107,7 +109,7 @@ object AppUtils {
       className("mdc-drawer mdc-drawer--modal"),
       div(
         className("mdc-drawer__header"),
-        h3(className("mdc-drawer__title"), "IOHK - Atala PRISM Mediator"),
+        h3(className("mdc-drawer__title"), "Hyperledger - Identus Mediator"),
         h6(className("mdc-drawer__subtitle"), "atlaprism@iohk.io"),
       ),
       div(
