@@ -1,4 +1,4 @@
-val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.15.0")
+val scalaJSVersion = sys.env.getOrElse("SCALAJS_VERSION", "1.16.0")
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.3.2")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
@@ -35,7 +35,7 @@ resolvers += MavenRepository("sonatype-s01-snapshots", "https://s01.oss.sonatype
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta44")
 
 // Utils Buildinfo
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.12.0")
 
 // CI
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4") // sbt> dependencyUpdates
@@ -51,7 +51,7 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.12.0")
 
 // Deploy demo
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.2.0")
 addSbtPlugin("com.github.sbt" % "sbt-gzip" % "2.0.0")
 
 // Release
