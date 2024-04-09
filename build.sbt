@@ -21,7 +21,7 @@ lazy val V = new {
   val zio = "2.0.21"
   val zioJson = "0.6.2"
   // val zioMunitTest = "0.1.1"
-  val zioHttp = "3.0.0-RC4"
+  val zioHttp = "3.0.0-RC6"
   val zioConfig = "4.0.1"
   val zioLogging = "2.2.2"
   val zioSl4j = "2.2.2"
@@ -100,16 +100,16 @@ lazy val NPM = new {
 }
 
 lazy val ENV = new {
-   val keyAgreementD = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
-   val keyAgreementX = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
-   val keyAuthenticationD = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
-   val keyAuthenticationX = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
-   val envVars = Map(
-      "KEY_AGREEMENT_D" -> keyAgreementD,
-      "KEY_AGREEMENT_X" -> keyAgreementX,
-      "KEY_AUTHENTICATION_D" -> keyAuthenticationD,
-      "KEY_AUTHENTICATION_X" -> keyAuthenticationX
-    )
+  val keyAgreementD = "Z6D8LduZgZ6LnrOHPrMTS6uU2u5Btsrk1SGs4fn8M7c"
+  val keyAgreementX = "Sr4SkIskjN_VdKTn0zkjYbhGTWArdUNE4j_DmUpnQGw"
+  val keyAuthenticationD = "INXCnxFEl0atLIIQYruHzGd5sUivMRyQOzu87qVerug"
+  val keyAuthenticationX = "MBjnXZxkMcoQVVL21hahWAw43RuAG-i64ipbeKKqwoA"
+  val envVars = Map(
+    "KEY_AGREEMENT_D" -> keyAgreementD,
+    "KEY_AGREEMENT_X" -> keyAgreementX,
+    "KEY_AUTHENTICATION_D" -> keyAuthenticationD,
+    "KEY_AUTHENTICATION_X" -> keyAuthenticationX
+  )
 }
 
 inThisBuild(
@@ -255,7 +255,7 @@ lazy val mediator = project
     Runtime / managedClasspath += (Assets / packageBin).value,
   )
   .settings(run / fork := true)
-  .settings(envVars ++= ENV.envVars )
+  .settings(envVars ++= ENV.envVars)
   .enablePlugins(WebScalaJSBundlerPlugin)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
 
