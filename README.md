@@ -196,7 +196,7 @@ https://input-output-hk.github.io/didcomm-v2-mediator-test-suite/Reports.html
 [LICENSE](LICENSE) - Apache License, Version 2.0
 
 
-[Link-LiveDemo]:https://beta-mediator.atalaprism.io/
+[Link-LiveDemo]:https://sandbox-mediator.atalaprism.io
 [Link-Atala]:https://atalaprism.io/
 [Link-Discord]:https://discord.gg/atala
 
