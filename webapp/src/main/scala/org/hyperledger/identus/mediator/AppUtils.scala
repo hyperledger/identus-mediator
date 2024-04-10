@@ -78,11 +78,11 @@ object AppUtils {
           className("mdc-top-app-bar__section mdc-top-app-bar__section--align-start"),
           div(
             a(
-              href := "https://atalaprism.io",
+              href := "https://github.com/hyperledger/identus",
               target := "_blank",
               img(
-                // src := "https://atalaprism.io/images/atala-prism-logo-suite.svg",
-                src := "public/atala-prism-logo-suite.svg", // Note: this is not the best server for CDN
+                // src := "https://example.com/example.svg",
+                src := "public/example.svg", // Note: this is not the best server for CDN
                 className := "logo vanilla",
                 alt := "Identus Mediator"
               ),
