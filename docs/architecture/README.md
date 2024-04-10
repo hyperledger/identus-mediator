@@ -1,23 +1,23 @@
 # System Architecture
 
-This document provides an overview of the system architecture for the Atala PRISM Mediator.
+This document provides an overview of the system architecture for the Identus Mediator.
 
 ## System Context Diagram
 
-The system context diagram illustrates the high-level interactions and dependencies of the Atala PRISM Mediator with
+The system context diagram illustrates the high-level interactions and dependencies of the Identus Mediator with
 external components, mainly cloud and edge agents.
 
 ![](diagrams/mediator-context.png)
 
 ## Container Diagram
 
-The container diagram depicts the internal containers/runnables and their relationships within the Atala PRISM Mediator.
+The container diagram depicts the internal containers/runnables and their relationships within the Identus Mediator.
 
 ![](diagrams/mediator-container.png)
 
 ### Mediator Agent Component Diagram
 
-The Mediator Agent handles the communication and coordination tasks of the Atala PRISM Mediator.
+The Mediator Agent handles the communication and coordination tasks of the Identus Mediator.
 
 - **DIDComm v2 Handler**: This component supports various protocols such as BasicMessage 2.0, MediatorCoordination 2.0,
   Pickup 3.0, and TrustPing 2.0. It communicates with external systems via HTTP.
@@ -29,7 +29,7 @@ The Mediator Agent handles the communication and coordination tasks of the Atala
 
 ### Mediator Database
 
-The Mediator Database stores data related to the Atala PRISM Mediator. It contains the following collection:
+The Mediator Database stores data related to the Identus Mediator. It contains the following collection:
 
 - **User Accounts**: for storing user account information of mediated agents.
 

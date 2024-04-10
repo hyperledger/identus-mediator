@@ -1,7 +1,7 @@
 ingress:
   enabled: true
   applicationUrls:
-  - chart-base-prism-mediator.atalaprism.io
+    - chart-base-prism-mediator.atalaprism.io
   platformIngressUrl: chart-base-platform-ingress.atalaprism.io
   cors:
     enabled: true
@@ -16,7 +16,7 @@ server:
   image:
     repository: ghcr.io
     pullPolicy: IfNotPresent
-    tag: input-output-hk/atala-prism-mediator
+    tag: input-output-hk/identus-mediator
   resources:
     limits:
       cpu: 500m
