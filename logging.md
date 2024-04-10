@@ -18,7 +18,7 @@ Here is the list of annotations and their meaning that we currently have:
 ## Code
 
 To have a concise code, we have created a middleware that modifies the annotations in the scope before each execution of that endpoint and includes the trace ID of the request.
-See code in file `TraceIdMiddleware` (`mediator/src/main/scala/io/iohk/atala/mediator/TraceIdMiddleware.scala`).
+See code in file `TraceIdMiddleware` (`mediator/src/main/scala/org/hyperledger/identus/mediator/TraceIdMiddleware.scala`).
 
 ## Logging Backend
 

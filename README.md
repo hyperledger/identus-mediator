@@ -6,7 +6,7 @@
 |-----------------|----------------|------------------------------------|
 | ![CI][Badge-CI] | ![Badge-Stage] | ![Badge-CommitsSinceLatestRelease] |
 
-# Atala Mediator
+# Mediator
 
 A DID Comm v2 mediator  
 A service that receives messages for many agents at a single endpoint and stores them with privacy.
@@ -23,9 +23,9 @@ graph LR
 
 ---
 
-**#atala-mediator on Discord:**
+**#identus-mediator on Discord:**
 
-For the fastest answers, join the [#atala-mediator][Link-Discord] channel in the official Atala Discord and ask your questions, or chat with other Atala developers and pioneers!
+For the fastest answers, join the [#identus-mediator][Link-Discord] channel in the official Atala Discord and ask your questions, or chat with other Atala developers and pioneers!
 
 
 **More documentation:**

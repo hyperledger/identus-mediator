@@ -177,7 +177,7 @@ lazy val scalaJSBundlerConfigure: Project => Project =
 
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
   .settings(
-    buildInfoPackage := "io.iohk.atala.mediator",
+    buildInfoPackage := "org.hyperledger.identus.mediator",
     buildInfoObject := "MediatorBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       name,
@@ -227,11 +227,11 @@ lazy val mediator = project
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
   .settings(
-    Compile / mainClass := Some("io.iohk.atala.mediator.MediatorStandalone"),
+    Compile / mainClass := Some("org.hyperledger.identus.mediator.MediatorStandalone"),
     Docker / maintainer := "atala-coredid@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),
-    Docker / packageName := "atala-prism-mediator",
+    Docker / packageName := "identus-mediator",
     dockerExposedPorts := Seq(8080),
     dockerBaseImage := "openjdk:11",
     dockerUpdateLatest := true,
@@ -276,7 +276,7 @@ lazy val webapp = project
     stShortModuleNames := true,
     webpackBundlingMode := BundlingMode.LibraryAndApplication(), // BundlingMode.Application,
     Compile / scalaJSModuleInitializers += {
-      org.scalajs.linker.interface.ModuleInitializer.mainMethod("io.iohk.atala.mediator.App", "main")
+      org.scalajs.linker.interface.ModuleInitializer.mainMethod("org.hyperledger.identus.mediator.App", "main")
     },
   )
 
