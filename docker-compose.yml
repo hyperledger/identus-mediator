@@ -13,8 +13,8 @@ services:
     volumes:
       - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
 
-  atalaprism-mediator:
-    image: ghcr.io/input-output-hk/atala-prism-mediator:${MEDIATOR_VERSION:-latest}
+  identus-mediator:
+    image: ghcr.io/input-output-hk/identus-mediator:${MEDIATOR_VERSION:-latest}
     ports:
       - "8080:8080"
     environment:
