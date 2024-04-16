@@ -1,8 +1,9 @@
 ingress:
   enabled: true
+  
   applicationUrls:
-    - chart-base-prism-mediator.atalaprism.io
-  platformIngressUrl: chart-base-platform-ingress.atalaprism.io
+    - chart-base-identus-mediator.atalaprism.io  # these are place holder
+  platformIngressUrl: chart-base-platform-ingress.atalaprism.io  # these are place holder
   cors:
     enabled: true
     allow_origins: "*"
