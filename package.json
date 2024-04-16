@@ -28,7 +28,7 @@
                 "prerelease": "snapshot"
             }
         ],
-        "tagFormat": "prism-mediator-v${version}",
+        "tagFormat": "identus-mediator-v${version}",
         "plugins": [
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
@@ -47,27 +47,27 @@
             [
                 "@semantic-release/exec",
                 {
-                  "prepareCmd": "yq eval -i '.appVersion = \"${nextRelease.version}\" | .version = \"${nextRelease.version}\"' ./infrastructure/charts/mediator/Chart.yaml"
+                    "prepareCmd": "yq eval -i '.appVersion = \"${nextRelease.version}\" | .version = \"${nextRelease.version}\"' ./infrastructure/charts/mediator/Chart.yaml"
                 }
-              ],
-              [
+            ],
+            [
                 "@semantic-release/exec",
                 {
-                  "prepareCmd": "helm package -d infrastructure/charts -u infrastructure/charts/mediator"
+                    "prepareCmd": "helm package -d infrastructure/charts -u infrastructure/charts/mediator"
                 }
-              ],
-              [
+            ],
+            [
                 "@semantic-release/exec",
                 {
-                  "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/hyperledger-labs/open-enterprise-agent/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
+                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/input-output-hk/atala-prism-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
                 }
-              ],
-              [
+            ],
+            [
                 "@semantic-release/exec",
                 {
-                  "prepareCmd": "yq -i -P infrastructure/charts/index.yaml"
+                    "prepareCmd": "yq -i -P infrastructure/charts/index.yaml"
                 }
-              ],
+            ],
             [
                 "@semantic-release/exec",
                 {
