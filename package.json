@@ -77,7 +77,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
+                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/atala-prism-mediator:${nextRelease.version} ./mediator/target/docker/stage"
                 }
             ],
             [
