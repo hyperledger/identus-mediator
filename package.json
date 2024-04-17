@@ -28,7 +28,7 @@
                 "prerelease": "snapshot"
             }
         ],
-        "tagFormat": "v${version}",
+        "tagFormat": "identus-mediator-v${version}",
         "plugins": [
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
