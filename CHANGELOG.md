@@ -1,3 +1,10 @@
+## [0.14.4](https://github.com/input-output-hk/atala-prism-mediator/compare/identus-mediator-v0.14.3...identus-mediator-v0.14.4) (2024-04-17)
+
+
+### Bug Fixes
+
+* Change atala-prism-mediator to identus-mediator ([#287](https://github.com/input-output-hk/atala-prism-mediator/issues/287)) ([0054033](https://github.com/input-output-hk/atala-prism-mediator/commit/0054033a02562c2ebac0381bdd1f5e0a04c66de9))
+
 ## [0.14.3](https://github.com/input-output-hk/atala-prism-mediator/compare/identus-mediator-v0.14.2...identus-mediator-v0.14.3) (2024-04-17)
 
 
