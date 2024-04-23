@@ -13,26 +13,33 @@ type HASH = String
 // messages
 type XRequestID = String // x-request-id
 
+enum MessageType {
+  case Mediator, User
+}
+
 case class MessageItem(
     _id: HASH,
     msg: SignedMessage | EncryptedMessage,
     headers: ProtectedHeader | Seq[SignProtectedHeader],
-    ts: String,
+    ts: Instant,
+    message_type: MessageType,
     xRequestId: Option[XRequestID]
 )
 object MessageItem {
-  def apply(msg: SignedMessage | EncryptedMessage, xRequestId: Option[XRequestID]): MessageItem =
+  def apply(msg: SignedMessage | EncryptedMessage, messageType: MessageType, xRequestId: Option[XRequestID]): MessageItem =
+    val now = Instant.now()
     msg match {
       case sMsg: SignedMessage =>
         new MessageItem(
           msg.sha256,
           msg,
           sMsg.signatures.map(_.`protected`.obj),
-          Instant.now().toString,
+          now,
+          messageType,
           xRequestId
         )
       case eMsg: EncryptedMessage =>
-        new MessageItem(msg.sha256, msg, eMsg.`protected`.obj, Instant.now().toString, xRequestId)
+        new MessageItem(msg.sha256, msg, eMsg.`protected`.obj, now, messageType, xRequestId)
     }
 
   given BSONWriter[ProtectedHeader | Seq[SignProtectedHeader]] with {
@@ -71,6 +78,25 @@ object MessageItem {
         case _                 => Failure(new RuntimeException("Must be a Document for a Array of Documents"))
     }
   }
+
+  given BSONWriter[MessageType] with
+    def writeTry(value: MessageType): Try[BSONValue] = Try {
+      value match {
+        case MessageType.Mediator => BSONString("Mediator")
+        case MessageType.User => BSONString("User")
+      }
+    }
+
+  given BSONReader[MessageType] with
+    def readTry(bson: BSONValue): Try[MessageType] = Try {
+      bson match {
+        case BSONString("Mediator") => MessageType.Mediator
+        case BSONString("User") => MessageType.User
+        case _ => throw new RuntimeException("Invalid MessagePurpose value in BSON")
+      }
+    }
+
+
 
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]
