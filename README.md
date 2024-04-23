@@ -169,7 +169,7 @@ To set up the mediator storage (MongoDB):
     - The mediator is responsible for storing and making these user messages available for delivery to the intended recipients.
      For existing users, please utilize the migration script migration_mediator_collection.js to migrate the collection.
 
-  ℹ️ For existing users, please utilize the migration script[migration_mediator_collection.js](migration_mediator_collection.js) to migrate the collection.
+    - For existing users, please utilize the migration script [migration_mediator_collection.js](migration_mediator_collection.js) to migrate the collection.
 
 ## Run
 
