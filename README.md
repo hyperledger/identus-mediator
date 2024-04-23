@@ -158,8 +158,7 @@ To set up the mediator storage (MongoDB):
 #### Mediator storage 
 - The `messages` collection contains two types of messages: `Mediator` and `User`.
 1. **Mediator Messages**:
-    - The mediator receives these messages for any interactions with the mediator.
-    - Examples include messages for setting up mediation, requesting mediation, or picking up messages from the mediator.
+    - Any Message to interacts with the mediator. For example: messages for setting up mediation, requesting mediation, picking up messages from the mediator, or forward message to another agent through the mediator.
     - The messages stored in the collection are usable for debugging purposes, mediator functionality, and interactions with the mediator. Hence, after a predetermined period, deleting them is possible.
     - This message type `Mediator` can be set up to have a configurable Time-To-Live (TTL) value, after which they can expire.
     - This is how the TTL is configurable for the collection messages [initdb.js](initdb.js)
