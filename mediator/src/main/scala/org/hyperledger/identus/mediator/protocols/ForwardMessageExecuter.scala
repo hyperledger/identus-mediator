@@ -11,6 +11,7 @@ import org.hyperledger.identus.mediator.db.*
 import zio.*
 import zio.json.*
 import fmgp.did.comm.protocol.pickup3.MessageDelivery
+import org.hyperledger.identus.mediator.db.MessageType.User
 
 object ForwardMessageExecuter
     extends ProtocolExecuter[
@@ -36,7 +37,7 @@ object ForwardMessageExecuter
           msg <-
             if (numbreOfUpdated > 0) { // Or maybe we can add all the time
               for {
-                _ <- repoMessageItem.insert(m.msg)
+                _ <- repoMessageItem.insert(m.msg, User)
                 _ <- ZIO.logInfo("Add next msg (of the ForwardMessage) to the Message Repo")
 
                 // For Live Mode

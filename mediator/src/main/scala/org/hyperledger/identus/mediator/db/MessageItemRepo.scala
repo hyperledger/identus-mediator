@@ -1,7 +1,8 @@
 package org.hyperledger.identus.mediator.db
 
 import fmgp.did.*
-import fmgp.did.comm.{SignedMessage, EncryptedMessage}
+import fmgp.did.comm.{EncryptedMessage, SignedMessage}
+import org.hyperledger.identus.mediator.db.MessageType.Mediator
 import org.hyperledger.identus.mediator.{DuplicateMessage, StorageCollection, StorageError, StorageThrowable}
 import reactivemongo.api.bson.*
 import reactivemongo.api.bson.collection.BSONCollection
@@ -28,13 +29,13 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  def insert(msg: SignedMessage | EncryptedMessage): IO[StorageError, WriteResult] = {
+  def insert(msg: SignedMessage | EncryptedMessage, messageType: MessageType = Mediator): IO[StorageError, WriteResult] = {
     for {
-      _ <- ZIO.logInfo("insert")
+      _ <- ZIO.logInfo(s"insert $messageType")
       xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))
       coll <- collection
       result <- ZIO
-        .fromFuture(implicit ec => coll.insert.one(MessageItem(msg, xRequestId)))
+        .fromFuture(implicit ec => coll.insert.one(MessageItem(msg, messageType, xRequestId)))
         .tapError(err => ZIO.logError(s"insert :  ${err.getMessage}"))
         .mapError {
           case ex: DatabaseException if (ex.code.contains(DuplicateMessage.code)) => DuplicateMessage(ex)
