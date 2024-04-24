@@ -158,17 +158,17 @@ To set up the mediator storage (MongoDB):
 #### Mediator storage 
 - The `messages` collection contains two types of messages: `Mediator` and `User`.
 1. **Mediator Messages**:
-    - These messages received by mediator for any interactions with the mediator.
-    - Examples include messages for setting up mediation, requesting mediation, or picking up messages from the mediator.
-    - These messages stored in collection can be used for debugging purpose mediator functionality and interactions with the mediator. Hence they can be deleted after a period of time.
-    - This message type `Mediator` can be setup to have a configurable Time-To-Live (TTL) value, after which they can expire.
-    - This is how the TTL can be configured for the collection messages [initdb.js](initdb.js)
+    - Any Message to interacts with the mediator. For example: messages for setting up mediation, requesting mediation, picking up messages from the mediator, or forward message to another agent through the mediator.
+    - The messages stored in the collection are usable for debugging purposes, mediator functionality, and interactions with the mediator. Hence, after a predetermined period, deleting them is possible.
+    - This message type `Mediator` can be set up to have a configurable Time-To-Live (TTL) value, after which they can expire.
+    - This is how the TTL is configurable for the collection messages [initdb.js](initdb.js)
 2. **User Messages**:
-    - These are the actual messages e.g like the Forward message from the mediator, contain a `User` message inside.  This inside message is stored as type `User` to be delivered to user.
-    - They do not have a TTL, and will persist in the system until the user retrieves them using a pickup protocol and deletes them.
+    - These are the actual messages, e.g. the Forward message from the mediator, containing a User message inside. This inside message gets stored as User deliverable to the user.
+    - They do not have a TTL and will persist in the system until the user retrieves them using a pickup protocol and deletes them.
     - The mediator is responsible for storing and making these user messages available for delivery to the intended recipients.
- 
-  ℹ️ For existing users, please utilize the migration script [migration_mediator_collection.js](migration_mediator_collection.js) to migrate the collection.
+     For existing users, please utilize the migration script migration_mediator_collection.js to migrate the collection.
+
+    - For existing users, please utilize the migration script [migration_mediator_collection.js](migration_mediator_collection.js) to migrate the collection.
 
 ## Run
 
