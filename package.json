@@ -94,7 +94,9 @@
                         "CHANGELOG.md",
                         "package.json",
                         "package-lock.json",
-                        "infrastructure/charts/mediator/Chart.yaml"
+                        "infrastructure/charts/mediator/Chart.yaml",
+                        "infrastructure/charts/index.yaml",
+                        "infrastructure/charts/*.tgz"
                     ],
                     "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
                 }
