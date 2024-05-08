@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  identus-mediator:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2024-05-08T12:00:39.996517925Z"
+      description: A Helm chart for deploying identus-mediator
+      digest: 8d54d81d5233979ca8bd39e4317b6611046b46868074e469b4f911c303709dd5
+      name: identus-mediator
+      type: application
+      urls:
+        - https://raw.githubusercontent.com/input-output-hk/atala-prism-mediator/main/infrastructure/charts/identus-mediator-1.0.0.tgz
+      version: 1.0.0
+generated: "2024-05-08T12:00:39.995997356Z"
