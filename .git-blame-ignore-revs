@@ -12,3 +12,6 @@ de9b2865bc74e8768f518d10d860cb1408828fff
 
 # Rename Atala Prism to Hyperledger Identus (#274)
 d9492416b3aee967513f0e71aa37347701a1fd61
+
+# Scala Steward: Reformat with scalafmt 3.8.2
+dfe92ddafcd5d60f27e99a04d1c05bbf630b07da
