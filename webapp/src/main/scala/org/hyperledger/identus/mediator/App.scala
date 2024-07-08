@@ -23,7 +23,11 @@ object App {
       div(
         AppUtils.drawer(linkPages, MyRouter.router.currentPageSignal),
         AppUtils.drawerScrim,
-        AppUtils.topBarHeader(MyRouter.router.currentPageSignal.map { case p: MediatorPage.type => "IOHK Mediator" }),
+        AppUtils.topBarHeader(
+          MyRouter.router.currentPageSignal.map { case p: MediatorPage.type =>
+            "Identus Mediator"
+          }
+        ),
         mainTag(
           className("mdc-top-app-bar--fixed-adjust"),
           child <-- $selectedApp.signal

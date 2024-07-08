@@ -118,7 +118,7 @@ You can open the `http://localhost:8080/` URL in a web browser, and it will show
 ### Docker only
 
 It is possible to run everything with a single command with Docker compose docker-compose.yml
-The latest stable image version is available in the IOHK repositories.
+The latest stable image version is available in the Hyperledger Identus-Mediator repository.
 To build a docker image locally, run `NODE_OPTIONS=--openssl-legacy-provider sbt docker:publishLocal`.
 
 ```shell

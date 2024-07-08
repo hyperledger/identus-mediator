@@ -228,7 +228,7 @@ lazy val mediator = project
   )
   .settings(
     Compile / mainClass := Some("org.hyperledger.identus.mediator.MediatorStandalone"),
-    Docker / maintainer := "atala-coredid@iohk.io",
+    Docker / maintainer := "atala@iohk.io",
     Docker / dockerUsername := Some("input-output-hk"),
     Docker / dockerRepository := Some("ghcr.io"),
     Docker / packageName := "identus-mediator",
