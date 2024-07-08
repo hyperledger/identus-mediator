@@ -23,7 +23,7 @@ lazy val V = new {
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC6"
   val zioConfig = "4.0.1"
-  val zioLogging = "2.2.3"
+  val zioLogging = "2.2.4"
   val zioSl4j = "2.2.4"
   val logback = "1.5.6"
   val logstash = "7.4"
@@ -36,7 +36,7 @@ lazy val V = new {
   val zioTestMagnolia = "2.0.22"
 
   // For WEBAPP
-  val laminar = "16.0.0"
+  val laminar = "17.0.0"
   val waypoint = "7.0.0"
   val upickle = "3.3.0"
   // https://www.npmjs.com/package/material-components-web
