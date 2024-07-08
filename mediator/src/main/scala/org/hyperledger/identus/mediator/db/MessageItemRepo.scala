@@ -29,7 +29,10 @@ class MessageItemRepo(reactiveMongoApi: ReactiveMongoApi)(using ec: ExecutionCon
     .map(_.collection(collectionName))
     .mapError(ex => StorageCollection(ex))
 
-  def insert(msg: SignedMessage | EncryptedMessage, messageType: MessageType = Mediator): IO[StorageError, WriteResult] = {
+  def insert(
+      msg: SignedMessage | EncryptedMessage,
+      messageType: MessageType = Mediator
+  ): IO[StorageError, WriteResult] = {
     for {
       _ <- ZIO.logInfo(s"insert $messageType")
       xRequestId <- ZIO.logAnnotations.map(_.get(XRequestId.value))

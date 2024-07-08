@@ -26,7 +26,11 @@ case class MessageItem(
     xRequestId: Option[XRequestID]
 )
 object MessageItem {
-  def apply(msg: SignedMessage | EncryptedMessage, messageType: MessageType, xRequestId: Option[XRequestID]): MessageItem =
+  def apply(
+      msg: SignedMessage | EncryptedMessage,
+      messageType: MessageType,
+      xRequestId: Option[XRequestID]
+  ): MessageItem =
     val now = Instant.now()
     msg match {
       case sMsg: SignedMessage =>
@@ -83,7 +87,7 @@ object MessageItem {
     def writeTry(value: MessageType): Try[BSONValue] = Try {
       value match {
         case MessageType.Mediator => BSONString("Mediator")
-        case MessageType.User => BSONString("User")
+        case MessageType.User     => BSONString("User")
       }
     }
 
@@ -91,12 +95,10 @@ object MessageItem {
     def readTry(bson: BSONValue): Try[MessageType] = Try {
       bson match {
         case BSONString("Mediator") => MessageType.Mediator
-        case BSONString("User") => MessageType.User
-        case _ => throw new RuntimeException("Invalid MessagePurpose value in BSON")
+        case BSONString("User")     => MessageType.User
+        case _                      => throw new RuntimeException("Invalid MessagePurpose value in BSON")
       }
     }
-
-
 
   given BSONDocumentWriter[MessageItem] = Macros.writer[MessageItem]
   given BSONDocumentReader[MessageItem] = Macros.reader[MessageItem]

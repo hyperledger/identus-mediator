@@ -12,33 +12,33 @@ lazy val V = new {
   val scalaDID = "0.1.0-M19"
 
   // FIXME another bug in the test framework https://github.com/scalameta/munit/issues/554
-  val munit = "1.0.0-M11" // "0.7.29"
+  val munit = "1.0.0" // "0.7.29"
 
 //   // https://mvnrepository.com/artifact/org.scala-js/scalajs-dom
 //   // val scalajsLogging = "1.1.2-SNAPSHOT" //"1.1.2"
 
 //   // https://mvnrepository.com/artifact/dev.zio/zio
   val zio = "2.1.5"
-  val zioJson = "0.6.2"
+  val zioJson = "0.7.1"
   // val zioMunitTest = "0.1.1"
   val zioHttp = "3.0.0-RC6"
   val zioConfig = "4.0.1"
-  val zioLogging = "2.2.3"
+  val zioLogging = "2.2.4"
   val zioSl4j = "2.2.2"
   val logback = "1.5.6"
   val logstash = "7.4"
   val jansi = "2.4.1"
   val mongo = "1.1.0-RC10"
-  val embedMongo = "4.12.6"
+  val embedMongo = "4.14.0"
   val munitZio = "0.1.1"
   val zioTest = "2.1.5"
   val zioTestSbt = "2.1.5"
   val zioTestMagnolia = "2.1.5"
 
   // For WEBAPP
-  val laminar = "16.0.0"
+  val laminar = "17.0.0"
   val waypoint = "7.0.0"
-  val upickle = "3.3.0"
+  val upickle = "3.3.1"
   // https://www.npmjs.com/package/material-components-web
   val materialComponents = "12.0.0"
 }
