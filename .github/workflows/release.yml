@@ -93,4 +93,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.IDENTUS_CI }}
         run: |
           npm install
+          sed -i 's/\( FIRST_RELEASE\) = "1.0.0"/\1 = "0.15.0"/' node_modules/semantic-release/lib/definitions/constants.js
+          sed -i 's/\( FIRSTPRERELEASE\) = "1"/\1 = "0"/' node_modules/semantic-release/lib/definitions/constants.js
           npx semantic-release
