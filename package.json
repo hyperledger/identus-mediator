@@ -11,7 +11,7 @@
         "@semantic-release/exec": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
         "conventional-changelog-conventionalcommits": "^8.0.0",
-        "gradle-semantic-release-plugin": "1.7.3",
+        "gradle-semantic-release-plugin": "1.9.2",
         "husky": "^8.0.1",
         "pinst": "^3.0.0",
         "prettier": "^2.7.1",
