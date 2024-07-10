@@ -1,22 +1,22 @@
 {
     "name": "identus-mediator",
-    "version": "0.14.2",
+    "version": "0.15.0-beta.2",
     "engines": {
         "node": ">=16.13.0"
     },
     "devDependencies": {
-        "@commitlint/cli": "^17.0.3",
-        "@commitlint/config-conventional": "^17.0.3",
-        "@semantic-release/changelog": "^6.0.1",
+        "@commitlint/cli": "^19.3.0",
+        "@commitlint/config-conventional": "^19.2.2",
+        "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/exec": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "conventional-changelog-conventionalcommits": "^5.0.0",
-        "gradle-semantic-release-plugin": "1.7.3",
-        "husky": "^8.0.1",
+        "conventional-changelog-conventionalcommits": "^8.0.0",
+        "gradle-semantic-release-plugin": "1.9.2",
+        "husky": "^9.0.11",
         "pinst": "^3.0.0",
-        "prettier": "^2.7.1",
-        "semantic-release": "^19.0.3",
-        "semantic-release-slack-bot": "^3.5.3"
+        "prettier": "^3.3.2",
+        "semantic-release": "^24.0.0",
+        "semantic-release-slack-bot": "^4.0.2"
     },
     "release": {
         "branches": [
@@ -26,6 +26,10 @@
             {
                 "name": "prerelease/*",
                 "prerelease": "snapshot"
+            },
+            {
+                "name": "beta",
+                "prerelease": true
             }
         ],
         "tagFormat": "v${version}",
@@ -59,7 +63,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/input-output-hk/atala-prism-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
+                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
                 }
             ],
             [
@@ -77,7 +81,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
+                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/hyperledger/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
                 }
             ],
             [
@@ -98,7 +102,7 @@
                         "infrastructure/charts/index.yaml",
                         "infrastructure/charts/*.tgz"
                     ],
-                    "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
+                    "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}\n\nSigned-off-by: Hyperledger Bot <hyperledger-bot@hyperledger.org>"
                 }
             ],
             [
