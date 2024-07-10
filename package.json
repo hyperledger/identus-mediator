@@ -112,7 +112,7 @@
                     "notifyOnFail": true,
                     "markdownReleaseNotes": true,
                     "onSuccessTemplate": {
-                        "text": "A new version of Identus Mediator successfully released!\nVersion: `$npm_package_version`\nTag: $repo_url/releases/tag/$npm_package_version\n\nRelease notes:\n$release_notes"
+                        "text": "A new version of Identus Mediator successfully released!\nVersion: `$npm_package_version`\nTag: $repo_url/releases/tag/v$npm_package_version\n\nRelease notes:\n$release_notes"
                     }
                 }
             ]
