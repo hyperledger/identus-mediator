@@ -17,6 +17,10 @@ on:
         required: false
         default: "main"
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     env:
