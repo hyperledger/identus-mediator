@@ -1,3 +1,15 @@
+# [0.15.0-beta.1](https://github.com/hyperledger/identus-mediator/compare/v0.15.0-beta.0...v0.15.0-beta.1) (2024-07-10)
+
+
+### Bug Fixes
+
+* next version template for sbt project ([50a881b](https://github.com/hyperledger/identus-mediator/commit/50a881ba390a2bfdd2fb87c904fab5fc20a96b83))
+
+
+### Features
+
+* edit README.md to trigger release workflow ([daa447e](https://github.com/hyperledger/identus-mediator/commit/daa447e0215e35e98bb0f53bc4d432c7963641dd))
+
 # 0.15.0-beta.0 (2024-07-10)
 
 

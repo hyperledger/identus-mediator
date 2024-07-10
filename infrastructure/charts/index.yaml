@@ -3,7 +3,7 @@ entries:
   identus-mediator:
     - apiVersion: v2
       appVersion: 1.0.0-beta.1
-      created: "2024-07-10T12:36:23.775430605Z"
+      created: "2024-07-10T13:45:37.620786882Z"
       description: A Helm chart for deploying identus-mediator
       digest: 18cd95f21bd5a733473d0a775a0804c3bbd5efc201d68daa3cf38bc5184318e9
       name: identus-mediator
@@ -12,8 +12,18 @@ entries:
         - https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts/identus-mediator-1.0.0-beta.1.tgz
       version: 1.0.0-beta.1
     - apiVersion: v2
+      appVersion: 0.15.0-beta.1
+      created: "2024-07-10T13:45:37.62045461Z"
+      description: A Helm chart for deploying identus-mediator
+      digest: e587e523c3e139205fffe7920d482e38ad40857da4765599276b4cbf78c609bc
+      name: identus-mediator
+      type: application
+      urls:
+        - https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts/identus-mediator-0.15.0-beta.1.tgz
+      version: 0.15.0-beta.1
+    - apiVersion: v2
       appVersion: 0.15.0-beta.0
-      created: "2024-07-10T12:36:23.775080508Z"
+      created: "2024-07-10T13:45:37.620101549Z"
       description: A Helm chart for deploying identus-mediator
       digest: b76619318b376186c8a431aea32a813bcb46296453b713792a222b5f06e017bd
       name: identus-mediator
@@ -21,4 +31,4 @@ entries:
       urls:
         - https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts/identus-mediator-0.15.0-beta.0.tgz
       version: 0.15.0-beta.0
-generated: "2024-07-10T12:36:23.774519425Z"
+generated: "2024-07-10T13:45:37.619535128Z"
