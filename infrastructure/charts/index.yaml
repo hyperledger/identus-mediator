@@ -2,13 +2,13 @@ apiVersion: v1
 entries:
   identus-mediator:
     - apiVersion: v2
-      appVersion: 1.0.0-beta.1
+      appVersion: 0.15.0
       created: "2024-07-10T10:13:20.889031846Z"
       description: A Helm chart for deploying identus-mediator
       digest: 353a613feb86eb34e1702f5f586c6be0574bd34f1eb0273bee0c048d3fb851c7
       name: identus-mediator
       type: application
       urls:
-        - https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts/identus-mediator-1.0.0-beta.1.tgz
-      version: 1.0.0-beta.1
+        - https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts/identus-mediator-0.15.0.tgz
+      version: 0.15.0
 generated: "2024-07-10T10:13:20.888520699Z"

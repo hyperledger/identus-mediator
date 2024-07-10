@@ -17,7 +17,7 @@ server:
   image:
     repository: ghcr.io
     pullPolicy: IfNotPresent
-    tag: input-output-hk/identus-mediator
+    tag: hyperledger/identus-mediator
   resources:
     limits:
       cpu: 500m
