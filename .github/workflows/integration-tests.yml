@@ -15,15 +15,20 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+  packages: write
+  actions: write
+  pull-requests: write
+  checks: write
+
 jobs:
   run-integration-tests:
     name: "Run integration tests"
     runs-on: ubuntu-latest
     env:
-      GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
-      GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
-      ATALA_GITHUB_ACTOR: ${{ secrets.ATALA_GITHUB_ACTOR }}
-      ATALA_GITHUB_TOKEN: ${{ secrets.ATALA_GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPORTS_DIR: "didcomm-v2-mediator-test-suite/target/site/serenity"
       DIDCOMM_V2_TESTSUITE_VERSION: "d5aac249b6e420f6cce6e842565dd05f994f729f"
       MEDIATOR_DID: "did:peer:2.Ez6LSghwSE437wnDE1pt3X6hVDUQzSjsHzinpX3XFvMjRAm7y.Vz6Mkhh1e5CEYYq6JBUcTZ6Cp2ranCWRrv7Yax3Le4N59R6dd.SeyJ0IjoiZG0iLCJzIjp7InVyaSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MCIsImEiOlsiZGlkY29tbS92MiJdfX0.SeyJ0IjoiZG0iLCJzIjp7InVyaSI6IndzOi8vbG9jYWxob3N0OjgwODAvd3MiLCJhIjpbImRpZGNvbW0vdjIiXX19"
@@ -55,8 +60,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ secrets.ATALA_GITHUB_ACTOR }}
-          password: ${{ secrets.ATALA_GITHUB_TOKEN }}
+          username: ${{ secrets.GITHUB_ACTOR }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Compose
         uses: ndeloof/install-compose-action@v0.0.1

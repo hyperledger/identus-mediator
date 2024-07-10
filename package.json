@@ -1,22 +1,22 @@
 {
     "name": "identus-mediator",
-    "version": "0.14.2",
+    "version": "0.15.0-SNAPSHOT",
     "engines": {
         "node": ">=16.13.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^17.0.3",
         "@commitlint/config-conventional": "^17.0.3",
-        "@semantic-release/changelog": "^6.0.1",
+        "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/exec": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "conventional-changelog-conventionalcommits": "^5.0.0",
+        "conventional-changelog-conventionalcommits": "^8.0.0",
         "gradle-semantic-release-plugin": "1.7.3",
         "husky": "^8.0.1",
         "pinst": "^3.0.0",
         "prettier": "^2.7.1",
-        "semantic-release": "^19.0.3",
-        "semantic-release-slack-bot": "^3.5.3"
+        "semantic-release": "^24.0.0",
+        "semantic-release-slack-bot": "^4.0.2"
     },
     "release": {
         "branches": [
@@ -26,6 +26,10 @@
             {
                 "name": "prerelease/*",
                 "prerelease": "snapshot"
+            },
+            {
+                "name": "beta",
+                "prerelease": true
             }
         ],
         "tagFormat": "v${version}",
