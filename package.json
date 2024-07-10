@@ -102,7 +102,7 @@
                         "infrastructure/charts/index.yaml",
                         "infrastructure/charts/*.tgz"
                     ],
-                    "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}\n\nSigned-off-by: hyperledger-bot <hyperledger-bot@hyperledger.org>"
+                    "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}\n\nSigned-off-by: Hyperledger Bot <hyperledger-bot@hyperledger.org>"
                 }
             ],
             [
