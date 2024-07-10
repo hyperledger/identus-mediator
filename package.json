@@ -1,6 +1,6 @@
 {
     "name": "identus-mediator",
-    "version": "1.0.0-beta.1",
+    "version": "0.15.0",
     "engines": {
         "node": ">=16.13.0"
     },
@@ -19,7 +19,6 @@
         "semantic-release-slack-bot": "^4.0.2"
     },
     "release": {
-        "initial-release": "0.15.0",
         "branches": [
             {
                 "name": "main"
