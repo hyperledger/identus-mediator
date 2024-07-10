@@ -1,3 +1,10 @@
+# [0.15.0-beta.2](https://github.com/hyperledger/identus-mediator/compare/v0.15.0-beta.1...v0.15.0-beta.2) (2024-07-10)
+
+
+### Bug Fixes
+
+* Hyperledger Bot DCO ([0d9ca67](https://github.com/hyperledger/identus-mediator/commit/0d9ca67950dedca5c6f4389b17a70fd496073df3))
+
 # [0.15.0-beta.1](https://github.com/hyperledger/identus-mediator/compare/v0.15.0-beta.0...v0.15.0-beta.1) (2024-07-10)
 
 
