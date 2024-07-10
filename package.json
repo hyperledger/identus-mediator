@@ -1,6 +1,6 @@
 {
     "name": "identus-mediator",
-    "version": "1.0.0",
+    "version": "0.14.2",
     "engines": {
         "node": ">=16.13.0"
     },
@@ -28,7 +28,7 @@
                 "prerelease": "snapshot"
             }
         ],
-        "tagFormat": "identus-mediator-v${version}",
+        "tagFormat": "v${version}",
         "plugins": [
             "@semantic-release/commit-analyzer",
             "@semantic-release/release-notes-generator",
