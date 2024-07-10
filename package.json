@@ -1,6 +1,6 @@
 {
     "name": "identus-mediator",
-    "version": "0.15.0-SNAPSHOT",
+    "version": "0.15.0",
     "engines": {
         "node": ">=16.13.0"
     },
@@ -45,7 +45,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
+                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version} with-defaults\""
                 }
             ],
             [
@@ -63,7 +63,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/input-output-hk/atala-prism-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
+                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/hyperledger/identus-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
                 }
             ],
             [
@@ -81,7 +81,7 @@
             [
                 "@semantic-release/exec",
                 {
-                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
+                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/hyperledger/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
                 }
             ],
             [
