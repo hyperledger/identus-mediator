@@ -229,7 +229,7 @@ lazy val mediator = project
   .settings(
     Compile / mainClass := Some("org.hyperledger.identus.mediator.MediatorStandalone"),
     Docker / maintainer := "atala@iohk.io",
-    Docker / dockerUsername := Some("input-output-hk"),
+    Docker / dockerUsername := Some("hyperledger"), // https://github.com/hyperledger
     Docker / dockerRepository := Some("ghcr.io"),
     Docker / packageName := "identus-mediator",
     dockerExposedPorts := Seq(8080),
