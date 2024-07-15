@@ -5,7 +5,7 @@ services:
     image: mongo:6.0
     ports:
       - "27017:27017"
-    command: ["--auth"]
+    command: [ "--auth" ]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin
@@ -14,7 +14,7 @@ services:
       - ./initdb.js:/docker-entrypoint-initdb.d/initdb.js
 
   identus-mediator:
-    image: ghcr.io/input-output-hk/identus-mediator:${MEDIATOR_VERSION:-latest}
+    image: ghcr.io/hyperledger/identus-mediator:${MEDIATOR_VERSION:-latest}
     ports:
       - "8080:8080"
     environment:
