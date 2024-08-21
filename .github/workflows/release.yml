@@ -4,38 +4,25 @@ concurrency:
   group: release
 
 on:
-  workflow_call:
-    inputs:
-      release-branch:
-        required: false
-        type: string
-        default: "main"
   workflow_dispatch:
-    inputs:
-      release-branch:
-        description: "Branch to release from"
-        required: false
-        default: "main"
-
-permissions:
-  contents: write
-  packages: write
 
 jobs:
   release:
+    runs-on: ubuntu-latest
     env:
       GITHUB_ACTOR: "hyperledger-bot"
       GITHUB_ACTOR_EMAIL: "hyperledger-bot@hyperledger.org"
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.IDENTUS_CI }}
-          ref: ${{ github.event.inputs.release-branch }}
-          fetch-depth: 0
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v14
@@ -46,14 +33,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "lts/*"
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: "3.12.2" # default is latest (stable)
-
-      - name: Setup yq - portable yaml processor
-        uses: mikefarah/yq@v4.34.2
 
       - name: Setup Scala.JS
         uses: japgolly/setup-scalajs@v1
@@ -93,6 +72,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.IDENTUS_CI }}
         run: |
           npm install
-          sed -i 's/\( FIRST_RELEASE\) = "1.0.0"/\1 = "0.15.0"/' node_modules/semantic-release/lib/definitions/constants.js
-          sed -i 's/\( FIRSTPRERELEASE\) = "1"/\1 = "0"/' node_modules/semantic-release/lib/definitions/constants.js
           npx semantic-release
