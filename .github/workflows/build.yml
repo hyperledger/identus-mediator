@@ -64,11 +64,11 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Set build version
-        run: echo "BUILD_VERSION=${{ env.VERSION }}-${{ env.COMMIT_HASH }}-${{ env.BUILD_NUMBER }}" >> $GITHUB_ENV
+        run: echo "BUILD_VERSION=${{ env.VERSION }}-${{ env.BUILD_NUMBER }}-${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         run: |
-          sbt "set version := \"${{ env.BUILD_VERSION }}\"" "docker:stage"
+          sbt "set ThisBuild / version := \"${{ env.BUILD_VERSION }}\"" "docker:stage"
           docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/hyperledger/identus-mediator:${{ env.BUILD_VERSION}} ./mediator/target/docker/stage
 
       - name: Trigger helm chart update

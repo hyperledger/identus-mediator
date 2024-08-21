@@ -17,7 +17,7 @@ export default {
             "prepareCmd": "npm version ${nextRelease.version} --git-tag-version false"
         }],
         ["@semantic-release/exec", {
-            "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
+            "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} with-defaults\""
         }],
         ["@semantic-release/exec", {
             "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/hyperledger/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
