@@ -8,6 +8,11 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - "mediator/**"
+      - "*.sbt"
+      - "project/**"
+      - "webapp/**"
 
 jobs:
   build:
