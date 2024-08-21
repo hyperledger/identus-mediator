@@ -72,9 +72,12 @@ jobs:
         run: echo "BUILD_VERSION=${{ env.VERSION }}-${{ env.BUILD_NUMBER }}-${{ env.COMMIT_HASH }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
         run: |
-          sbt "set ThisBuild / version := \"${{ env.BUILD_VERSION }}\"" "docker:stage"
+          sbt -J-Xmx5120m "set ThisBuild / version := \"${{ env.BUILD_VERSION }}\"" "docker:stage"
           docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/hyperledger/identus-mediator:${{ env.BUILD_VERSION}} ./mediator/target/docker/stage
+  
 
       - name: Trigger helm chart update
         uses: peter-evans/repository-dispatch@v3
