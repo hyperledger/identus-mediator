@@ -110,7 +110,7 @@ object AppUtils {
       div(
         className("mdc-drawer__header"),
         h3(className("mdc-drawer__title"), "Hyperledger - Identus Mediator"),
-        h6(className("mdc-drawer__subtitle"), "atlaprism@iohk.io"),
+        h6(className("mdc-drawer__subtitle"), "atala@iohk.io"),
       ),
       div(
         className("mdc-drawer__content"),

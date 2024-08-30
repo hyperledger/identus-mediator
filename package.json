@@ -1,117 +1,21 @@
 {
     "name": "identus-mediator",
-    "version": "1.0.0",
+    "version": "0.15.0",
     "engines": {
         "node": ">=16.13.0"
     },
     "devDependencies": {
-        "@commitlint/cli": "^17.0.3",
-        "@commitlint/config-conventional": "^17.0.3",
-        "@semantic-release/changelog": "^6.0.1",
+        "@commitlint/cli": "^19.3.0",
+        "@commitlint/config-conventional": "^19.2.2",
+        "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/exec": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "conventional-changelog-conventionalcommits": "^5.0.0",
-        "gradle-semantic-release-plugin": "1.7.3",
-        "husky": "^8.0.1",
+        "conventional-changelog-conventionalcommits": "^8.0.0",
+        "gradle-semantic-release-plugin": "1.9.2",
+        "husky": "^9.0.11",
         "pinst": "^3.0.0",
-        "prettier": "^2.7.1",
-        "semantic-release": "^19.0.3",
-        "semantic-release-slack-bot": "^3.5.3"
-    },
-    "release": {
-        "branches": [
-            {
-                "name": "main"
-            },
-            {
-                "name": "prerelease/*",
-                "prerelease": "snapshot"
-            }
-        ],
-        "tagFormat": "identus-mediator-v${version}",
-        "plugins": [
-            "@semantic-release/commit-analyzer",
-            "@semantic-release/release-notes-generator",
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "npm version ${nextRelease.version} --git-tag-version false"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "NODE_OPTIONS=--openssl-legacy-provider sbt -J-Xmx5120m  \"release release-version ${nextRelease.version} next-version ${nextRelease.version}-SNAPSHOT with-defaults\""
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "yq eval -i '.appVersion = \"${nextRelease.version}\" | .version = \"${nextRelease.version}\"' ./infrastructure/charts/mediator/Chart.yaml"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "helm package -d infrastructure/charts -u infrastructure/charts/mediator"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "helm repo index --url \"https://raw.githubusercontent.com/input-output-hk/atala-prism-mediator/main/infrastructure/charts\" --merge index.yaml infrastructure/charts"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "yq -i -P infrastructure/charts/index.yaml"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "yq -i '.appVersion = \"${nextRelease.version}\"' ./infrastructure/charts/mediator/Chart.yaml"
-                }
-            ],
-            [
-                "@semantic-release/exec",
-                {
-                    "prepareCmd": "docker buildx build --platform=linux/arm64,linux/amd64 --push -t ghcr.io/input-output-hk/identus-mediator:${nextRelease.version} ./mediator/target/docker/stage"
-                }
-            ],
-            [
-                "@semantic-release/changelog",
-                {
-                    "changelogFile": "CHANGELOG.md"
-                }
-            ],
-            [
-                "@semantic-release/git",
-                {
-                    "assets": [
-                        "version.sbt",
-                        "CHANGELOG.md",
-                        "package.json",
-                        "package-lock.json",
-                        "infrastructure/charts/mediator/Chart.yaml",
-                        "infrastructure/charts/index.yaml",
-                        "infrastructure/charts/*.tgz"
-                    ],
-                    "message": "chore(release): cut mediator ${nextRelease.version} release\n\n${nextRelease.notes}"
-                }
-            ],
-            [
-                "semantic-release-slack-bot",
-                {
-                    "notifyOnSuccess": true,
-                    "notifyOnFail": true,
-                    "markdownReleaseNotes": true,
-                    "onSuccessTemplate": {
-                        "text": "A new version of Identus Mediator successfully released!\nVersion: `$npm_package_version`\nTag: $repo_url/releases/tag/$npm_package_version\n\nRelease notes:\n$release_notes"
-                    }
-                }
-            ]
-        ]
+        "prettier": "^3.3.2",
+        "semantic-release": "^24.0.0",
+        "semantic-release-slack-bot": "^4.0.2"
     }
 }
