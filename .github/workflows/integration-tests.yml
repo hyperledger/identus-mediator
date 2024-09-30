@@ -92,7 +92,7 @@ jobs:
           ./gradlew reports
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: e2e-tests-result
           path: ${{ env.REPORTS_DIR }}
