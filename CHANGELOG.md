@@ -1,3 +1,24 @@
+# [1.0.0](https://github.com/hyperledger/identus-mediator/compare/v0.15.0...v1.0.0) (2024-10-02)
+
+
+### Bug Fixes
+
+* add env vars for SERVICE_ENDPOINTS ([#335](https://github.com/hyperledger/identus-mediator/issues/335)) ([f2b078a](https://github.com/hyperledger/identus-mediator/commit/f2b078aa3b58fddc7f85af9e1d46503680263761))
+* rename repo link to hyperledger/identus-mediator ([#331](https://github.com/hyperledger/identus-mediator/issues/331)) ([69f0124](https://github.com/hyperledger/identus-mediator/commit/69f012453fe29d7c1da6846b4137f187dfe4e8ac))
+* wrong mediator repository in docker compose ([#334](https://github.com/hyperledger/identus-mediator/issues/334)) ([a43fe38](https://github.com/hyperledger/identus-mediator/commit/a43fe38ddbcf5d75fcade7f62d416ef3f752cf0a))
+
+
+### chore
+
+* Mediator Version 1.0.0 ([#354](https://github.com/hyperledger/identus-mediator/issues/354)) ([af65517](https://github.com/hyperledger/identus-mediator/commit/af65517c1337e540d0a92d1f758c8ce9fe3ebe67))
+
+
+### BREAKING CHANGES
+
+* Mediator Version 1.0.0
+
+Signed-off-by: FabioPinheiro <fabiomgpinheiro@gmail.com>
+
 # 0.15.0 (2024-07-10)
 
 
