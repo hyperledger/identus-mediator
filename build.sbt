@@ -4,6 +4,7 @@ resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 inThisBuild(
   Seq(
     scalaVersion := "3.3.3", // Also update docs/publishWebsite.sh and any ref to scala-3.3.3
+    versionScheme := Some("semver-spec"), // https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme
   )
 )
 
@@ -172,7 +173,7 @@ lazy val scalaJSBundlerConfigure: Project => Project =
       // Compile / fullOptJS / webpackExtraArgs += "--mode=production",
       Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
       Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production",
-      useYarn := true
+      // useYarn := true
     )
 
 lazy val buildInfoConfigure: Project => Project = _.enablePlugins(BuildInfoPlugin)
@@ -286,10 +287,10 @@ lazy val webapp = project
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations.*
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
-  inquireVersions,
+  // inquireVersions,
   runClean,
   runTest,
-  setReleaseVersion,
+  // setReleaseVersion,
   ReleaseStep(releaseStepTask(mediator / Docker / stage)),
-  setNextVersion
+  // setNextVersion
 )
