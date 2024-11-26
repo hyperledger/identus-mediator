@@ -287,10 +287,10 @@ lazy val webapp = project
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations.*
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
-  // inquireVersions,
+  inquireVersions,
   runClean,
   runTest,
-  // setReleaseVersion,
+  setReleaseVersion,
   ReleaseStep(releaseStepTask(mediator / Docker / stage)),
-  // setNextVersion
+  setNextVersion
 )
