@@ -3,8 +3,21 @@ name: Release to Docker Hub
 # updated: 2024/11/25
 # How to test:
 # > git tag v9.9.9
-# > act --artifact-server-path /tmp/artifacts -s GITHUB_TOKEN="$(gh auth token)" --var DOCKERHUB_FMGP_USERNAME=$DOCKERHUB_FMGP_USERNAME -s DOCKERHUB_FMGP_TOKEN=$DOCKERHUB_FMGP_TOKEN --var DOCKERHUB_IDENTUS_USERNAME=$DOCKERHUB_IDENTUS_USERNAME -s DOCKERHUB_IDENTUS_TOKEN=$DOCKERHUB_IDENTUS_TOKEN -j build-and-push-docker-images schedule
 # > git tag --delete v9.9.9
+# > act --artifact-server-path /tmp/artifacts -s GITHUB_TOKEN="$(gh auth token)" --var DOCKERHUB_FMGP_USERNAME=$DOCKERHUB_FMGP_USERNAME -s DOCKERHUB_FMGP_TOKEN=$DOCKERHUB_FMGP_TOKEN --var DOCKERHUB_IDENTUS_USERNAME=$DOCKERHUB_IDENTUS_USERNAME -s DOCKERHUB_IDENTUS_TOKEN=$DOCKERHUB_IDENTUS_TOKEN -j build-and-push-docker-images schedule
+# > act --artifact-server-path /tmp/artifacts -s GITHUB_TOKEN="$(gh auth token)" --var DOCKERHUB_FMGP_USERNAME=$DOCKERHUB_FMGP_USERNAME -s DOCKERHUB_FMGP_TOKEN=$DOCKERHUB_FMGP_TOKEN --var DOCKERHUB_IDENTUS_USERNAME=$DOCKERHUB_IDENTUS_USERNAME -s DOCKERHUB_IDENTUS_TOKEN=$DOCKERHUB_IDENTUS_TOKEN --workflows '.github/workflows/release-docker-hub.yml' push
+# > act --artifact-server-path /tmp/artifacts -s GITHUB_TOKEN="$(gh auth token)" \
+#     --var DOCKERHUB_FMGP_USERNAME=$DOCKERHUB_FMGP_USERNAME -s DOCKERHUB_FMGP_TOKEN=$DOCKERHUB_FMGP_TOKEN \
+#     --var DOCKERHUB_IDENTUS_USERNAME=$DOCKERHUB_IDENTUS_USERNAME -s DOCKERHUB_IDENTUS_TOKEN=$DOCKERHUB_IDENTUS_TOKEN \
+#     workflow_dispatch --workflows '.github/workflows/release-docker-hub.yml' --eventpath \
+#     <( jq -n '{ inputs: { DEPLOYMENT_BRANCH: "v1.0.0" } }' )
+
+# How to push old images from another repo:
+# > docker login docker.io -u fmgp -p $DOCKERHUB_FMGP_TOKEN
+# > docker login docker.io -u identus -p $DOCKERHUB_IDENTUS_TOKEN
+# > OLD_TAG=ghcr.io/hyperledger/identus-mediator:1.0.0; NEW_TAG=docker.io/identus/identus-mediator:1.0.0; docker buildx imagetools create --tag "$NEW_TAG" "$OLD_TAG"
+
+
 
 concurrency:
   group: release
@@ -16,6 +29,8 @@ on:
   push:
     tags:
       - v*
+    branches:
+      - 'main'
 
 permissions:
   contents: read
@@ -46,6 +61,9 @@ jobs:
         with:
           node-version: "lts/*"
 
+      - name: Setup Scala.JS
+        uses: japgolly/setup-scalajs@v1
+
       - name: Build Binaries
         env:
           NODE_OPTIONS: --openssl-legacy-provider
@@ -56,8 +74,7 @@ jobs:
         with:
           name: docker-directory-artifact
           path: ./mediator/target/docker/stage
-
-
+ 
   build-and-push-docker-images:
     name: Build and Push Docker images
     runs-on: ubuntu-latest
@@ -73,8 +90,9 @@ jobs:
             password_name: DOCKERHUB_IDENTUS_TOKEN
             tags_noschedule: |
              type=semver,pattern={{version}}
-             type=raw,value=latest,enable={{is_default_branch}}
-            # type=raw,value=${{needs.pick-build-version.outputs.build_version}}
+             type=sha,format=long
+             type=edge,branch=main
+             type=raw,value=latest,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
             tags_schedule: |
              type=schedule,pattern=nightly,enable={{is_default_branch}}
           - # fmgp # My presonal acount also for testing
@@ -94,11 +112,8 @@ jobs:
          echo "META_CONFIG<<EOF" >> $GITHUB_ENV
          if [ ${{ github.event_name }} == 'schedule' ]; then
            echo "${{matrix.docker.tags_schedule}}" >> $GITHUB_ENV;
-           # type=semver,pattern={{version}}
-           # type=sha,prefix={{branch}}-
          else
            echo "${{matrix.docker.tags_noschedule}}" >> $GITHUB_ENV;
-           # type=schedule,pattern={{date 'YYYYMMDD'}}
          fi
          echo "EOF" >> $GITHUB_ENV
 
