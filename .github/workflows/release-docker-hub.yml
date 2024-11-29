@@ -128,9 +128,7 @@ jobs:
           echo "#### JOB INFO ####"
           echo "##################"
           echo "### github.event_name=${{github.event_name}}
-          echo "### env.META_CONFIG: ${{ env.META_CONFIG }}"
           echo "### TAGS: is steps.meta.outputs.tags == to ''? ${{ steps.meta.outputs.tags == '' }}"
-          echo "${{ steps.meta.outputs.tags }}"
           echo "### runner: ${{ toJSON(runner) }}"
           echo "### github: ${{ toJSON(github) }}"
 
