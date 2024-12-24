@@ -260,7 +260,7 @@ Signed-off-by: FabioPinheiro <fabiomgpinheiro@gmail.com>
 
 ### Bug Fixes
 
-* alias list is empty in new acounts by default ([#87](https://github.com/input-output-hk/atala-prism-mediator/issues/87)) ([39484e6](https://github.com/input-output-hk/atala-prism-mediator/commit/39484e68b87bf2c20570c271b9ee8fd447471b9f))
+* alias list is empty in new accounts by default ([#87](https://github.com/input-output-hk/atala-prism-mediator/issues/87)) ([39484e6](https://github.com/input-output-hk/atala-prism-mediator/commit/39484e68b87bf2c20570c271b9ee8fd447471b9f))
 
 ## [0.8.1](https://github.com/input-output-hk/atala-prism-mediator/compare/prism-mediator-v0.8.0...prism-mediator-v0.8.1) (2023-08-18)
 
